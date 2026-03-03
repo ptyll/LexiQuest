@@ -1,0 +1,228 @@
+@page "/game"
+@page "/game/{SessionId:guid}"
+@using LexiQuest.Blazor.Components.Game
+@using LexiQuest.Blazor.Services
+@using LexiQuest.Shared.DTOs.Game
+@using LexiQuest.Shared.Enums
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<Game> L
+@inject IGameService GameService
+@inject NavigationManager Navigation
+
+<div class="game-page">
+    @if (IsLoading)
+    {
+        <div class="loading-state">
+            <div class="spinner"></div>
+            <p>@L["Loading"]</p>
+        </div>
+    }
+    else if (ErrorMessage != null)
+    {
+        <div class="error-state">
+            <p class="error-message">@ErrorMessage</p>
+            <button class="btn-retry" @onclick="StartNewGame">@L["Retry"]</button>
+        </div>
+    }
+    else if (CurrentState != null)
+    {
+        <GameArena 
+            SessionId="CurrentState.SessionId"
+            ScrambledWord="CurrentState.ScrambledWord"
+            CurrentRound="CurrentState.RoundNumber"
+            TotalRounds="CurrentState.TotalRounds"
+            ComboCount="ComboCount"
+            LivesRemaining="CurrentState.LivesRemaining"
+            OnSubmitAnswer="HandleSubmitAnswer"
+            OnSkipRound="HandleSkipRound"
+            OnBack="HandleBack"
+            OnLevelComplete="HandleLevelComplete"
+            @ref="GameArenaRef" />
+
+        <GameTimer 
+            TotalSeconds="CurrentState.TimeLimitSeconds"
+            RemainingSeconds="RemainingSeconds"
+            OnTimeUp="HandleTimeUp"
+            IsPaused="IsPaused" />
+    }
+    else
+    {
+        <div class="start-screen">
+            <h1>@L["Welcome"]</h1>
+            <p>@L["SelectMode"]</p>
+            
+            <div class="mode-buttons">
+                <button class="btn-mode" @onclick="() => StartGame(GameMode.Training)">
+                    @L["Mode_Training"]
+                </button>
+                <button class="btn-mode" @onclick="() => StartGame(GameMode.TimeAttack)">
+                    @L["Mode_TimeAttack"]
+                </button>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public Guid? SessionId { get; set; }
+
+    private ScrambledWordDto? CurrentState { get; set; }
+    private GameArena? GameArenaRef { get; set; }
+    private bool IsLoading { get; set; } = false;
+    private string? ErrorMessage { get; set; }
+    private int ComboCount { get; set; } = 0;
+    private int TotalXP { get; set; } = 0;
+    private int RemainingSeconds { get; set; } = 30;
+    private bool IsPaused { get; set; } = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (SessionId.HasValue)
+        {
+            await LoadGameState(SessionId.Value);
+        }
+    }
+
+    private async Task StartGame(GameMode mode)
+    {
+        IsLoading = true;
+        ErrorMessage = null;
+        StateHasChanged();
+
+        try
+        {
+            var request = new StartGameRequest(Mode: mode, Difficulty: DifficultyLevel.Beginner);
+            var result = await GameService.StartGameAsync(request);
+
+            if (result != null)
+            {
+                CurrentState = result;
+                RemainingSeconds = result.TimeLimitSeconds;
+                ComboCount = 0;
+                TotalXP = 0;
+                Navigation.NavigateTo($"/game/{result.SessionId}");
+            }
+            else
+            {
+                ErrorMessage = L["Error_StartingGame"];
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = L["Error_StartingGame"];
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    private async Task LoadGameState(Guid sessionId)
+    {
+        IsLoading = true;
+        StateHasChanged();
+
+        try
+        {
+            var result = await GameService.GetGameStateAsync(sessionId);
+            if (result != null)
+            {
+                CurrentState = result;
+                RemainingSeconds = result.TimeLimitSeconds;
+            }
+            else
+            {
+                ErrorMessage = L["Error_GameNotFound"];
+            }
+        }
+        catch (Exception)
+        {
+            ErrorMessage = L["Error_LoadingGame"];
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    private async Task HandleSubmitAnswer(string answer)
+    {
+        if (CurrentState == null) return;
+
+        var timeSpent = (CurrentState.TimeLimitSeconds - RemainingSeconds) * 1000;
+        
+        var result = await GameService.SubmitAnswerAsync(
+            CurrentState.SessionId, 
+            answer, 
+            timeSpent);
+
+        if (result != null)
+        {
+            TotalXP += result.XPEarned;
+            ComboCount = result.ComboCount;
+
+            if (GameArenaRef != null)
+            {
+                await GameArenaRef.ShowResult(result, TotalXP);
+            }
+
+            if (result.IsLevelComplete)
+            {
+                // Game completed - handled by GameArena overlay
+            }
+            else if (result.NextScrambledWord != null && result.NextRoundNumber.HasValue)
+            {
+                // Move to next round
+                await Task.Delay(1500); // Short delay to show feedback
+                CurrentState = CurrentState with 
+                { 
+                    ScrambledWord = result.NextScrambledWord,
+                    RoundNumber = result.NextRoundNumber.Value
+                };
+                RemainingSeconds = CurrentState.TimeLimitSeconds;
+                
+                if (GameArenaRef != null)
+                {
+                    await GameArenaRef.UpdateScrambledWord(
+                        result.NextScrambledWord, 
+                        result.NextRoundNumber.Value);
+                }
+            }
+        }
+    }
+
+    private async Task HandleSkipRound()
+    {
+        // Forfeit current round - treat as wrong answer
+        if (CurrentState == null) return;
+        
+        await HandleSubmitAnswer(""); // Submit empty answer
+    }
+
+    private void HandleBack()
+    {
+        Navigation.NavigateTo("/dashboard");
+    }
+
+    private async Task HandleLevelComplete()
+    {
+        Navigation.NavigateTo("/dashboard");
+    }
+
+    private async Task HandleTimeUp()
+    {
+        if (CurrentState == null) return;
+        
+        // Time's up - submit empty answer
+        await HandleSubmitAnswer("");
+    }
+
+    private void StartNewGame()
+    {
+        CurrentState = null;
+        ErrorMessage = null;
+        ComboCount = 0;
+        TotalXP = 0;
+        Navigation.NavigateTo("/game");
+    }
+}

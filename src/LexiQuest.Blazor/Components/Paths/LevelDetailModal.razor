@@ -1,0 +1,85 @@
+@using LexiQuest.Shared.DTOs.Game
+@inject IStringLocalizer<LevelDetailModal> L
+@inject NavigationManager NavigationManager
+
+@if (IsVisible)
+{
+    <div class="modal-overlay" @onclick="Close">
+        <div class="modal-content" @onclick:stopPropagation>
+            <div class="modal-header">
+                <h3>@L["Title"] - @Level?.LevelNumber</h3>
+                <button class="btn-close" @onclick="Close">×</button>
+            </div>
+            
+            <div class="modal-body">
+                @if (Level != null)
+                {
+                    <div class="level-info">
+                        <div class="info-row">
+                            <span class="info-label">@L["Label.Status"]:</span>
+                            <span class="info-value @GetStatusClass()">@Level.Status</span>
+                        </div>
+                        
+                        @if (Level.IsBoss)
+                        {
+                            <div class="boss-badge">👑 @L["Label.Boss"]</div>
+                        }
+
+                        <div class="level-preview">
+                            <p>@L["Preview.Text"]</p>
+                        </div>
+                    </div>
+                }
+            </div>
+            
+            <div class="modal-footer">
+                <button class="btn btn-secondary" @onclick="Close">@L["Button.Close"]</button>
+                @if (Level?.Status != "Locked")
+                {
+                    <button class="btn btn-primary" @onclick="StartLevel">
+                        @L["Button.Start"]
+                    </button>
+                }
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public bool IsVisible { get; set; }
+
+    [Parameter]
+    public PathLevelDto? Level { get; set; }
+
+    [Parameter]
+    public Guid PathId { get; set; }
+
+    [Parameter]
+    public EventCallback OnClose { get; set; }
+
+    private string GetStatusClass()
+    {
+        return Level?.Status.ToLower() switch
+        {
+            "completed" => "status-completed",
+            "perfect" => "status-perfect",
+            "current" => "status-current",
+            "locked" => "status-locked",
+            _ => ""
+        };
+    }
+
+    private async Task Close()
+    {
+        await OnClose.InvokeAsync();
+    }
+
+    private void StartLevel()
+    {
+        if (Level != null)
+        {
+            NavigationManager.NavigateTo($"/game?pathId={PathId}&levelId={Level.Id}");
+        }
+    }
+}

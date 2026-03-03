@@ -1,6 +1,7 @@
 using FluentAssertions;
 using LexiQuest.Core.Domain.Entities;
-using LexiQuest.Core.Domain.Enums;
+using LexiQuest.Shared.Enums;
+using LexiQuest.Shared.DTOs.Game;
 
 namespace LexiQuest.Core.Tests.Domain;
 
@@ -11,7 +12,7 @@ public class GameSessionTests
     {
         var userId = Guid.NewGuid();
 
-        var session = GameSession.Create(userId, GameMode.Training);
+        var session = GameSession.Create(userId, GameMode.Training, DifficultyLevel.Beginner, 10, 3);
 
         session.Id.Should().NotBe(Guid.Empty);
         session.UserId.Should().Be(userId);
@@ -28,14 +29,14 @@ public class GameSessionTests
     [Fact]
     public void AddRound_AddsToRoundsList()
     {
-        var session = GameSession.Create(Guid.NewGuid(), GameMode.Training);
+        var session = GameSession.Create(Guid.NewGuid(), GameMode.Training, DifficultyLevel.Beginner, 10, 3);
         var wordId = Guid.NewGuid();
 
         session.AddRound(wordId, "lbkjao");
 
         session.Rounds.Should().HaveCount(1);
         session.Rounds[0].WordId.Should().Be(wordId);
-        session.Rounds[0].Scrambled.Should().Be("lbkjao");
+        session.Rounds[0].ScrambledWord.Should().Be("lbkjao");
         session.Rounds[0].IsCorrect.Should().BeFalse();
     }
 }

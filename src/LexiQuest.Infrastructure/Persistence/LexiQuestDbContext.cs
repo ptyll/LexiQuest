@@ -12,6 +12,8 @@ public class LexiQuestDbContext : DbContext
     public DbSet<GameSession> GameSessions => Set<GameSession>();
     public DbSet<GameRound> GameRounds => Set<GameRound>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+    public DbSet<LearningPath> LearningPaths => Set<LearningPath>();
+    public DbSet<PathLevel> PathLevels => Set<PathLevel>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

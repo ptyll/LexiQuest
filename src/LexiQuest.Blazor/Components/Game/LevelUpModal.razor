@@ -1,0 +1,44 @@
+@using LexiQuest.Shared.DTOs.Game
+@inject IStringLocalizer<LevelUpModal> L
+
+@if (IsVisible && XpEvent?.LeveledUp == true)
+{
+    <div class="levelup-modal-overlay">
+        <div class="levelup-modal">
+            <h2 class="levelup-title">@L["Title"]</h2>
+            
+            <div class="levelup-level">
+                @L["NewLevel", XpEvent.NewLevel]
+            </div>
+            
+            @if (XpEvent.Unlocks?.Any() == true)
+            {
+                <div class="levelup-unlocks">
+                    <h3>@L["Unlocks.Title"]</h3>
+                    @foreach (var unlock in XpEvent.Unlocks)
+                    {
+                        <div class="unlock-item">
+                            <span class="unlock-name">@unlock.Name</span>
+                            <span class="unlock-description">@unlock.Description</span>
+                        </div>
+                    }
+                </div>
+            }
+            
+            <button class="levelup-continue-btn" @onclick="OnContinue">
+                @L["Continue"]
+            </button>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public XPGainedEvent? XpEvent { get; set; }
+    
+    [Parameter]
+    public bool IsVisible { get; set; }
+    
+    [Parameter]
+    public EventCallback OnContinue { get; set; }
+}

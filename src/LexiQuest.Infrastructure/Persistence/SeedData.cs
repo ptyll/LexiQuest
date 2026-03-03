@@ -1,5 +1,5 @@
 using LexiQuest.Core.Domain.Entities;
-using LexiQuest.Core.Domain.Enums;
+using LexiQuest.Shared.Enums;
 
 namespace LexiQuest.Infrastructure.Persistence;
 

@@ -11,13 +11,18 @@ public class GameRoundConfiguration : IEntityTypeConfiguration<GameRound>
         builder.ToTable("GameRounds");
         builder.HasKey(gr => gr.Id);
 
-        builder.Property(gr => gr.Scrambled)
+        builder.Property(gr => gr.ScrambledWord)
+            .IsRequired()
+            .HasMaxLength(100);
+
+        builder.Property(gr => gr.CorrectAnswer)
             .IsRequired()
             .HasMaxLength(100);
 
         builder.Property(gr => gr.UserAnswer)
             .HasMaxLength(100);
 
-        builder.HasIndex(gr => gr.GameSessionId);
+        builder.HasIndex(gr => gr.SessionId);
+        builder.HasIndex(gr => gr.RoundNumber);
     }
 }

@@ -1,6 +1,6 @@
 using FluentAssertions;
 using LexiQuest.Core.Domain.Entities;
-using LexiQuest.Core.Domain.Enums;
+using LexiQuest.Shared.Enums;
 
 namespace LexiQuest.Core.Tests.Domain;
 

@@ -1,0 +1,135 @@
+@page "/paths"
+@using LexiQuest.Blazor.Services
+@using LexiQuest.Shared.DTOs.Game
+@using LexiQuest.Shared.Enums
+@inject IPathService PathService
+@inject IStringLocalizer<Paths> L
+@inject NavigationManager NavigationManager
+
+<div class="paths-container">
+    <div class="paths-header">
+        <h1 class="paths-title">@L["Title"]</h1>
+        <p class="paths-subtitle">@L["Subtitle"]</p>
+    </div>
+
+    @if (isLoading)
+    {
+        <div class="paths-loading">
+            <div class="spinner"></div>
+            <p>Loading...</p>
+        </div>
+    }
+    else if (paths != null)
+    {
+        <div class="paths-grid">
+            @foreach (var path in paths)
+            {
+                <div class="path-card @GetPathCssClass(path.Difficulty) @(path.IsUnlocked ? "" : "locked")">
+                    <div class="path-header">
+                        <span class="path-icon">@GetPathIcon(path.Difficulty)</span>
+                        <h3 class="path-name">@path.Name</h3>
+                        @if (!path.IsUnlocked)
+                        {
+                            <span class="path-lock">🔒 @L["Status.Locked"]</span>
+                        }
+                    </div>
+                    
+                    <p class="path-description">@path.Description</p>
+                    
+                    <div class="path-stats">
+                        <span>@path.TotalLevels @L["Levels"]</span>
+                        <span class="path-difficulty">@GetDifficultyLabel(path.Difficulty)</span>
+                    </div>
+
+                    @if (path.IsUnlocked)
+                    {
+                        <div class="path-progress">
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: @(path.ProgressPercentage)%"></div>
+                            </div>
+                            <span class="progress-text">@string.Format(L["Progress.Label"], path.ProgressPercentage)</span>
+                        </div>
+                        
+                        <button class="btn btn-primary" @onclick="() => SelectPath(path.Id)">
+                            @(path.CompletedLevels > 0 ? L["Button.Continue"] : L["Button.Start"])
+                        </button>
+                    }
+                    else
+                    {
+                        <div class="path-requirements">
+                            <span>@L["Status.Locked"]</span>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private List<LearningPathDto>? paths;
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadPathsAsync();
+    }
+
+    private async Task LoadPathsAsync()
+    {
+        isLoading = true;
+        try
+        {
+            paths = await PathService.GetPathsAsync();
+        }
+        catch
+        {
+            // Handle error
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void SelectPath(Guid pathId)
+    {
+        NavigationManager.NavigateTo($"/paths/{pathId}");
+    }
+
+    private string GetPathCssClass(DifficultyLevel difficulty)
+    {
+        return difficulty switch
+        {
+            DifficultyLevel.Beginner => "path-beginner",
+            DifficultyLevel.Intermediate => "path-intermediate",
+            DifficultyLevel.Advanced => "path-advanced",
+            DifficultyLevel.Expert => "path-expert",
+            _ => ""
+        };
+    }
+
+    private string GetPathIcon(DifficultyLevel difficulty)
+    {
+        return difficulty switch
+        {
+            DifficultyLevel.Beginner => "🌱",
+            DifficultyLevel.Intermediate => "🌿",
+            DifficultyLevel.Advanced => "🌳",
+            DifficultyLevel.Expert => "🔥",
+            _ => "📚"
+        };
+    }
+
+    private string GetDifficultyLabel(DifficultyLevel difficulty)
+    {
+        return difficulty switch
+        {
+            DifficultyLevel.Beginner => "Easy",
+            DifficultyLevel.Intermediate => "Medium",
+            DifficultyLevel.Advanced => "Hard",
+            DifficultyLevel.Expert => "Expert",
+            _ => "Unknown"
+        };
+    }
+}

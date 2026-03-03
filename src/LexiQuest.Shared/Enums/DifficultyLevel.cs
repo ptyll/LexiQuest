@@ -1,5 +1,8 @@
-namespace LexiQuest.Core.Domain.Enums;
+namespace LexiQuest.Shared.Enums;
 
+/// <summary>
+/// Word difficulty levels.
+/// </summary>
 public enum DifficultyLevel
 {
     Beginner = 0,

@@ -1,0 +1,51 @@
+@using LexiQuest.Shared.DTOs.Game
+@inject IStringLocalizer<LivesIndicator> L
+
+<div class="lives-indicator">
+    <span class="lives-label">@L["Lives.Label"]</span>
+    
+    @if (Lives?.IsInfinite == true)
+    {
+        <span class="lives-infinite">∞</span>
+    }
+    else
+    {
+        <div class="lives-hearts">
+            @for (int i = 0; i < (Lives?.Max ?? 0); i++)
+            {
+                var isFilled = i < (Lives?.Current ?? 0);
+                <span class="lives-heart @(isFilled ? "filled" : "empty")">
+                    @if (isFilled)
+                    {
+                        <span>♥</span>
+                    }
+                    else
+                    {
+                        <span>♡</span>
+                    }
+                </span>
+            }
+        </div>
+        
+        @if (Lives?.NextRegenAt != null && Lives.Current < Lives.Max)
+        {
+            <span class="lives-regen-timer">
+                @L["Tooltip.RegenIn"] @GetTimeRemaining(Lives.NextRegenAt.Value)
+            </span>
+        }
+    }
+</div>
+
+@code {
+    [Parameter]
+    public LivesStatus? Lives { get; set; }
+
+    private string GetTimeRemaining(DateTime nextRegenAt)
+    {
+        var remaining = nextRegenAt - DateTime.UtcNow;
+        if (remaining.TotalSeconds <= 0)
+            return "00:00";
+        
+        return $"{remaining.Minutes:D2}:{remaining.Seconds:D2}";
+    }
+}

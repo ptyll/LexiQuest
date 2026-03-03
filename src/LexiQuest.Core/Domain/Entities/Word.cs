@@ -1,4 +1,4 @@
-using LexiQuest.Core.Domain.Enums;
+using LexiQuest.Shared.Enums;
 
 namespace LexiQuest.Core.Domain.Entities;
 

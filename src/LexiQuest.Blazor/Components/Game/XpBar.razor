@@ -1,0 +1,22 @@
+@using LexiQuest.Shared.DTOs.Game
+@inject IStringLocalizer<XpBar> L
+
+<div class="xp-bar">
+    <div class="xp-level-badge">
+        <span class="xp-level">@L["Level", Progress?.CurrentLevel ?? 1]</span>
+    </div>
+    
+    <div class="xp-progress-container">
+        <div class="xp-progress-track">
+            <div class="xp-progress-fill" style="width: @(Progress?.ProgressPercentage ?? 0)%"></div>
+        </div>
+        <span class="xp-text">
+            @L["XP.Current", Progress?.XPInCurrentLevel ?? 0, Progress?.XPRequiredForNextLevel ?? 0]
+        </span>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public XPProgress? Progress { get; set; }
+}

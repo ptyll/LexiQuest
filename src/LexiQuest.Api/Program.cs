@@ -1,131 +1,189 @@
 using System.Text;
+using FluentValidation;
+using FluentValidation.AspNetCore;
+using LexiQuest.Api.Endpoints;
+using LexiQuest.Core.Domain.Entities;
 using LexiQuest.Core.Interfaces;
+using LexiQuest.Core.Interfaces.Repositories;
+using LexiQuest.Core.Interfaces.Services;
+using LexiQuest.Core.Services;
+using LexiQuest.Core.Validators;
+using LexiQuest.Infrastructure.Services;
 using LexiQuest.Infrastructure.Auth;
 using LexiQuest.Infrastructure.Persistence;
+using LexiQuest.Infrastructure.Persistence.Repositories;
 using LexiQuest.Shared.DTOs.Auth;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
+using Serilog.Extensions.Hosting;
 
-Log.Logger = new LoggerConfiguration()
-    .WriteTo.Console()
-    .CreateBootstrapLogger();
+namespace LexiQuest.Api;
 
-try
+public class Program
 {
-    var builder = WebApplication.CreateBuilder(args);
-
-    // Serilog
-    builder.Host.UseSerilog((context, services, configuration) => configuration
-        .ReadFrom.Configuration(context.Configuration)
-        .ReadFrom.Services(services)
-        .Enrich.FromLogContext()
-        .WriteTo.Console()
-        .WriteTo.File("logs/lexiquest-.log", rollingInterval: RollingInterval.Day, retainedFileCountLimit: 7));
-
-    // Database
-    builder.Services.AddDbContext<LexiQuestDbContext>(options =>
-        options.UseSqlServer(
-            builder.Configuration.GetConnectionString("DefaultConnection"),
-            sqlOptions =>
-            {
-                sqlOptions.EnableRetryOnFailure(
-                    maxRetryCount: 5,
-                    maxRetryDelay: TimeSpan.FromSeconds(30),
-                    errorNumbersToAdd: null);
-            }));
-
-    // Unit of Work
-    builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-
-    // JWT Settings
-    var jwtSettings = builder.Configuration.GetSection("JwtSettings");
-    builder.Services.Configure<JwtSettings>(jwtSettings);
-    builder.Services.AddScoped<ITokenService, TokenService>();
-
-    // Authentication
-    var secretKey = jwtSettings.GetValue<string>("SecretKey")
-                    ?? throw new InvalidOperationException("JWT SecretKey is not configured.");
-    builder.Services.AddAuthentication(options =>
+    public static void Main(string[] args)
     {
-        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-    })
-    .AddJwtBearer(options =>
-    {
-        options.TokenValidationParameters = new TokenValidationParameters
+        Log.Logger = new LoggerConfiguration()
+            .WriteTo.Console()
+            .CreateBootstrapLogger();
+
+        try
         {
-            ValidateIssuer = true,
-            ValidIssuer = jwtSettings.GetValue<string>("Issuer"),
-            ValidateAudience = true,
-            ValidAudience = jwtSettings.GetValue<string>("Audience"),
-            ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey)),
-            ValidateLifetime = true,
-            ClockSkew = TimeSpan.Zero
-        };
-    });
+            var builder = WebApplication.CreateBuilder(args);
+            
+            ConfigureServices(builder.Services, builder.Configuration, builder.Environment);
 
-    builder.Services.AddAuthorization();
+            var app = builder.Build();
+            
+            ConfigureMiddleware(app, app.Environment);
 
-    // Localization
-    builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
-
-    // CORS
-    builder.Services.AddCors(options =>
-    {
-        options.AddPolicy("BlazorClient", policy =>
+            Log.Information("LexiQuest API starting...");
+            app.Run();
+        }
+        catch (Exception ex)
         {
-            policy.WithOrigins(
-                    builder.Configuration.GetValue<string>("BlazorClient:Url") ?? "https://localhost:5001")
-                .AllowAnyHeader()
-                .AllowAnyMethod()
-                .AllowCredentials();
-        });
-    });
-
-    // Controllers
-    builder.Services.AddControllers();
-
-    // Swagger/OpenAPI
-    builder.Services.AddEndpointsApiExplorer();
-    builder.Services.AddSwaggerGen();
-
-    // Memory Cache
-    builder.Services.AddMemoryCache();
-    builder.Services.AddSingleton<ICacheService, LexiQuest.Infrastructure.Caching.MemoryCacheService>();
-
-    // Health Checks
-    builder.Services.AddHealthChecks();
-
-    var app = builder.Build();
-
-    // Configure the HTTP request pipeline
-    if (app.Environment.IsDevelopment())
-    {
-        app.UseSwagger();
-        app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "LexiQuest API v1"));
+            Log.Fatal(ex, "Application terminated unexpectedly");
+            throw;
+        }
+        finally
+        {
+            Log.CloseAndFlush();
+        }
     }
 
-    app.UseHttpsRedirection();
-    app.UseCors("BlazorClient");
-    app.UseSerilogRequestLogging();
+    public static void ConfigureServices(IServiceCollection services, IConfiguration configuration, IWebHostEnvironment environment)
+    {
+        // Serilog
+        services.AddSingleton<DiagnosticContext>(new DiagnosticContext(Log.Logger));
+        services.AddHttpContextAccessor();
+        services.AddLogging(loggingBuilder =>
+        {
+            loggingBuilder.AddSerilog(new LoggerConfiguration()
+                .ReadFrom.Configuration(configuration)
+                .Enrich.FromLogContext()
+                .WriteTo.Console()
+                .WriteTo.File("logs/lexiquest-.log", rollingInterval: RollingInterval.Day, retainedFileCountLimit: 7)
+                .CreateLogger(), dispose: true);
+        });
 
-    app.UseAuthentication();
-    app.UseAuthorization();
+        // Database - skip registration in test environment (will be configured by test)
+        if (!environment.EnvironmentName.Equals("Test", StringComparison.OrdinalIgnoreCase))
+        {
+            services.AddDbContext<LexiQuestDbContext>(options =>
+                options.UseSqlServer(
+                    configuration.GetConnectionString("DefaultConnection"),
+                    sqlOptions =>
+                    {
+                        sqlOptions.EnableRetryOnFailure(
+                            maxRetryCount: 5,
+                            maxRetryDelay: TimeSpan.FromSeconds(30),
+                            errorNumbersToAdd: null);
+                    }));
+        }
 
-    app.MapControllers();
-    app.MapHealthChecks("/health");
+        // Unit of Work
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
 
-    Log.Information("LexiQuest API starting...");
-    app.Run();
-}
-catch (Exception ex)
-{
-    Log.Fatal(ex, "Application terminated unexpectedly");
-}
-finally
-{
-    Log.CloseAndFlush();
+        // Repositories
+        services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IWordRepository, WordRepository>();
+
+        // Services
+        services.AddScoped<IUserService, UserService>();
+        services.AddScoped<ILoginService, LoginService>();
+        services.AddScoped<IGameSessionService, GameSessionService>();
+        services.AddScoped<IXpCalculator, XpCalculator>();
+
+        // Password Hasher
+        services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
+
+        // FluentValidation
+        services.AddFluentValidationAutoValidation();
+        services.AddFluentValidationClientsideAdapters();
+        services.AddValidatorsFromAssemblyContaining<RegisterRequestValidator>();
+
+        // JWT Settings
+        var jwtSettings = configuration.GetSection("JwtSettings");
+        services.Configure<JwtSettings>(jwtSettings);
+        services.AddScoped<ITokenService, TokenService>();
+
+        // Authentication
+        var secretKey = jwtSettings.GetValue<string>("SecretKey")
+                        ?? throw new InvalidOperationException("JWT SecretKey is not configured.");
+        services.AddAuthentication(options =>
+        {
+            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+        })
+        .AddJwtBearer(options =>
+        {
+            options.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidIssuer = jwtSettings.GetValue<string>("Issuer"),
+                ValidateAudience = true,
+                ValidAudience = jwtSettings.GetValue<string>("Audience"),
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey)),
+                ValidateLifetime = true,
+                ClockSkew = TimeSpan.Zero
+            };
+        });
+
+        services.AddAuthorization();
+
+        // Localization
+        services.AddLocalization(options => options.ResourcesPath = "Resources");
+
+        // CORS
+        services.AddCors(options =>
+        {
+            options.AddPolicy("BlazorClient", policy =>
+            {
+                policy.WithOrigins(
+                        configuration.GetValue<string>("BlazorClient:Url") ?? "https://localhost:5001")
+                    .AllowAnyHeader()
+                    .AllowAnyMethod()
+                    .AllowCredentials();
+            });
+        });
+
+        // Controllers
+        services.AddControllers();
+
+        // Swagger/OpenAPI
+        services.AddEndpointsApiExplorer();
+        services.AddSwaggerGen();
+
+        // Memory Cache
+        services.AddMemoryCache();
+        services.AddSingleton<ICacheService, LexiQuest.Infrastructure.Caching.MemoryCacheService>();
+
+        // Health Checks
+        services.AddHealthChecks();
+    }
+
+    public static void ConfigureMiddleware(WebApplication app, IWebHostEnvironment environment)
+    {
+        // Configure the HTTP request pipeline
+        if (environment.IsDevelopment())
+        {
+            app.UseSwagger();
+            app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "LexiQuest API v1"));
+        }
+
+        app.UseHttpsRedirection();
+        app.UseCors("BlazorClient");
+        app.UseSerilogRequestLogging();
+
+        app.UseAuthentication();
+        app.UseAuthorization();
+
+        app.MapControllers();
+        app.MapGameEndpoints();
+        app.MapHealthChecks("/health");
+    }
 }

@@ -1,22 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
   <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
     <xsd:element name="root" msdata:IsDataSet="true">
       <xsd:complexType>
         <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
           <xsd:element name="data">
             <xsd:complexType>
               <xsd:sequence>
-                <xsd:element name="value" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
               </xsd:sequence>
-              <xsd:attribute name="name" type="xsd:string" msdata:Ordinal="0" />
-              <xsd:attribute name="xml:space" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
             </xsd:complexType>
           </xsd:element>
           <xsd:element name="resheader">
             <xsd:complexType>
               <xsd:sequence>
-                <xsd:element name="value" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
               </xsd:sequence>
               <xsd:attribute name="name" type="xsd:string" use="required" />
             </xsd:complexType>
@@ -25,56 +46,61 @@
       </xsd:complexType>
     </xsd:element>
   </xsd:schema>
-  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
-  <resheader name="version"><value>2.0</value></resheader>
-  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
-  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
   <data name="Title" xml:space="preserve">
-    <value>Registrace</value>
+    <value>Vytvořit účet</value>
   </data>
   <data name="Subtitle" xml:space="preserve">
-    <value>Vytvoř si účet a začni luštit!</value>
+    <value>Začněte svou cestu s LexiQuest</value>
   </data>
   <data name="Input.Email.Label" xml:space="preserve">
     <value>Email</value>
   </data>
   <data name="Input.Email.Placeholder" xml:space="preserve">
-    <value>tvuj@email.cz</value>
+    <value>vas@email.cz</value>
   </data>
   <data name="Input.Username.Label" xml:space="preserve">
     <value>Uživatelské jméno</value>
   </data>
   <data name="Input.Username.Placeholder" xml:space="preserve">
-    <value>LexiHráč123</value>
+    <value>uzivatelske_jmeno</value>
   </data>
   <data name="Input.Password.Label" xml:space="preserve">
     <value>Heslo</value>
   </data>
   <data name="Input.Password.Placeholder" xml:space="preserve">
-    <value>Alespoň 8 znaků</value>
+    <value>Min. 8 znaků, 1 velké písmeno, 1 číslo</value>
   </data>
   <data name="Input.ConfirmPassword.Label" xml:space="preserve">
-    <value>Potvrzení hesla</value>
+    <value>Potvrdit heslo</value>
   </data>
   <data name="Input.ConfirmPassword.Placeholder" xml:space="preserve">
-    <value>Zopakuj heslo</value>
+    <value>Zopakujte heslo</value>
   </data>
-  <data name="Checkbox.Terms" xml:space="preserve">
-    <value>Souhlasím s podmínkami používání</value>
+  <data name="Input.Terms.Label" xml:space="preserve">
+    <value>Souhlasím s podmínkami použití</value>
   </data>
   <data name="Button.Submit" xml:space="preserve">
-    <value>Zaregistrovat se</value>
+    <value>Vytvořit účet</value>
   </data>
   <data name="Button.Google" xml:space="preserve">
-    <value>Registrovat přes Google</value>
+    <value>Pokračovat přes Google</value>
   </data>
-  <data name="Login.Prompt" xml:space="preserve">
-    <value>Už máš účet?</value>
+  <data name="Link.Login.Text" xml:space="preserve">
+    <value>Už máte účet?</value>
   </data>
-  <data name="Login.Link" xml:space="preserve">
-    <value>Přihlas se</value>
-  </data>
-  <data name="Loading.Text" xml:space="preserve">
-    <value>Vytvářím účet...</value>
+  <data name="Link.Login" xml:space="preserve">
+    <value>Přihlásit se</value>
   </data>
 </root>

@@ -1,0 +1,237 @@
+@using LexiQuest.Shared.DTOs.Game
+@using Microsoft.Extensions.Localization
+@using LexiQuest.Blazor.Services
+@inject IStringLocalizer<GameArena> L
+
+<div class="game-arena">
+    <!-- Header -->
+    <div class="game-header">
+        <button class="btn-back" @onclick="OnBackClick">
+            ← @L["Button_Back"]
+        </button>
+        
+        <div class="level-info">
+            <span class="level-name">@string.Format(L["Level_Name"], CurrentRound)</span>
+            <span class="level-progress">@string.Format(L["Level_Progress"], CurrentRound, TotalRounds)</span>
+        </div>
+        
+        @if (ComboCount > 0)
+        {
+            <div class="combo-badge">
+                @string.Format(L["Combo_Multiplier"], ComboCount)
+            </div>
+        }
+    </div>
+
+    <!-- Scrambled Word Display -->
+    <div class="word-display">
+        @if (!string.IsNullOrEmpty(ScrambledWord))
+        {
+            <div class="scrambled-letters">
+                @foreach (var letter in ScrambledWord.ToUpper())
+                {
+                    <div class="letter-card">@letter</div>
+                }
+            </div>
+        }
+    </div>
+
+    <!-- Answer Input -->
+    <div class="answer-section">
+        <input 
+            type="text" 
+            class="answer-input @GetInputClass()"
+            @bind="CurrentAnswer"
+            @bind:event="oninput"
+            @onkeydown="HandleKeyDown"
+            placeholder="@L["Answer_Placeholder"]"
+            maxlength="50"
+            disabled="@IsSubmitting"
+            autocomplete="off"
+        />
+        
+        <div class="action-buttons">
+            <button 
+                class="btn-submit @GetSubmitButtonClass()"
+                @onclick="SubmitAnswer"
+                disabled="@(!CanSubmit || IsSubmitting)">
+                @if (IsSubmitting)
+                {
+                    <span>@L["Button_Submitting"]</span>
+                }
+                else
+                {
+                    <span>@L["Button_Submit"]</span>
+                }
+            </button>
+            
+            <button 
+                class="btn-skip"
+                @onclick="SkipRound"
+                disabled="@IsSubmitting">
+                @L["Button_Skip"]
+            </button>
+        </div>
+    </div>
+
+    <!-- Feedback -->
+    @if (ShowFeedback)
+    {
+        <div class="feedback @GetFeedbackClass()">
+            @if (LastResult?.IsCorrect == true)
+            {
+                <div class="feedback-correct">
+                    <span class="feedback-icon">✓</span>
+                    <span>@string.Format(L["Feedback_Correct"], LastResult?.XPEarned)</span>
+                    @if (LastResult?.SpeedBonus > 0)
+                    {
+                        <span class="speed-bonus">+@LastResult?.SpeedBonus @L["SpeedBonus_Label"]</span>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="feedback-wrong">
+                    <span class="feedback-icon">✗</span>
+                    <span>@L["Feedback_Wrong"]</span>
+                    @if (!string.IsNullOrEmpty(LastResult?.CorrectAnswer))
+                    {
+                        <span class="correct-answer">@string.Format(L["Correct_Answer_Was"], LastResult?.CorrectAnswer)</span>
+                    }
+                </div>
+            }
+        </div>
+    }
+
+    <!-- Level Complete Overlay -->
+    @if (IsLevelComplete)
+    {
+        <div class="level-complete-overlay">
+            <div class="level-complete-content">
+                <h2>@L["LevelComplete_Title"]</h2>
+                <p>@string.Format(L["LevelComplete_XP"], TotalXPEarned)</p>
+                <button class="btn-continue" @onclick="ContinueToNext">@L["Button_Continue"]</button>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public Guid SessionId { get; set; }
+    [Parameter] public string ScrambledWord { get; set; } = "";
+    [Parameter] public int CurrentRound { get; set; } = 1;
+    [Parameter] public int TotalRounds { get; set; } = 10;
+    [Parameter] public int ComboCount { get; set; } = 0;
+    [Parameter] public int LivesRemaining { get; set; } = 5;
+    [Parameter] public EventCallback<string> OnSubmitAnswer { get; set; }
+    [Parameter] public EventCallback OnSkipRound { get; set; }
+    [Parameter] public EventCallback OnBack { get; set; }
+    [Parameter] public EventCallback OnLevelComplete { get; set; }
+
+    private string CurrentAnswer { get; set; } = "";
+    private bool IsSubmitting { get; set; } = false;
+    private bool ShowFeedback { get; set; } = false;
+    private GameRoundResult? LastResult { get; set; }
+    private bool IsLevelComplete { get; set; } = false;
+    private int TotalXPEarned { get; set; } = 0;
+
+    private bool CanSubmit => !string.IsNullOrWhiteSpace(CurrentAnswer) && CurrentAnswer.Length <= 50;
+
+    private string GetInputClass() => ShowFeedback switch
+    {
+        true when LastResult?.IsCorrect == true => "input-correct",
+        true when LastResult?.IsCorrect == false => "input-wrong",
+        _ => ""
+    };
+
+    private string GetSubmitButtonClass() => CanSubmit ? "enabled" : "disabled";
+
+    private string GetFeedbackClass() => LastResult?.IsCorrect == true ? "feedback-success" : "feedback-error";
+
+    private async Task SubmitAnswer()
+    {
+        if (!CanSubmit || IsSubmitting) return;
+
+        IsSubmitting = true;
+        ShowFeedback = false;
+        StateHasChanged();
+
+        try
+        {
+            var trimmedAnswer = CurrentAnswer.Trim();
+            await OnSubmitAnswer.InvokeAsync(trimmedAnswer);
+        }
+        finally
+        {
+            IsSubmitting = false;
+        }
+    }
+
+    private async Task SkipRound()
+    {
+        if (IsSubmitting) return;
+        await OnSkipRound.InvokeAsync();
+    }
+
+    private async Task OnBackClick()
+    {
+        await OnBack.InvokeAsync();
+    }
+
+    private void HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" && CanSubmit && !IsSubmitting)
+        {
+            _ = SubmitAnswer();
+        }
+    }
+
+    private async Task ContinueToNext()
+    {
+        await OnLevelComplete.InvokeAsync();
+    }
+
+    public async Task ShowResult(GameRoundResult result, int totalXP)
+    {
+        await InvokeAsync(() =>
+        {
+            LastResult = result;
+            TotalXPEarned = totalXP;
+            ShowFeedback = true;
+            IsLevelComplete = result.IsLevelComplete;
+            
+            if (result.IsCorrect)
+            {
+                CurrentAnswer = "";
+            }
+            
+            StateHasChanged();
+        });
+    }
+
+    public async Task UpdateScrambledWord(string scrambledWord, int roundNumber)
+    {
+        await InvokeAsync(() =>
+        {
+            ScrambledWord = scrambledWord;
+            CurrentRound = roundNumber;
+            CurrentAnswer = "";
+            ShowFeedback = false;
+            LastResult = null;
+            StateHasChanged();
+        });
+    }
+
+    public async Task Reset()
+    {
+        await InvokeAsync(() =>
+        {
+            CurrentAnswer = "";
+            IsSubmitting = false;
+            ShowFeedback = false;
+            LastResult = null;
+            IsLevelComplete = false;
+            StateHasChanged();
+        });
+    }
+}

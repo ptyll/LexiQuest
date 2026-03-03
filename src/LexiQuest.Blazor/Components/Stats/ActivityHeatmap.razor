@@ -1,0 +1,39 @@
+@using LexiQuest.Shared.DTOs.Game
+@inject IStringLocalizer<ActivityHeatmap> L
+
+<div class="activity-heatmap">
+    <div class="heatmap-grid">
+        @foreach (var day in Days)
+        {
+            <div class="heatmap-day @GetIntensityClass(day.IntensityLevel)" 
+                 title="@GetTooltip(day)">
+            </div>
+        }
+    </div>
+    <div class="heatmap-legend">
+        <span>@L["Less"]</span>
+        <div class="legend-box intensity-0"></div>
+        <div class="legend-box intensity-1"></div>
+        <div class="legend-box intensity-2"></div>
+        <div class="legend-box intensity-3"></div>
+        <div class="legend-box intensity-4"></div>
+        <span>@L["More"]</span>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public List<HeatmapDay> Days { get; set; } = new();
+
+    private string GetIntensityClass(int level)
+    {
+        return $"intensity-{Math.Clamp(level, 0, 4)}";
+    }
+
+    private string GetTooltip(HeatmapDay day)
+    {
+        return $"{day.Date:dd.MM.yyyy}: {day.LevelsCompleted} {L["LevelsCompleted"]}, {day.XPGained} XP";
+    }
+}
+
+

@@ -14,13 +14,14 @@ public class GameSessionConfiguration : IEntityTypeConfiguration<GameSession>
         builder.Property(gs => gs.UserId).IsRequired();
         builder.Property(gs => gs.Mode).IsRequired();
         builder.Property(gs => gs.Status).IsRequired();
+        builder.Property(gs => gs.Difficulty).IsRequired();
 
         builder.HasIndex(gs => gs.UserId);
         builder.HasIndex(gs => gs.Status);
 
         builder.HasMany(gs => gs.Rounds)
             .WithOne()
-            .HasForeignKey(gr => gr.GameSessionId)
+            .HasForeignKey(gr => gr.SessionId)
             .OnDelete(DeleteBehavior.Cascade);
     }
 }

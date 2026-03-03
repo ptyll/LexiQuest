@@ -7,6 +7,7 @@ public class UserStats
     public double Accuracy { get; private set; }
     public int TotalWordsSolved { get; private set; }
     public TimeSpan AverageResponseTime { get; private set; }
+    public string League { get; private set; } = "Bronze";
 
     private UserStats() { }
 
@@ -18,7 +19,8 @@ public class UserStats
             Level = 1,
             Accuracy = 0,
             TotalWordsSolved = 0,
-            AverageResponseTime = TimeSpan.Zero
+            AverageResponseTime = TimeSpan.Zero,
+            League = "Bronze"
         };
     }
 
@@ -60,4 +62,7 @@ public class UserStats
         }
         Level = level;
     }
+
+    // Test helper
+    internal void SetLevel(int level) => Level = level;
 }

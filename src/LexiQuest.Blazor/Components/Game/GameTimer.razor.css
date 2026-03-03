@@ -1,0 +1,61 @@
+.game-timer {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.timer-bar-container {
+    height: 12px;
+    background: #e9ecef;
+    border-radius: 6px;
+    overflow: hidden;
+    position: relative;
+}
+
+.timer-bar {
+    height: 100%;
+    border-radius: 6px;
+    transition: width 1s linear, background-color 0.3s ease;
+}
+
+.timer-normal .timer-bar {
+    background: linear-gradient(90deg, #28a745 0%, #20c997 100%);
+}
+
+.timer-warning .timer-bar {
+    background: linear-gradient(90deg, #ffc107 0%, #ff9800 100%);
+}
+
+.timer-critical .timer-bar {
+    background: linear-gradient(90deg, #dc3545 0%, #f44336 100%);
+    animation: pulse-red 1s infinite;
+}
+
+@keyframes pulse-red {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+.timer-text {
+    text-align: center;
+    font-weight: 600;
+    color: #495057;
+    font-size: 1.1rem;
+}
+
+.timer-warning .timer-text {
+    color: #ff9800;
+}
+
+.timer-critical .timer-text {
+    color: #dc3545;
+    animation: blink 1s infinite;
+}
+
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}

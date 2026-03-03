@@ -23,6 +23,19 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.HasIndex(u => u.Email).IsUnique();
         builder.HasIndex(u => u.Username).IsUnique();
 
+        builder.Property(u => u.PasswordHash)
+            .IsRequired()
+            .HasMaxLength(256);
+
+        builder.Property(u => u.LastLoginAt);
+
+        builder.Property(u => u.FailedLoginAttempts)
+            .HasDefaultValue(0);
+
+        builder.Property(u => u.LockoutEnd);
+
+        builder.HasIndex(u => u.LockoutEnd);
+
         builder.OwnsOne(u => u.Stats, stats =>
         {
             stats.Property(s => s.TotalXP).HasColumnName("TotalXP");

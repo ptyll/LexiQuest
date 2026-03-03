@@ -155,6 +155,22 @@ namespace LexiQuest.Infrastructure.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
 
+                    b.Property<int>("FailedLoginAttempts")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.Property<DateTime?>("LastLoginAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("LockoutEnd")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("PasswordHash")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
 
@@ -167,6 +183,8 @@ namespace LexiQuest.Infrastructure.Migrations
 
                     b.HasIndex("Email")
                         .IsUnique();
+
+                    b.HasIndex("LockoutEnd");
 
                     b.HasIndex("Username")
                         .IsUnique();
@@ -320,6 +338,10 @@ namespace LexiQuest.Infrastructure.Migrations
                             b1.Property<TimeSpan>("AverageResponseTime")
                                 .HasColumnType("time")
                                 .HasColumnName("AverageResponseTime");
+
+                            b1.Property<string>("League")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)");
 
                             b1.Property<int>("Level")
                                 .HasColumnType("int")

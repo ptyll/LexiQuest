@@ -2,6 +2,7 @@ using FluentAssertions;
 using LexiQuest.Core.Domain.Entities;
 using LexiQuest.Core.Domain.Enums;
 using LexiQuest.Infrastructure.Persistence;
+using LexiQuest.Shared.Enums;
 using Microsoft.EntityFrameworkCore;
 
 namespace LexiQuest.Infrastructure.Tests.Persistence;

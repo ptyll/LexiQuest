@@ -1,0 +1,67 @@
+@using LexiQuest.Shared.DTOs.Game
+@inject IStringLocalizer<PathMap> L
+
+<div class="path-map">
+    <div class="path-levels">
+        @foreach (var level in Levels.OrderBy(l => l.LevelNumber))
+        {
+            <div class="level-node @GetLevelCssClass(level)" @onclick="() => OnLevelClick(level)">
+                @if (level.IsBoss)
+                {
+                    <span class="level-icon">👑</span>
+                }
+                else if (level.Status == "Completed")
+                {
+                    <span class="level-icon">✓</span>
+                }
+                else if (level.Status == "Locked")
+                {
+                    <span class="level-icon">🔒</span>
+                }
+                
+                <span class="level-number">@level.LevelNumber</span>
+            </div>
+            
+            @if (level.LevelNumber < Levels.Count)
+            {
+                <div class="level-connector @GetConnectorCssClass(level)"></div>
+            }
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public List<PathLevelDto> Levels { get; set; } = new();
+
+    [Parameter]
+    public int CurrentLevel { get; set; }
+
+    [Parameter]
+    public EventCallback<PathLevelDto> OnLevelSelected { get; set; }
+
+    private string GetLevelCssClass(PathLevelDto level)
+    {
+        return level.Status.ToLower() switch
+        {
+            "completed" => "level-completed",
+            "current" => "level-current",
+            "locked" => "level-locked",
+            "perfect" => "level-perfect",
+            _ => "level-locked"
+        } + (level.IsBoss ? " level-boss" : "");
+    }
+
+    private string GetConnectorCssClass(PathLevelDto level)
+    {
+        return level.Status == "Completed" ? "connector-completed" : "connector-locked";
+    }
+
+    private async Task OnLevelClick(PathLevelDto level)
+    {
+        if (level.Status != "Locked")
+        {
+            await OnLevelSelected.InvokeAsync(level);
+        }
+    }
+}

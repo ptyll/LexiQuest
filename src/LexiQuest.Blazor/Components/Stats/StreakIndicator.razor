@@ -1,0 +1,76 @@
+@using LexiQuest.Shared.DTOs.Game
+@inject IStringLocalizer<StreakIndicator> L
+
+<div class="streak-indicator @GetFireLevelClass()">
+    <div class="streak-flames">
+        @for (int i = 0; i < GetFireCount(); i++)
+        {
+            <span class="flame">🔥</span>
+        }
+    </div>
+    <div class="streak-info">
+        <span class="streak-days">@GetStreakText()</span>
+        @if (IsAtRisk)
+        {
+            <span class="streak-risk">⚠️ @L["AtRisk"]</span>
+        }
+    </div>
+    @if (TimeRemaining.HasValue)
+    {
+        <div class="streak-timer">
+            @L["TimeRemaining"]: @TimeRemaining.Value.ToString(@"hh\:mm")
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public int CurrentDays { get; set; }
+
+    [Parameter]
+    public string FireLevel { get; set; } = "Cold";
+
+    [Parameter]
+    public TimeSpan? TimeRemaining { get; set; }
+
+    [Parameter]
+    public bool IsAtRisk { get; set; }
+
+    private string GetFireLevelClass()
+    {
+        return FireLevel.ToLower() switch
+        {
+            "cold" => "streak-cold",
+            "small" => "streak-small",
+            "medium" => "streak-medium",
+            "large" => "streak-large",
+            "legendary" => "streak-legendary",
+            _ => "streak-cold"
+        };
+    }
+
+    private int GetFireCount()
+    {
+        return FireLevel.ToLower() switch
+        {
+            "cold" => 0,
+            "small" => 1,
+            "medium" => 2,
+            "large" => 3,
+            "legendary" => 4,
+            _ => 0
+        };
+    }
+
+    private string GetStreakText()
+    {
+        var days = CurrentDays;
+        return days switch
+        {
+            0 => L["NoStreak"],
+            1 => $"1 {L["DaySingular"]}",
+            2 or 3 or 4 => $"{days} {L["DaysPlural24"]}",
+            _ => $"{days} {L["DaysPlural5plus"]}"
+        };
+    }
+}

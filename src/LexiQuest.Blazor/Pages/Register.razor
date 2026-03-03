@@ -1,0 +1,141 @@
+@page "/register"
+@using LexiQuest.Blazor.Models
+@using LexiQuest.Blazor.Services
+@using LexiQuest.Blazor.Validators
+@using FluentValidation
+@inject IAuthService AuthService
+@inject IStringLocalizer<Register> L
+@inject NavigationManager NavigationManager
+
+<div class="register-container">
+    <div class="register-card">
+        <div class="register-logo">
+            <h1>LexiQuest</h1>
+        </div>
+        
+        <h2 class="register-title">@L["Title"]</h2>
+        <p class="register-subtitle">@L["Subtitle"]</p>
+
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="alert alert-error">
+                @errorMessage
+            </div>
+        }
+
+        <EditForm Model="@model" OnValidSubmit="HandleRegister" FormName="registerForm">
+            <FluentValidationValidator />
+            
+            <div class="form-field">
+                <label for="email">@L["Input.Email.Label"]</label>
+                <InputText 
+                    id="email"
+                    type="email"
+                    @bind-Value="model.Email" 
+                    placeholder="@L["Input.Email.Placeholder"]" />
+                <ValidationMessage For="@(() => model.Email)" />
+            </div>
+
+            <div class="form-field">
+                <label for="username">@L["Input.Username.Label"]</label>
+                <InputText 
+                    id="username"
+                    type="text"
+                    @bind-Value="model.Username" 
+                    placeholder="@L["Input.Username.Placeholder"]" />
+                <ValidationMessage For="@(() => model.Username)" />
+            </div>
+
+            <div class="form-field">
+                <label for="password">@L["Input.Password.Label"]</label>
+                <InputText 
+                    id="password"
+                    type="password"
+                    @bind-Value="model.Password" 
+                    placeholder="@L["Input.Password.Placeholder"]" />
+                <ValidationMessage For="@(() => model.Password)" />
+            </div>
+
+            <div class="form-field">
+                <label for="confirmPassword">@L["Input.ConfirmPassword.Label"]</label>
+                <InputText 
+                    id="confirmPassword"
+                    type="password"
+                    @bind-Value="model.ConfirmPassword" 
+                    placeholder="@L["Input.ConfirmPassword.Placeholder"]" />
+                <ValidationMessage For="@(() => model.ConfirmPassword)" />
+            </div>
+
+            <div class="form-field checkbox-field">
+                <InputCheckbox id="acceptTerms" @bind-Value="model.AcceptTerms" />
+                <label for="acceptTerms">@L["Checkbox.Terms"]</label>
+                <ValidationMessage For="@(() => model.AcceptTerms)" />
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block" disabled="@isLoading">
+                @if (isLoading)
+                {
+                    <span>Loading...</span>
+                }
+                else
+                {
+                    @L["Button.Submit"]
+                }
+            </button>
+        </EditForm>
+
+        <div class="register-divider">
+            <span>nebo</span>
+        </div>
+
+        <button class="btn btn-outline btn-block" @onclick="HandleGoogleRegister">
+            @L["Button.Google"]
+        </button>
+
+        <div class="register-login-prompt">
+            <span>@L["Link.Login.Text"]</span>
+            <a href="/login">@L["Link.Login"]</a>
+        </div>
+    </div>
+</div>
+
+@code {
+    private RegisterModel model = new();
+    private bool isLoading;
+    private string? errorMessage;
+
+    private async Task HandleRegister()
+    {
+        isLoading = true;
+        errorMessage = null;
+        StateHasChanged();
+
+        try
+        {
+            var result = await AuthService.RegisterAsync(model);
+            
+            if (result?.Success == true)
+            {
+                NavigationManager.NavigateTo("/dashboard");
+            }
+            else
+            {
+                errorMessage = result?.ErrorMessage ?? L["Error.RegistrationFailed"];
+            }
+        }
+        catch
+        {
+            errorMessage = L["Error.RegistrationFailed"];
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private void HandleGoogleRegister()
+    {
+        // TODO: Implement Google OAuth registration
+    }
+}

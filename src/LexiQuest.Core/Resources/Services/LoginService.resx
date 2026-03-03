@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Error.Login.InvalidCredentials" xml:space="preserve">
+    <value>Nesprávný email nebo heslo</value>
+  </data>
+  <data name="Error.Login.AccountLocked" xml:space="preserve">
+    <value>Účet je dočasně zablokován. Zkuste to znovu za 15 minut.</value>
+  </data>
+  <data name="Warning.StreakExpiring" xml:space="preserve">
+    <value>Pozor! Zbývá méně než 6 hodin do resetu vašeho streaku. Nezapomeňte dnes procvičovat!</value>
+  </data>
+</root>

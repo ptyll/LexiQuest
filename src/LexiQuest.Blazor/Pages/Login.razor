@@ -1,0 +1,131 @@
+@page "/login"
+@using LexiQuest.Blazor.Models
+@using LexiQuest.Blazor.Services
+@using LexiQuest.Blazor.Validators
+@using FluentValidation
+@inject IAuthService AuthService
+@inject IStringLocalizer<Login> L
+@inject NavigationManager NavigationManager
+
+<div class="login-container">
+    <div class="login-card">
+        <div class="login-logo">
+            <h1>LexiQuest</h1>
+        </div>
+        
+        <h2 class="login-title">@L["Title"]</h2>
+        <p class="login-subtitle">@L["Subtitle"]</p>
+
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="alert alert-error">
+                @errorMessage
+            </div>
+        }
+
+        <EditForm Model="@model" OnValidSubmit="HandleLogin" FormName="loginForm">
+            <FluentValidationValidator />
+            
+            <div class="form-field">
+                <label for="email">@L["Input.Email.Label"]</label>
+                <InputText 
+                    id="email"
+                    type="email"
+                    @bind-Value="model.Email" 
+                    placeholder="@L["Input.Email.Placeholder"]" />
+                <ValidationMessage For="@(() => model.Email)" />
+            </div>
+
+            <div class="form-field">
+                <label for="password">@L["Input.Password.Label"]</label>
+                <InputText 
+                    id="password"
+                    type="password"
+                    @bind-Value="model.Password" 
+                    placeholder="@L["Input.Password.Placeholder"]" />
+                <ValidationMessage For="@(() => model.Password)" />
+            </div>
+
+            <div class="form-field checkbox-field">
+                <InputCheckbox id="rememberMe" @bind-Value="model.RememberMe" />
+                <label for="rememberMe">@L["Input.RememberMe.Label"]</label>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block" disabled="@isLoading">
+                @if (isLoading)
+                {
+                    <span>Loading...</span>
+                }
+                else
+                {
+                    @L["Button.Submit"]
+                }
+            </button>
+        </EditForm>
+
+        <div class="login-links">
+            <a href="/password-reset">@L["Link.ForgotPassword"]</a>
+        </div>
+
+        <div class="login-divider">
+            <span>nebo</span>
+        </div>
+
+        <button class="btn btn-outline btn-block" @onclick="HandleGoogleLogin">
+            @L["Button.Google"]
+        </button>
+
+        <div class="login-register-prompt">
+            <span>@L["Link.Register.Text"]</span>
+            <a href="/register">@L["Link.Register"]</a>
+        </div>
+    </div>
+</div>
+
+@code {
+    private LoginModel model = new();
+    private bool isLoading;
+    private string? errorMessage;
+
+    private async Task HandleLogin()
+    {
+        // Client-side validation check
+        if (string.IsNullOrWhiteSpace(model.Email) || string.IsNullOrWhiteSpace(model.Password))
+        {
+            errorMessage = L["Error.InvalidCredentials"];
+            return;
+        }
+
+        isLoading = true;
+        errorMessage = null;
+        StateHasChanged();
+
+        try
+        {
+            var result = await AuthService.LoginAsync(model.Email, model.Password, model.RememberMe);
+            
+            if (result?.Success == true)
+            {
+                NavigationManager.NavigateTo("/dashboard");
+            }
+            else
+            {
+                errorMessage = result?.ErrorMessage ?? L["Error.InvalidCredentials"];
+            }
+        }
+        catch
+        {
+            errorMessage = L["Error.InvalidCredentials"];
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private void HandleGoogleLogin()
+    {
+        // TODO: Implement Google OAuth login
+    }
+}

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Error.Register.Duplicate" xml:space="preserve">
+    <value>Uživatel s tímto emailem již existuje</value>
+  </data>
+  <data name="Error.Register.Failed" xml:space="preserve">
+    <value>Registrace selhala. Zkuste to prosím znovu.</value>
+  </data>
+  <data name="Error.Register.InvalidResponse" xml:space="preserve">
+    <value>Neplatná odpověď serveru při registraci</value>
+  </data>
+  <data name="Error.Register.Exception" xml:space="preserve">
+    <value>Chyba při registraci: {0}</value>
+  </data>
+  <data name="Error.Login.InvalidCredentials" xml:space="preserve">
+    <value>Nesprávný email nebo heslo</value>
+  </data>
+  <data name="Error.Login.Failed" xml:space="preserve">
+    <value>Přihlášení selhalo. Zkuste to prosím znovu.</value>
+  </data>
+  <data name="Error.Login.InvalidResponse" xml:space="preserve">
+    <value>Neplatná odpověď serveru při přihlášení</value>
+  </data>
+  <data name="Error.Login.Exception" xml:space="preserve">
+    <value>Chyba při přihlášení: {0}</value>
+  </data>
+  <data name="Error.Refresh.NoToken" xml:space="preserve">
+    <value>Refresh token není k dispozici</value>
+  </data>
+  <data name="Error.Refresh.Failed" xml:space="preserve">
+    <value>Obnova přihlášení selhala. Přihlaste se znovu.</value>
+  </data>
+  <data name="Error.Refresh.InvalidResponse" xml:space="preserve">
+    <value>Neplatná odpověď serveru při obnově tokenu</value>
+  </data>
+  <data name="Error.Refresh.Exception" xml:space="preserve">
+    <value>Chyba při obnově tokenu: {0}</value>
+  </data>
+</root>
