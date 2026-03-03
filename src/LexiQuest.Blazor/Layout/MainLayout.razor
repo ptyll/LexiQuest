@@ -1,0 +1,69 @@
+@inherits LayoutComponentBase
+@inject ThemeService ThemeService
+@inject NavigationManager Navigation
+
+<div class="@(ThemeService.IsDark ? "dark" : "")" data-theme="@ThemeService.ThemeName">
+    <TmTopBar BrandTitle="LexiQuest"
+              OnLogout="HandleLogout">
+        <ActionsContent>
+            <button class="tm-btn tm-btn--ghost tm-btn--sm" @onclick="() => ThemeService.Toggle()">
+                @if (ThemeService.IsDark)
+                {
+                    <span>&#x2600;</span>
+                }
+                else
+                {
+                    <span>&#x1F319;</span>
+                }
+            </button>
+        </ActionsContent>
+    </TmTopBar>
+
+    <div class="app-layout">
+        <TmSidebar Items="_navItems"
+                   Collapsed="_sidebarCollapsed"
+                   OnToggle="HandleSidebarToggle" />
+
+        <main class="app-content">
+            @Body
+        </main>
+    </div>
+
+    <TmToastContainer Position="ToastPosition.TopRight" MaxVisible="5" />
+</div>
+
+@code {
+    private bool _sidebarCollapsed;
+    private IReadOnlyList<ISidebarNavItem> _navItems = [];
+
+    protected override void OnInitialized()
+    {
+        ThemeService.OnChanged += StateHasChanged;
+
+        _navItems = new List<SidebarNavItemModel>
+        {
+            new() { Id = "dashboard", Label = "Dashboard", Icon = "home", Href = "/dashboard" },
+            new() { Id = "game", Label = "Hra", Icon = "play-circle", Href = "/game" },
+            new() { Id = "paths", Label = "Cesty", Icon = "map", Href = "/paths" },
+            new() { Id = "leagues", Label = "Ligy", Icon = "trophy", Href = "/leagues" },
+            new() { Id = "achievements", Label = "Achievementy", Icon = "award", Href = "/achievements" },
+            new() { Id = "profile", Label = "Profil", Icon = "user", Href = "/profile" },
+            new() { Id = "settings", Label = "Nastavení", Icon = "settings", Href = "/settings" }
+        };
+    }
+
+    private void HandleSidebarToggle()
+    {
+        _sidebarCollapsed = !_sidebarCollapsed;
+    }
+
+    private void HandleLogout()
+    {
+        Navigation.NavigateTo("/login");
+    }
+
+    public void Dispose()
+    {
+        ThemeService.OnChanged -= StateHasChanged;
+    }
+}

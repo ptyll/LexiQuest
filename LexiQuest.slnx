@@ -1,0 +1,15 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/LexiQuest.Api/LexiQuest.Api.csproj" />
+    <Project Path="src/LexiQuest.Blazor/LexiQuest.Blazor.csproj" />
+    <Project Path="src/LexiQuest.Core/LexiQuest.Core.csproj" />
+    <Project Path="src/LexiQuest.Infrastructure/LexiQuest.Infrastructure.csproj" />
+    <Project Path="src/LexiQuest.Shared/LexiQuest.Shared.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/LexiQuest.Api.Tests/LexiQuest.Api.Tests.csproj" />
+    <Project Path="tests/LexiQuest.Blazor.Tests/LexiQuest.Blazor.Tests.csproj" />
+    <Project Path="tests/LexiQuest.Core.Tests/LexiQuest.Core.Tests.csproj" />
+    <Project Path="tests/LexiQuest.Infrastructure.Tests/LexiQuest.Infrastructure.Tests.csproj" />
+  </Folder>
+</Solution>

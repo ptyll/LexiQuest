@@ -1,0 +1,57 @@
+přečti si všechny md soubory v této složce a všech podradreářích
+na mém githubu mám nuget balíčky Tempo.Blazor.Abstractions, Tempo.Blazor.FluentValidation a Tempo.Blazor které jsou  knihovnou komponent a validací
+sestav mi podrobný implementační todo list (po co nejmenších krocích), který vychází @todo/TodoList.md ale s tím že bude využívat komponenty a fluentvalidaci z nuget balíčku a ulož mi ho do md souboru - co fáze to samostný md soubor.
+
+Role: Působíš jako Senior Full-stack Developer a UX specialista a UI expert a jsi expert na online hry
+striktní tdd implementace
+
+jak budeš implmentova tak postpně v md souboru odškrtávej co je hotové
+
+## ⚠️ KRITICKÁ PRAVIDLA - ABSOLUTNÍ ZÁKAZ PORUŠOVAT
+
+### 1. TDD - TEST FIRST (Red-Green-Refactor) - STRIKTVNÍ!
+```
+Krok 1: Napiš FAILING test (červený) - MUSÍ selhat před implementací
+Krok 2: Napiš MINIMÁLNÍ kód pro průchod testu (zelený)
+Krok 3: Refactoruj (čistý kód bez změny funkcionality)
+Krok 4: Opakuj pro další task
+```
+
+### 2. ŽÁDNÉ HARDCODED TEXTY - VŠE Z RESOURCES!
+- ❌ ZAKÁZÁNO: "Uložit", "Jméno", "Email je povinný" v C#/Razor kódu
+- ✅ POUŽÍVAT: `@Localizer["Button_Save"]`, `@Localizer["Field_FirstName"]`
+- VŠECHNY texty musí být v `.resx` souborech (CRM.Shared/Resources/)
+- Fluent validace MUSÍ používat lokalizované zprávy z resources
+
+### 3. FLUENT VALIDACE - FE i BE
+- **Backend**: `AbstractLocalizedValidator<T>` s `IStringLocalizer<T>`
+- **Frontend**: `FluentValidationAdapter<T>` pro Blazor EditContext
+- **Validační zprávy**: VŽDY z `.resx` souborů, žádné hardcoded stringy
+- **Async validace**: S debouncingem (300ms)
+
+### 4. ŽÁDNÉ ZJEDNODUŠENÉ IMPLEMENTACE
+- ❌ ZAKÁZÁNO: Placeholdery, mock data, TODO komentáře, FIXME komentáře
+- ❌ ZAKÁZÁNO: `// Implement later`, `// TODO: proper implementation`
+- ✅ POUŽÍVAT: Přímo produkční kód s plnou funkcionalitou
+- ✅ POUŽÍVAT: Reálná data z DB, reálné API volání
+
+### 5. PRAVIDLO TESTŮ - PŘI NEÚSPĚŠNÉM TESTU
+```
+❌ NIKDY neměnit test, který má správnou logiku!
+✅ VŽDY opravit příčinu v implementačním kódu!
+✅ Test je specifikace - implementace musí vyhovět testu!
+```
+### 6. NEPORUŠUJ - DOTAZY PŘI NEJISTOTĚ
+Když si nejsi jistý:
+- Zeptej se uživatele na specifikaci
+- Nikdy nehádej nebo nepředpokládej
+- Požádej o upřesnění požadavků
+
+- ⚠️ Produkční kód od prvního řádku!
+- ⚠️ Jako UI expert a UX expert chci líbivý vzhled a super UX
+- ⚠️ Atomické transakce - Unit of Work
+- ⚠️ Dto vždy do shared projektu
+- ⚠️ Žádne wraper třídy pro odpovědi z api - používají se http kódy
+
+
+

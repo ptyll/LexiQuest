@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" msdata:Ordinal="0" />
+              <xsd:attribute name="xml:space" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Validation.Email.Required" xml:space="preserve">
+    <value>Email je povinný</value>
+  </data>
+  <data name="Validation.Email.Invalid" xml:space="preserve">
+    <value>Zadejte platný email</value>
+  </data>
+  <data name="Validation.Password.Required" xml:space="preserve">
+    <value>Heslo je povinné</value>
+  </data>
+  <data name="Validation.Password.MinLength" xml:space="preserve">
+    <value>Heslo musí mít alespoň {0} znaků</value>
+  </data>
+  <data name="Validation.Password.Uppercase" xml:space="preserve">
+    <value>Heslo musí obsahovat velké písmeno</value>
+  </data>
+  <data name="Validation.Password.Lowercase" xml:space="preserve">
+    <value>Heslo musí obsahovat malé písmeno</value>
+  </data>
+  <data name="Validation.Password.Digit" xml:space="preserve">
+    <value>Heslo musí obsahovat číslici</value>
+  </data>
+  <data name="Validation.Password.Special" xml:space="preserve">
+    <value>Heslo musí obsahovat speciální znak</value>
+  </data>
+  <data name="Validation.Password.Mismatch" xml:space="preserve">
+    <value>Hesla se neshodují</value>
+  </data>
+  <data name="Validation.Username.Required" xml:space="preserve">
+    <value>Uživatelské jméno je povinné</value>
+  </data>
+  <data name="Validation.Username.MinLength" xml:space="preserve">
+    <value>Uživatelské jméno musí mít alespoň {0} znaky</value>
+  </data>
+  <data name="Validation.Username.MaxLength" xml:space="preserve">
+    <value>Uživatelské jméno může mít maximálně {0} znaků</value>
+  </data>
+  <data name="Validation.Username.Invalid" xml:space="preserve">
+    <value>Uživatelské jméno může obsahovat pouze písmena, číslice a podtržítka</value>
+  </data>
+  <data name="Validation.Terms.Required" xml:space="preserve">
+    <value>Musíte souhlasit s podmínkami</value>
+  </data>
+  <data name="Validation.Answer.Empty" xml:space="preserve">
+    <value>Zadejte odpověď</value>
+  </data>
+  <data name="Validation.Answer.TooLong" xml:space="preserve">
+    <value>Odpověď je příliš dlouhá</value>
+  </data>
+</root>

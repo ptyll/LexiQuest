@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" msdata:Ordinal="0" />
+              <xsd:attribute name="xml:space" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Title" xml:space="preserve">
+    <value>Ligy</value>
+  </data>
+  <data name="CurrentLeague" xml:space="preserve">
+    <value>Aktuální liga</value>
+  </data>
+  <data name="Rank" xml:space="preserve">
+    <value>Pozice: {0}</value>
+  </data>
+  <data name="Promotion" xml:space="preserve">
+    <value>Postup do vyšší ligy!</value>
+  </data>
+  <data name="Demotion" xml:space="preserve">
+    <value>Sestup do nižší ligy</value>
+  </data>
+  <data name="TimeRemaining" xml:space="preserve">
+    <value>Zbývá: {0}</value>
+  </data>
+  <data name="League.Bronze" xml:space="preserve">
+    <value>Bronzová</value>
+  </data>
+  <data name="League.Silver" xml:space="preserve">
+    <value>Stříbrná</value>
+  </data>
+  <data name="League.Gold" xml:space="preserve">
+    <value>Zlatá</value>
+  </data>
+  <data name="League.Platinum" xml:space="preserve">
+    <value>Platinová</value>
+  </data>
+  <data name="League.Diamond" xml:space="preserve">
+    <value>Diamantová</value>
+  </data>
+</root>
