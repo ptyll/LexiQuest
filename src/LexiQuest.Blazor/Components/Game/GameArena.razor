@@ -6,19 +6,23 @@
 <div class="game-arena">
     <!-- Header -->
     <div class="game-header">
-        <button class="btn-back" @onclick="OnBackClick">
-            ← @L["Button_Back"]
-        </button>
-        
+        <TmButton Variant="ButtonVariant.Ghost"
+                  Size="ButtonSize.Sm"
+                  OnClick="OnBackClick"
+                  Class="btn-back">
+            <TmIcon Name="@IconNames.ArrowLeft" />
+            @L["Button.Back"]
+        </TmButton>
+
         <div class="level-info">
-            <span class="level-name">@string.Format(L["Level_Name"], CurrentRound)</span>
-            <span class="level-progress">@string.Format(L["Level_Progress"], CurrentRound, TotalRounds)</span>
+            <span class="level-name">@string.Format(L["Level.Name"], CurrentRound)</span>
+            <span class="level-progress">@string.Format(L["Level.Progress"], CurrentRound, TotalRounds)</span>
         </div>
-        
+
         @if (ComboCount > 0)
         {
             <div class="combo-badge">
-                @string.Format(L["Combo_Multiplier"], ComboCount)
+                @string.Format(L["Combo.Multiplier"], ComboCount)
             </div>
         }
     </div>
@@ -38,39 +42,31 @@
 
     <!-- Answer Input -->
     <div class="answer-section">
-        <input 
-            type="text" 
-            class="answer-input @GetInputClass()"
-            @bind="CurrentAnswer"
-            @bind:event="oninput"
-            @onkeydown="HandleKeyDown"
-            placeholder="@L["Answer_Placeholder"]"
-            maxlength="50"
-            disabled="@IsSubmitting"
-            autocomplete="off"
-        />
-        
+        <TmTextInput @bind-Value="CurrentAnswer"
+                     Placeholder="@L["Answer.Placeholder"]"
+                     Disabled="@IsSubmitting"
+                     Class="@GetInputClass()"
+                     OnKeyDown="HandleKeyDown"
+                     AutoFocus="true" />
+
         <div class="action-buttons">
-            <button 
-                class="btn-submit @GetSubmitButtonClass()"
-                @onclick="SubmitAnswer"
-                disabled="@(!CanSubmit || IsSubmitting)">
-                @if (IsSubmitting)
-                {
-                    <span>@L["Button_Submitting"]</span>
-                }
-                else
-                {
-                    <span>@L["Button_Submit"]</span>
-                }
-            </button>
-            
-            <button 
-                class="btn-skip"
-                @onclick="SkipRound"
-                disabled="@IsSubmitting">
-                @L["Button_Skip"]
-            </button>
+            <TmButton Variant="ButtonVariant.Primary"
+                      Size="ButtonSize.Lg"
+                      OnClick="SubmitAnswer"
+                      Disabled="@(!CanSubmit || IsSubmitting)"
+                      IsLoading="@IsSubmitting"
+                      LoadingText="@L["Button.Submitting"]"
+                      Class="btn-submit">
+                @L["Button.Submit"]
+            </TmButton>
+
+            <TmButton Variant="ButtonVariant.Outline"
+                      Size="ButtonSize.Lg"
+                      OnClick="SkipRound"
+                      Disabled="@IsSubmitting"
+                      Class="btn-skip">
+                @L["Button.Skip"]
+            </TmButton>
         </div>
     </div>
 
@@ -81,22 +77,22 @@
             @if (LastResult?.IsCorrect == true)
             {
                 <div class="feedback-correct">
-                    <span class="feedback-icon">✓</span>
-                    <span>@string.Format(L["Feedback_Correct"], LastResult?.XPEarned)</span>
+                    <TmIcon Name="@IconNames.Check" Class="feedback-icon" />
+                    <span>@string.Format(L["Feedback.Correct"], LastResult?.XPEarned)</span>
                     @if (LastResult?.SpeedBonus > 0)
                     {
-                        <span class="speed-bonus">+@LastResult?.SpeedBonus @L["SpeedBonus_Label"]</span>
+                        <span class="speed-bonus">+@LastResult?.SpeedBonus @L["SpeedBonus.Label"]</span>
                     }
                 </div>
             }
             else
             {
                 <div class="feedback-wrong">
-                    <span class="feedback-icon">✗</span>
-                    <span>@L["Feedback_Wrong"]</span>
+                    <TmIcon Name="@IconNames.X" Class="feedback-icon" />
+                    <span>@L["Feedback.Wrong"]</span>
                     @if (!string.IsNullOrEmpty(LastResult?.CorrectAnswer))
                     {
-                        <span class="correct-answer">@string.Format(L["Correct_Answer_Was"], LastResult?.CorrectAnswer)</span>
+                        <span class="correct-answer">@string.Format(L["CorrectAnswer.Was"], LastResult?.CorrectAnswer)</span>
                     }
                 </div>
             }
@@ -108,9 +104,15 @@
     {
         <div class="level-complete-overlay">
             <div class="level-complete-content">
-                <h2>@L["LevelComplete_Title"]</h2>
-                <p>@string.Format(L["LevelComplete_XP"], TotalXPEarned)</p>
-                <button class="btn-continue" @onclick="ContinueToNext">@L["Button_Continue"]</button>
+                <TmIcon Name="@IconNames.Trophy" Class="level-complete-icon" />
+                <h2>@L["LevelComplete.Title"]</h2>
+                <p>@string.Format(L["LevelComplete.XP"], TotalXPEarned)</p>
+                <TmButton Variant="ButtonVariant.Primary"
+                          Size="ButtonSize.Lg"
+                          OnClick="ContinueToNext"
+                          Class="btn-continue">
+                    @L["Button.Continue"]
+                </TmButton>
             </div>
         </div>
     }
@@ -143,8 +145,6 @@
         true when LastResult?.IsCorrect == false => "input-wrong",
         _ => ""
     };
-
-    private string GetSubmitButtonClass() => CanSubmit ? "enabled" : "disabled";
 
     private string GetFeedbackClass() => LastResult?.IsCorrect == true ? "feedback-success" : "feedback-error";
 
@@ -199,12 +199,12 @@
             TotalXPEarned = totalXP;
             ShowFeedback = true;
             IsLevelComplete = result.IsLevelComplete;
-            
+
             if (result.IsCorrect)
             {
                 CurrentAnswer = "";
             }
-            
+
             StateHasChanged();
         });
     }

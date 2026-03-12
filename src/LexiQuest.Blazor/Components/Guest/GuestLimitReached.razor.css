@@ -1,0 +1,60 @@
+.guest-limit-reached {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 60vh;
+    padding: var(--tm-spacing-lg);
+}
+
+.limit-card {
+    max-width: 480px;
+    width: 100%;
+    text-align: center;
+    padding: var(--tm-spacing-xl);
+}
+
+.limit-icon {
+    margin-bottom: var(--tm-spacing-lg);
+}
+
+.icon-clock {
+    color: var(--tm-color-warning);
+    width: 64px;
+    height: 64px;
+}
+
+.limit-title {
+    margin: 0 0 var(--tm-spacing-md) 0;
+    font-size: var(--tm-font-size-xl);
+    font-weight: var(--tm-font-weight-bold);
+    color: var(--tm-color-text-primary);
+}
+
+.limit-description {
+    color: var(--tm-color-text-secondary);
+    margin-bottom: var(--tm-spacing-xl);
+    line-height: 1.6;
+}
+
+.limit-actions {
+    display: flex;
+    flex-direction: column;
+    gap: var(--tm-spacing-md);
+    margin-bottom: var(--tm-spacing-lg);
+}
+
+.limit-login {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--tm-spacing-xs);
+    color: var(--tm-color-text-secondary);
+    font-size: var(--tm-font-size-sm);
+}
+
+@media (min-width: 480px) {
+    .limit-actions {
+        flex-direction: row;
+        justify-content: center;
+    }
+}

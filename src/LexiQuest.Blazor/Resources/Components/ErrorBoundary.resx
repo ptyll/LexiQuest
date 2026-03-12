@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Error_Title" xml:space="preserve">
+    <value>Nastala chyba</value>
+  </data>
+  <data name="Error_Description" xml:space="preserve">
+    <value>Omlouváme se, ale něco se pokazilo. Zkuste to prosím znovu.</value>
+  </data>
+  <data name="Error_GoHome" xml:space="preserve">
+    <value>Zpět na domovskou obrazovku</value>
+  </data>
+  <data name="Error_TryAgain" xml:space="preserve">
+    <value>Zkusit znovu</value>
+  </data>
+</root>

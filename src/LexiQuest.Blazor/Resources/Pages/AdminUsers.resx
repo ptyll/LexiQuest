@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" msdata:Ordinal="0" />
+              <xsd:attribute name="xml:space" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Title" xml:space="preserve">
+    <value>Správa uživatelů</value>
+  </data>
+  <data name="Subtitle" xml:space="preserve">
+    <value>Přehled a správa registrovaných uživatelů</value>
+  </data>
+  <data name="Search.Label" xml:space="preserve">
+    <value>Hledat</value>
+  </data>
+  <data name="Search.Placeholder" xml:space="preserve">
+    <value>Hledat uživatele...</value>
+  </data>
+  <data name="Table.Username" xml:space="preserve">
+    <value>Uživatelské jméno</value>
+  </data>
+  <data name="Table.Email" xml:space="preserve">
+    <value>E-mail</value>
+  </data>
+  <data name="Table.Level" xml:space="preserve">
+    <value>Úroveň</value>
+  </data>
+  <data name="Table.Streak" xml:space="preserve">
+    <value>Streak</value>
+  </data>
+  <data name="Table.Status" xml:space="preserve">
+    <value>Stav</value>
+  </data>
+  <data name="Table.Actions" xml:space="preserve">
+    <value>Akce</value>
+  </data>
+  <data name="Status.Active" xml:space="preserve">
+    <value>Aktivní</value>
+  </data>
+  <data name="Status.Suspended" xml:space="preserve">
+    <value>Pozastaven</value>
+  </data>
+  <data name="Status.Premium" xml:space="preserve">
+    <value>Premium</value>
+  </data>
+  <data name="Button.Suspend" xml:space="preserve">
+    <value>Pozastavit</value>
+  </data>
+  <data name="Button.Unsuspend" xml:space="preserve">
+    <value>Obnovit</value>
+  </data>
+  <data name="Pagination.Previous" xml:space="preserve">
+    <value>Předchozí</value>
+  </data>
+  <data name="Pagination.Next" xml:space="preserve">
+    <value>Další</value>
+  </data>
+  <data name="Pagination.Info" xml:space="preserve">
+    <value>Strana {0} z {1}</value>
+  </data>
+  <data name="Empty.Title" xml:space="preserve">
+    <value>Žádní uživatelé</value>
+  </data>
+  <data name="Empty.Description" xml:space="preserve">
+    <value>Nebyli nalezeni žádní uživatelé odpovídající vyhledávání.</value>
+  </data>
+  <data name="Success.UserSuspended" xml:space="preserve">
+    <value>Uživatel byl úspěšně pozastaven.</value>
+  </data>
+  <data name="Success.UserUnsuspended" xml:space="preserve">
+    <value>Uživatel byl úspěšně obnoven.</value>
+  </data>
+  <data name="Error.LoadFailed" xml:space="preserve">
+    <value>Nepodařilo se načíst seznam uživatelů.</value>
+  </data>
+  <data name="Error.SuspendFailed" xml:space="preserve">
+    <value>Nepodařilo se pozastavit uživatele.</value>
+  </data>
+  <data name="Error.UnsuspendFailed" xml:space="preserve">
+    <value>Nepodařilo se obnovit uživatele.</value>
+  </data>
+</root>

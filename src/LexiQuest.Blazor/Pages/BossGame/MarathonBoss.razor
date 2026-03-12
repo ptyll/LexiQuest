@@ -1,0 +1,322 @@
+@page "/boss/marathon/{SessionId:guid}"
+@inject IStringLocalizer<MarathonBoss> L
+@inject IBossService BossService
+@inject IGameService GameService
+@inject NavigationManager NavigationManager
+
+<div class="min-h-screen bg-gray-50 dark:bg-gray-900">
+    @if (_session == null)
+    {
+        <TmSkeleton Type="Rectangle" Class="h-32 mb-4" />
+        <TmSkeleton Type="Rectangle" Class="h-64" />
+    }
+    else
+    {
+        <!-- Marathon Header -->
+        <div data-testid="marathon-header" class="bg-gradient-to-r from-red-900 to-orange-800 text-white p-6 shadow-lg">
+            <div class="max-w-4xl mx-auto">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-3">
+                        <TmIcon Name="Timer" Class="text-orange-300" />
+                        <div>
+                            <h1 class="text-2xl font-bold">@L["MarathonBoss_Title"]</h1>
+                            <p class="text-orange-200 text-sm">@L["MarathonBoss_Subtitle"]</p>
+                        </div>
+                    </div>
+                    <TmBadge Variant="BadgeVariant.Primary" Class="bg-red-700">
+                        @L["MarathonBoss_Level"]
+                    </TmBadge>
+                </div>
+
+                <!-- Progress Bar -->
+                <div data-testid="marathon-progress" class="mb-4">
+                    <div class="flex justify-between text-sm text-orange-200 mb-1">
+                        <span>@L["MarathonBoss_Progress"]</span>
+                        <span data-testid="progress-text">@_session.CurrentRound/@_session.TotalRounds</span>
+                    </div>
+                    <TmProgressBar 
+                        Value="@CalculateProgress()" 
+                        Max="100" />
+                </div>
+
+                <!-- Stats Row -->
+                <div class="flex items-center gap-6">
+                    <!-- Lives Display (no regen) -->
+                    <div data-testid="lives-display" class="flex items-center gap-2 bg-red-950/50 px-4 py-2 rounded-lg">
+                        <TmIcon Name="Heart" Class="text-red-400" />
+                        <span data-testid="lives-count" class="font-bold text-lg">@_session.LivesRemaining</span>
+                        <span class="text-red-300 text-sm">/ 3</span>
+                    </div>
+
+                    <!-- XP Display -->
+                    <div class="flex items-center gap-2 bg-orange-950/50 px-4 py-2 rounded-lg">
+                        <TmIcon Name="Star" Class="text-yellow-400" />
+                        <span class="font-bold text-lg">@_session.TotalXP</span>
+                        <span class="text-orange-300 text-sm">XP</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Arena -->
+        <div class="max-w-4xl mx-auto p-6">
+            @if (!_session.IsGameOver && !_session.IsCompleted)
+            {
+                <TmCard Variant="CardVariant.Elevated" Class="p-8">
+                    <!-- Scrambled Word Display -->
+                    <div class="text-center mb-8">
+                        <div class="text-5xl font-bold tracking-widest text-gray-800 dark:text-gray-100 mb-4">
+                            @_currentScrambledWord
+                        </div>
+                        <p class="text-gray-500">@L["MarathonBoss_UnscrambleHint"]</p>
+                    </div>
+
+                    <!-- Answer Input -->
+                    <TmFormField Label="@L["MarathonBoss_AnswerLabel"]" Class="mb-6">
+                        <TmTextInput 
+                            @bind-Value="_currentAnswer"
+                            Placeholder="@L["MarathonBoss_AnswerPlaceholder"]"
+                            Size="InputSize.Large"
+                            Disabled="_isSubmitting"
+                            Class="text-center text-xl tracking-wide" />
+                    </TmFormField>
+
+                    <!-- Submit Button -->
+                    <TmButton 
+                        Variant="ButtonVariant.Primary"
+                        OnClick="SubmitAnswer"
+                        Class="w-full"
+                        Disabled="_isSubmitting || string.IsNullOrWhiteSpace(_currentAnswer)">
+                        @if (_isSubmitting)
+                        {
+                            <TmIcon Name="Spinner" Class="animate-spin mr-2" />
+                        }
+                        @L["MarathonBoss_Submit"]
+                    </TmButton>
+                </TmCard>
+            }
+        </div>
+
+        <!-- Victory Modal -->
+        @if (_session.IsCompleted)
+        {
+            <div data-testid="victory-modal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                <TmCard Variant="CardVariant.Elevated" Class="max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto">
+                    <div class="p-6">
+                        <div class="flex items-center gap-3 text-green-600 mb-4">
+                            <TmIcon Name="Trophy" />
+                            <span class="text-2xl font-bold">@L["MarathonBoss_Victory"]</span>
+                        </div>
+                        
+                        <div class="text-center py-4">
+                            <div class="text-6xl mb-4">🏆</div>
+                            <h3 class="text-xl font-bold mb-2">@L["MarathonBoss_Congratulations"]</h3>
+                            <p class="text-gray-600 mb-6">@L["MarathonBoss_VictoryMessage"]</p>
+
+                            <!-- Stats Grid -->
+                            <div class="grid grid-cols-2 gap-4 mb-6">
+                                <TmCard Variant="CardVariant.Outlined" Class="p-4 text-center">
+                                    <TmIcon Name="Clock" Class="text-blue-500 mb-2" />
+                                    <div class="text-2xl font-bold">@CalculateDuration()</div>
+                                    <div class="text-sm text-gray-500">@L["MarathonBoss_Time"]</div>
+                                </TmCard>
+                                <TmCard Variant="CardVariant.Outlined" Class="p-4 text-center">
+                                    <TmIcon Name="Target" Class="text-green-500 mb-2" />
+                                    <div class="text-2xl font-bold">@CalculateAccuracy()%</div>
+                                    <div class="text-sm text-gray-500">@L["MarathonBoss_Accuracy"]</div>
+                                </TmCard>
+                                <TmCard Variant="CardVariant.Outlined" Class="p-4 text-center">
+                                    <TmIcon Name="Heart" Class="text-red-500 mb-2" />
+                                    <div class="text-2xl font-bold">@_session.LivesRemaining</div>
+                                    <div class="text-sm text-gray-500">@L["MarathonBoss_LivesLeft"]</div>
+                                </TmCard>
+                                <TmCard Variant="CardVariant.Outlined" Class="p-4 text-center">
+                                    <TmIcon Name="Star" Class="text-yellow-500 mb-2" />
+                                    <div class="text-2xl font-bold">@_session.TotalXP</div>
+                                    <div class="text-sm text-gray-500">@L["MarathonBoss_TotalXP"]</div>
+                                </TmCard>
+                            </div>
+
+                            <!-- XP Breakdown -->
+                            <TmCard Variant="CardVariant.Elevated" Class="p-4 mb-6 bg-yellow-50">
+                                <h4 class="font-bold mb-3">@L["MarathonBoss_XPBreakdown"]</h4>
+                                <div class="space-y-2 text-sm">
+                                    <div class="flex justify-between">
+                                        <span>@L["MarathonBoss_BaseXP"]</span>
+                                        <span class="font-medium">@CalculateBaseXP() XP</span>
+                                    </div>
+                                    @if (_session.LivesRemaining == 3)
+                                    {
+                                        <div class="flex justify-between text-green-600">
+                                            <span>@L["MarathonBoss_PerfectBonus"]</span>
+                                            <span class="font-medium">+200 XP</span>
+                                        </div>
+                                    }
+                                    else if (_session.LivesRemaining > 0)
+                                    {
+                                        <div class="flex justify-between text-blue-600">
+                                            <span>@L["MarathonBoss_CompletionBonus"]</span>
+                                            <span class="font-medium">+100 XP</span>
+                                        </div>
+                                    }
+                                    @if (CalculateDurationMinutes() < 5)
+                                    {
+                                        <div class="flex justify-between text-purple-600">
+                                            <span>@L["MarathonBoss_SpeedBonus"]</span>
+                                            <span class="font-medium">+50 XP</span>
+                                        </div>
+                                    }
+                                </div>
+                            </TmCard>
+                        </div>
+
+                        <TmButton Variant="ButtonVariant.Primary" OnClick="ReturnToDashboard" Class="w-full">
+                            @L["MarathonBoss_BackToDashboard"]
+                        </TmButton>
+                    </div>
+                </TmCard>
+            </div>
+        }
+
+        <!-- Defeat Modal -->
+        @if (_session.IsGameOver && !_session.IsCompleted)
+        {
+            <div data-testid="defeat-modal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                <TmCard Variant="CardVariant.Elevated" Class="max-w-md w-full mx-4">
+                    <div class="p-6">
+                        <div class="flex items-center gap-3 text-red-600 mb-4">
+                            <TmIcon Name="XCircle" />
+                            <span class="text-2xl font-bold">@L["MarathonBoss_Defeat"]</span>
+                        </div>
+                        
+                        <div class="text-center py-4">
+                            <div class="text-6xl mb-4">💔</div>
+                            <h3 class="text-xl font-bold mb-2 text-gray-800">@L["MarathonBoss_GameOver"]</h3>
+                            <p class="text-gray-600 mb-6">@L["MarathonBoss_DefeatMessage"]</p>
+
+                            <TmCard Variant="CardVariant.Outlined" Class="p-4 mb-6 bg-gray-50">
+                                <div class="flex justify-center gap-6">
+                                    <div class="text-center">
+                                        <div class="text-2xl font-bold">@_session.CorrectAnswers</div>
+                                        <div class="text-sm text-gray-500">@L["MarathonBoss_WordsSolved"]</div>
+                                    </div>
+                                    <div class="text-center">
+                                        <div class="text-2xl font-bold">@_session.TotalXP</div>
+                                        <div class="text-sm text-gray-500">@L["MarathonBoss_XPEarned"]</div>
+                                    </div>
+                                </div>
+                            </TmCard>
+
+                            <blockquote class="border-l-4 border-orange-500 pl-4 italic text-gray-600 mb-6">
+                                @L["MarathonBoss_MotivationalQuote"]
+                            </blockquote>
+
+                            <div class="flex gap-3">
+                                <TmButton Variant="ButtonVariant.Outline" OnClick="ReturnToDashboard" Class="flex-1">
+                                    @L["MarathonBoss_GiveUp"]
+                                </TmButton>
+                                <TmButton Variant="ButtonVariant.Primary" OnClick="TryAgain" Class="flex-1">
+                                    @L["MarathonBoss_TryAgain"]
+                                </TmButton>
+                            </div>
+                        </div>
+                    </div>
+                </TmCard>
+            </div>
+        }
+    }
+</div>
+
+@code {
+    [Parameter] public Guid SessionId { get; set; }
+    [Parameter] public BossSessionDto? Session { get; set; }
+
+    private BossSessionDto? _session;
+    private string _currentScrambledWord = "ANAGRAM";
+    private string _currentAnswer = "";
+    private bool _isSubmitting;
+
+    protected override void OnInitialized()
+    {
+        _session = Session;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (_session == null)
+        {
+            _session = await BossService.GetBossStateAsync(SessionId);
+        }
+    }
+
+    private int CalculateProgress() => (_session?.CurrentRound ?? 1) * 100 / (_session?.TotalRounds ?? 20);
+
+    private string CalculateDuration()
+    {
+        if (_session?.EndedAt == null || _session?.StartedAt == null) return "--:--";
+        var duration = _session.EndedAt.Value - _session.StartedAt;
+        return $"{duration.Minutes:D2}:{duration.Seconds:D2}";
+    }
+
+    private double CalculateDurationMinutes()
+    {
+        if (_session?.EndedAt == null || _session?.StartedAt == null) return 0;
+        return (_session.EndedAt.Value - _session.StartedAt).TotalMinutes;
+    }
+
+    private int CalculateAccuracy()
+    {
+        if (_session?.TotalRounds == 0) return 0;
+        return (_session?.CorrectAnswers ?? 0) * 100 / (_session?.TotalRounds ?? 1);
+    }
+
+    private int CalculateBaseXP() => (_session?.TotalXP ?? 0) - CalculateBonusXP();
+
+    private int CalculateBonusXP()
+    {
+        var bonus = 0;
+        if (_session?.LivesRemaining == 3) bonus += 200;
+        else if (_session?.LivesRemaining > 0) bonus += 100;
+        if (CalculateDurationMinutes() < 5) bonus += 50;
+        return bonus;
+    }
+
+    private async Task SubmitAnswer()
+    {
+        if (string.IsNullOrWhiteSpace(_currentAnswer) || _isSubmitting) return;
+
+        _isSubmitting = true;
+        try
+        {
+            var result = await BossService.SubmitAnswerAsync(SessionId, _currentAnswer.Trim());
+            
+            _session!.LivesRemaining = result.LivesRemaining;
+            _session.IsGameOver = result.IsGameOver;
+            _session.IsCompleted = result.IsCompleted;
+            _session.TotalXP += result.XPGained;
+            
+            if (result.IsCorrect)
+            {
+                _session.CorrectAnswers++;
+                if (!result.IsCompleted)
+                {
+                    _session.CurrentRound++;
+                    _currentScrambledWord = result.NextScrambledWord ?? "NEXTWORD";
+                    _currentAnswer = "";
+                }
+            }
+            else if (!result.IsGameOver)
+            {
+                _currentAnswer = "";
+            }
+        }
+        finally
+        {
+            _isSubmitting = false;
+        }
+    }
+
+    private void ReturnToDashboard() => NavigationManager.NavigateTo("/dashboard");
+    
+    private void TryAgain() => NavigationManager.NavigateTo("/game/boss", forceLoad: true);
+}

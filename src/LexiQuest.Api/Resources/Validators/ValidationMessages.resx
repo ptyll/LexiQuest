@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Validation.Username.Required" xml:space="preserve">
+    <value>Uživatelské jméno je povinné</value>
+  </data>
+  <data name="Validation.Username.MinLength" xml:space="preserve">
+    <value>Uživatelské jméno musí mít alespoň 3 znaky</value>
+  </data>
+  <data name="Validation.Username.MaxLength" xml:space="preserve">
+    <value>Uživatelské jméno může mít maximálně 50 znaků</value>
+  </data>
+  <data name="Validation.Username.InvalidCharacters" xml:space="preserve">
+    <value>Uživatelské jméno může obsahovat pouze písmena, číslice a podtržítka</value>
+  </data>
+  <data name="Validation.Email.Required" xml:space="preserve">
+    <value>Email je povinný</value>
+  </data>
+  <data name="Validation.Email.Invalid" xml:space="preserve">
+    <value>Neplatný formát emailu</value>
+  </data>
+  <data name="Validation.CurrentPassword.Required" xml:space="preserve">
+    <value>Aktuální heslo je povinné</value>
+  </data>
+  <data name="Validation.NewPassword.Required" xml:space="preserve">
+    <value>Nové heslo je povinné</value>
+  </data>
+  <data name="Validation.Password.MinLength" xml:space="preserve">
+    <value>Heslo musí mít alespoň 8 znaků</value>
+  </data>
+  <data name="Validation.Password.Uppercase" xml:space="preserve">
+    <value>Heslo musí obsahovat alespoň jedno velké písmeno</value>
+  </data>
+  <data name="Validation.Password.Lowercase" xml:space="preserve">
+    <value>Heslo musí obsahovat alespoň jedno malé písmeno</value>
+  </data>
+  <data name="Validation.Password.Digit" xml:space="preserve">
+    <value>Heslo musí obsahovat alespoň jednu číslici</value>
+  </data>
+  <data name="Validation.Password.Special" xml:space="preserve">
+    <value>Heslo musí obsahovat alespoň jeden speciální znak</value>
+  </data>
+  <data name="Validation.ConfirmPassword.Mismatch" xml:space="preserve">
+    <value>Hesla se neshodují</value>
+  </data>
+  <data name="Error.UsernameTaken" xml:space="preserve">
+    <value>Uživatelské jméno je již obsazeno</value>
+  </data>
+  <data name="Error.InvalidCurrentPassword" xml:space="preserve">
+    <value>Nesprávné aktuální heslo</value>
+  </data>
+</root>

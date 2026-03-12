@@ -1,0 +1,24 @@
+@inherits LayoutComponentBase
+
+<div class="landing-layout">
+    <main>
+        @Body
+    </main>
+</div>
+
+<style>
+    .landing-layout {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .landing-layout main {
+        flex: 1;
+    }
+
+    /* Global landing page styles */
+    .landing-page {
+        overflow-x: hidden;
+    }
+</style>

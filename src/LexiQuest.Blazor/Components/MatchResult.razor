@@ -1,0 +1,137 @@
+@inject IStringLocalizer<MatchResult> Localizer
+
+<TmModal 
+    Show="@IsVisible" 
+    Title="" 
+    Size="ModalSize.Large"
+    ShowCloseButton="false"
+    CloseOnOverlayClick="false"
+    CloseOnEscape="false"
+    OnClose="() => { }">
+    
+    <ChildContent>
+        <div class="match-result-modal @GetResultClass()">
+            @if (IsWinner())
+            {
+                <ConfettiAnimation />
+            }
+
+            <div class="result-header">
+                <h1 class="result-title">
+                    @GetResultTitle()
+                </h1>
+                @if (!IsWinner() && !Result.IsDraw)
+                {
+                    <p class="motivation-text">@Localizer["Result_Motivation"]</p>
+                }
+                @if (Result.IsDraw)
+                {
+                    <p class="tiebreaker-text">@Localizer["Result_Speed_Tiebreaker"]</p>
+                }
+            </div>
+
+            <div class="players-comparison">
+                <!-- Your Card -->
+                <PlayerResultCard 
+                    Player="@Result.YourResult"
+                    IsWinner="@IsWinner()" />
+
+                <!-- VS Divider -->
+                <div class="vs-divider">VS</div>
+
+                <!-- Opponent Card -->
+                <PlayerResultCard 
+                    Player="@Result.OpponentResult"
+                    IsWinner="@(!IsWinner() && !Result.IsDraw)" />
+            </div>
+
+            <!-- XP Rewards -->
+            <div class="xp-rewards">
+                <div class="xp-badge">
+                    <TmBadge Variant="BadgeVariant.Success" Size="BadgeSize.Md">
+                        @string.Format(Localizer["Result_XP_Won"], Result.XPEarned)
+                    </TmBadge>
+                </div>
+
+                @if (!Result.IsPrivateRoom && Result.LeagueXPEarned > 0)
+                {
+                    <div class="xp-badge xp-league">
+                        <TmBadge Variant="BadgeVariant.Primary" Size="BadgeSize.Md">
+                            @string.Format(Localizer["Result_XP_League"], Result.LeagueXPEarned)
+                        </TmBadge>
+                    </div>
+                }
+            </div>
+
+            @if (Result.IsPrivateRoom)
+            {
+                <div class="no-league-info">
+                    <TmAlert Severity="AlertSeverity.Info">
+                        @Localizer["PrivateRoom_NoLeagueXP"]
+                    </TmAlert>
+                </div>
+            }
+
+            @if (BestOf > 1)
+            {
+                <div class="series-score">
+                    <TmBadge Variant="BadgeVariant.Info" Size="BadgeSize.Md">
+                        @string.Format(Localizer["Series_Score"], SeriesPlayer1Wins, SeriesPlayer2Wins)
+                    </TmBadge>
+                </div>
+            }
+        </div>
+    </ChildContent>
+
+    <Footer>
+        <div class="action-buttons">
+            @if (IsWinner() || Result.IsDraw)
+            {
+                <TmButton Variant="ButtonVariant.Primary" OnClick="() => OnNextMatch.InvokeAsync()">
+                    @Localizer["Button_NextMatch"]
+                </TmButton>
+            }
+            else
+            {
+                <TmButton Variant="ButtonVariant.Primary" OnClick="() => OnNextMatch.InvokeAsync()">
+                    @(Result.IsPrivateRoom ? Localizer["Button_Rematch"] : Localizer["Button_Revenge"])
+                </TmButton>
+            }
+            
+            <TmButton Variant="ButtonVariant.Ghost" OnClick="() => OnHome.InvokeAsync()">
+                @Localizer["Button_Home"]
+            </TmButton>
+        </div>
+    </Footer>
+</TmModal>
+
+@code {
+    [Parameter] public bool IsVisible { get; set; }
+    [Parameter] public MatchResultDto Result { get; set; } = null!;
+    [Parameter] public EventCallback OnNextMatch { get; set; }
+    [Parameter] public EventCallback OnHome { get; set; }
+    [Parameter] public int SeriesPlayer1Wins { get; set; }
+    [Parameter] public int SeriesPlayer2Wins { get; set; }
+    [Parameter] public int BestOf { get; set; } = 1;
+
+    private bool IsWinner() => Result is { IsDraw: false, WinnerId: not null } &&
+        Result.WinnerId != Guid.Empty &&
+        (Result.YourScore > Result.OpponentScore ||
+         (Result.YourScore == Result.OpponentScore && Result.YourTime < Result.OpponentTime));
+
+    private string GetResultClass() => Result switch
+    {
+        null => "",
+        _ when IsWinner() => "victory",
+        _ when Result.IsDraw => "draw",
+        _ => "defeat"
+    };
+
+    private string GetResultTitle() => Result switch
+    {
+        null => "",
+        _ when IsWinner() => Localizer["Result_Victory_Title"],
+        _ when Result.IsDraw => Localizer["Result_Draw_Title"],
+        _ => Localizer["Result_Defeat_Title"]
+    };
+}

@@ -1,0 +1,136 @@
+@page "/admin"
+@using LexiQuest.Shared.DTOs.Admin
+@inject IStringLocalizer<AdminDashboard> L
+@inject NavigationManager NavigationManager
+@inject IAdminService AdminService
+@inject ToastService ToastService
+
+<PageTitle>@L["Title"] - LexiQuest</PageTitle>
+
+<div class="admin-dashboard-page">
+    <div class="admin-header">
+        <h1>@L["Title"]</h1>
+        <p>@L["Subtitle"]</p>
+    </div>
+
+    @if (_isLoading)
+    {
+        <div class="stats-grid">
+            <TmSkeleton Variant="SkeletonVariant.Rect" Height="120px" />
+            <TmSkeleton Variant="SkeletonVariant.Rect" Height="120px" />
+            <TmSkeleton Variant="SkeletonVariant.Rect" Height="120px" />
+            <TmSkeleton Variant="SkeletonVariant.Rect" Height="120px" />
+        </div>
+    }
+    else if (_stats != null)
+    {
+        <div class="stats-grid">
+            <TmStatCard Title="@L["Stat.TotalUsers"]"
+                        Value="@_stats.TotalUsers.ToString()"
+                        Icon="@IconNames.Users"
+                        SubValue="@L["Stat.TotalUsers.Sub"]"
+                        SubValueColor="var(--tm-color-primary)" />
+
+            <TmStatCard Title="@L["Stat.ActiveToday"]"
+                        Value="@_stats.ActiveToday.ToString()"
+                        Icon="@IconNames.Activity"
+                        SubValue="@L["Stat.ActiveToday.Sub"]"
+                        SubValueColor="var(--tm-color-success)" />
+
+            <TmStatCard Title="@L["Stat.TotalWords"]"
+                        Value="@_stats.TotalWords.ToString()"
+                        Icon="@IconNames.FileText"
+                        SubValue="@L["Stat.TotalWords.Sub"]"
+                        SubValueColor="var(--tm-color-warning)" />
+
+            <TmStatCard Title="@L["Stat.DailyChallenges"]"
+                        Value="@_stats.DailyChallenges.ToString()"
+                        Icon="@IconNames.Calendar"
+                        SubValue="@L["Stat.DailyChallenges.Sub"]"
+                        SubValueColor="var(--tm-color-info)" />
+        </div>
+
+        <div class="quick-links">
+            <TmCard Variant="CardVariant.Elevated"
+                    Header="@L["QuickLinks.Title"]"
+                    HeaderIcon="@IconNames.Zap">
+                <div class="link-buttons">
+                    <TmButton Variant="ButtonVariant.Primary"
+                              OnClick="NavigateToWords"
+                              Icon="@IconNames.FileText">
+                        @L["QuickLinks.Words"]
+                    </TmButton>
+                    <TmButton Variant="ButtonVariant.Secondary"
+                              OnClick="NavigateToUsers"
+                              Icon="@IconNames.Users">
+                        @L["QuickLinks.Users"]
+                    </TmButton>
+                </div>
+            </TmCard>
+        </div>
+    }
+    else if (_loadError)
+    {
+        <TmAlert Severity="AlertSeverity.Error">
+            @L["Error.LoadFailed"]
+        </TmAlert>
+        <div class="retry-container">
+            <TmButton Variant="ButtonVariant.Primary" OnClick="LoadStatsAsync">
+                @L["Button.Retry"]
+            </TmButton>
+        </div>
+    }
+</div>
+
+@code {
+    private AdminDashboardStatsDto? _stats;
+    private bool _isLoading = true;
+    private bool _loadError;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var isAdmin = await AdminService.IsCurrentUserAdminAsync();
+        if (!isAdmin)
+        {
+            NavigationManager.NavigateTo("/");
+            return;
+        }
+
+        await LoadStatsAsync();
+    }
+
+    private async Task LoadStatsAsync()
+    {
+        _isLoading = true;
+        _loadError = false;
+        StateHasChanged();
+
+        try
+        {
+            _stats = await AdminService.GetDashboardStatsAsync();
+            if (_stats == null)
+            {
+                _loadError = true;
+            }
+        }
+        catch
+        {
+            _loadError = true;
+        }
+        finally
+        {
+            _isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private void NavigateToWords()
+    {
+        NavigationManager.NavigateTo("/admin/words");
+    }
+
+    private void NavigateToUsers()
+    {
+        NavigationManager.NavigateTo("/admin/users");
+    }
+}

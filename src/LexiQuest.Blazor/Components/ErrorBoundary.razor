@@ -1,0 +1,61 @@
+@inject IStringLocalizer<ErrorBoundary> L
+
+<CascadingValue Value="this">
+    @ChildContent
+</CascadingValue>
+
+@if (_hasError)
+{
+    <div class="error-boundary">
+        <TmCard Variant="CardVariant.Elevated" Class="p-8 text-center max-w-lg mx-auto mt-12">
+            <div class="text-6xl mb-4">😵</div>
+            <h2 class="text-2xl font-bold text-gray-800 mb-2">@L["Error_Title"]</h2>
+            <p class="text-gray-600 mb-6">@L["Error_Description"]</p>
+            
+            @if (!string.IsNullOrEmpty(_errorMessage) && ShowDetails)
+            {
+                <div class="bg-red-50 border border-red-200 rounded p-4 mb-6 text-left">
+                    <code class="text-sm text-red-700 break-all">@_errorMessage</code>
+                </div>
+            }
+
+            <div class="flex gap-4 justify-center">
+                <TmButton Variant="ButtonVariant.Outline" OnClick="GoHome">
+                    @L["Error_GoHome"]
+                </TmButton>
+                <TmButton Variant="ButtonVariant.Primary" OnClick="Recover">
+                    @L["Error_TryAgain"]
+                </TmButton>
+            </div>
+        </TmCard>
+    </div>
+}
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public bool ShowDetails { get; set; } = false;
+
+    [Inject] private NavigationManager NavigationManager { get; set; } = default!;
+
+    private bool _hasError;
+    private string? _errorMessage;
+
+    public void ProcessError(Exception ex)
+    {
+        _hasError = true;
+        _errorMessage = ex.Message;
+        StateHasChanged();
+    }
+
+    private void Recover()
+    {
+        _hasError = false;
+        _errorMessage = null;
+        StateHasChanged();
+    }
+
+    private void GoHome()
+    {
+        NavigationManager.NavigateTo("/dashboard");
+    }
+}

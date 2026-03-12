@@ -1,0 +1,376 @@
+@page "/team"
+@inject IStringLocalizer<Team> L
+@inject ITeamService TeamService
+@inject NavigationManager Navigation
+
+<div class="team-page">
+    <h2 class="page-title">@L["Page_Title"]</h2>
+
+    @if (_isLoading)
+    {
+        <TmSpinner Size="SpinnerSize.Lg" />
+    }
+    else if (_team == null)
+    {
+        <!-- No Team State -->
+        <div class="empty-state">
+            <TmEmptyState Title="@L["NoTeam_Title"]" Description="@L["NoTeam_Description"]" />
+            <div class="empty-actions">
+                <TmButton Variant="ButtonVariant.Primary" Size="ButtonSize.Lg" OnClick="ShowCreateModal">
+                    @L["Button_CreateTeam"]
+                </TmButton>
+                <TmButton Variant="ButtonVariant.Outline" Size="ButtonSize.Lg" OnClick="ShowRanking">
+                    @L["Button_SearchTeam"]
+                </TmButton>
+            </div>
+
+            @if (_myInvites.Any())
+            {
+                <TmCard>
+                    <h3>@L["Invites_Title"]</h3>
+                    @foreach (var invite in _myInvites)
+                    {
+                        <div class="invite-item">
+                            <div class="invite-info">
+                                <TmBadge Variant="BadgeVariant.Primary">@invite.TeamTag</TmBadge>
+                                <span>@invite.TeamName</span>
+                            </div>
+                            <div class="invite-actions">
+                                <TmButton Variant="ButtonVariant.Primary" Size="ButtonSize.Sm"
+                                    OnClick="() => AcceptInvite(invite.Id)">
+                                    @L["Invites_Accept"]
+                                </TmButton>
+                                <TmButton Variant="ButtonVariant.Ghost" Size="ButtonSize.Sm"
+                                    OnClick="() => RejectInvite(invite.Id)">
+                                    @L["Invites_Reject"]
+                                </TmButton>
+                            </div>
+                        </div>
+                    }
+                </TmCard>
+            }
+        </div>
+    }
+    else
+    {
+        <!-- Team Dashboard -->
+        <div class="team-dashboard">
+            <div class="team-header">
+                <div class="team-identity">
+                    @if (!string.IsNullOrEmpty(_team.LogoUrl))
+                    {
+                        <TmAvatar Src="@_team.LogoUrl" Size="AvatarSize.Lg" />
+                    }
+                    <div>
+                        <h3>@_team.Name</h3>
+                        <span class="team-tag"><TmBadge Variant="BadgeVariant.Primary">@_team.Tag</TmBadge></span>
+                    </div>
+                </div>
+                @if (!string.IsNullOrEmpty(_team.Description))
+                {
+                    <p class="team-description">@_team.Description</p>
+                }
+            </div>
+
+            <!-- Stats -->
+            <div class="stats-grid">
+                <TmCard>
+                    <div class="stat-value">@_team.Stats.WeeklyXP</div>
+                    <div class="stat-label">@L["Stats_WeeklyXP"]</div>
+                </TmCard>
+                <TmCard>
+                    <div class="stat-value">@_team.Stats.AllTimeXP</div>
+                    <div class="stat-label">@L["Stats_AllTimeXP"]</div>
+                </TmCard>
+                <TmCard>
+                    <div class="stat-value">#@_team.Stats.Rank</div>
+                    <div class="stat-label">@L["Stats_Rank"]</div>
+                </TmCard>
+                <TmCard>
+                    <div class="stat-value">@_team.Stats.TotalWins</div>
+                    <div class="stat-label">@L["Stats_Wins"]</div>
+                </TmCard>
+            </div>
+
+            <!-- Members -->
+            <TmCard>
+                <div class="section-header">
+                    <h3>@L["Dashboard_Members"] (@_team.MemberCount/20)</h3>
+                    @if (_isLeader || _isOfficer)
+                    {
+                        <TmButton Variant="ButtonVariant.Primary" Size="ButtonSize.Sm" OnClick="ShowInviteModal">
+                            @L["Button_Invite"]
+                        </TmButton>
+                    }
+                </div>
+                <table class="members-table">
+                    <thead>
+                        <tr>
+                            <th>@L["Members_Username"]</th>
+                            <th>@L["Members_Role"]</th>
+                            <th>@L["Members_WeeklyXP"]</th>
+                            <th>@L["Members_Joined"]</th>
+                            @if (_isLeader || _isOfficer)
+                            {
+                                <th></th>
+                            }
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var member in _members)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="member-info">
+                                        <TmAvatar Src="@member.AvatarUrl" Size="AvatarSize.Sm" />
+                                        <span>@member.Username</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <TmBadge Variant="@GetRoleBadgeVariant(member.Role)">
+                                        @GetRoleLabel(member.Role)
+                                    </TmBadge>
+                                </td>
+                                <td>@member.WeeklyXP</td>
+                                <td>@member.JoinedAt.ToString("d")</td>
+                                @if (_isLeader || _isOfficer)
+                                {
+                                    <td>
+                                        @if (member.Role != TeamRoleDto.Leader)
+                                        {
+                                            <TmButton Variant="ButtonVariant.Danger" Size="ButtonSize.Sm"
+                                                OnClick="() => KickMember(member.UserId)">
+                                                @L["Button_Kick"]
+                                            </TmButton>
+                                        }
+                                    </td>
+                                }
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </TmCard>
+
+            <!-- Join Requests (Leader/Officer only) -->
+            @if ((_isLeader || _isOfficer) && _joinRequests.Any())
+            {
+                <TmCard>
+                    <h3>@L["JoinRequests_Title"]</h3>
+                    @foreach (var request in _joinRequests)
+                    {
+                        <div class="join-request-item">
+                            <div class="request-info">
+                                <span class="request-username">@request.Username</span>
+                                @if (!string.IsNullOrEmpty(request.Message))
+                                {
+                                    <span class="request-message">@request.Message</span>
+                                }
+                            </div>
+                            <div class="request-actions">
+                                <TmButton Variant="ButtonVariant.Primary" Size="ButtonSize.Sm"
+                                    OnClick="() => ApproveRequest(request.Id)">
+                                    @L["JoinRequests_Accept"]
+                                </TmButton>
+                                <TmButton Variant="ButtonVariant.Ghost" Size="ButtonSize.Sm"
+                                    OnClick="() => RejectRequest(request.Id)">
+                                    @L["JoinRequests_Reject"]
+                                </TmButton>
+                            </div>
+                        </div>
+                    }
+                </TmCard>
+            }
+
+            <!-- Management -->
+            <div class="management-actions">
+                @if (_isLeader)
+                {
+                    <TmButton Variant="ButtonVariant.Outline" OnClick="ShowTransferModal">
+                        @L["Button_TransferLeadership"]
+                    </TmButton>
+                    <TmButton Variant="ButtonVariant.Danger" OnClick="DisbandTeam">
+                        @L["Button_DisbandTeam"]
+                    </TmButton>
+                }
+                else
+                {
+                    <TmButton Variant="ButtonVariant.Ghost" OnClick="LeaveTeam">
+                        @L["Button_LeaveTeam"]
+                    </TmButton>
+                }
+            </div>
+        </div>
+    }
+
+    <!-- Ranking Section -->
+    @if (_showRanking && _ranking.Any())
+    {
+        <TmCard>
+            <h3>@L["Dashboard_Ranking"]</h3>
+            <table class="ranking-table">
+                <thead>
+                    <tr>
+                        <th>@L["Ranking_Position"]</th>
+                        <th>@L["Ranking_TeamName"]</th>
+                        <th>@L["Ranking_WeeklyXP"]</th>
+                        <th>@L["Ranking_Members"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var entry in _ranking)
+                    {
+                        <tr>
+                            <td>#@entry.Rank</td>
+                            <td>
+                                <span>@entry.Name</span>
+                                <TmBadge Variant="BadgeVariant.Info">@entry.Tag</TmBadge>
+                            </td>
+                            <td>@entry.WeeklyXP</td>
+                            <td>@entry.MemberCount</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </TmCard>
+    }
+</div>
+
+@code {
+    private bool _isLoading = true;
+    private bool _showRanking;
+    private bool _isLeader;
+    private bool _isOfficer;
+
+    private TeamDto? _team;
+    private List<TeamMemberDto> _members = [];
+    private List<TeamInviteDto> _myInvites = [];
+    private List<TeamJoinRequestDto> _joinRequests = [];
+    private List<TeamRankingDto> _ranking = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        _team = await TeamService.GetMyTeamAsync();
+
+        if (_team != null)
+        {
+            _members = await TeamService.GetTeamMembersAsync(_team.Id);
+            _joinRequests = await TeamService.GetJoinRequestsAsync(_team.Id);
+            _isLeader = true; // In production, compare with current user ID
+            _isOfficer = false;
+        }
+        else
+        {
+            _myInvites = await TeamService.GetMyInvitesAsync();
+        }
+
+        _ranking = await TeamService.GetRankingAsync();
+        _isLoading = false;
+    }
+
+    private void ShowCreateModal()
+    {
+        // Modal logic handled in component
+    }
+
+    private void ShowRanking()
+    {
+        _showRanking = !_showRanking;
+    }
+
+    private void ShowInviteModal()
+    {
+        // Modal logic handled in component
+    }
+
+    private void ShowTransferModal()
+    {
+        // Modal logic handled in component
+    }
+
+    private async Task KickMember(Guid userId)
+    {
+        if (_team != null)
+        {
+            var success = await TeamService.KickMemberAsync(_team.Id, userId);
+            if (success)
+            {
+                _members = await TeamService.GetTeamMembersAsync(_team.Id);
+            }
+        }
+    }
+
+    private async Task LeaveTeam()
+    {
+        if (_team != null)
+        {
+            var success = await TeamService.LeaveTeamAsync(_team.Id);
+            if (success)
+            {
+                _team = null;
+                _members = [];
+            }
+        }
+    }
+
+    private async Task DisbandTeam()
+    {
+        if (_team != null)
+        {
+            var success = await TeamService.DisbandTeamAsync(_team.Id);
+            if (success)
+            {
+                _team = null;
+                _members = [];
+            }
+        }
+    }
+
+    private async Task AcceptInvite(Guid inviteId)
+    {
+        // Accept invite then reload
+        _team = await TeamService.GetMyTeamAsync();
+        if (_team != null)
+        {
+            _members = await TeamService.GetTeamMembersAsync(_team.Id);
+        }
+        _myInvites = await TeamService.GetMyInvitesAsync();
+    }
+
+    private async Task RejectInvite(Guid inviteId)
+    {
+        _myInvites = await TeamService.GetMyInvitesAsync();
+    }
+
+    private async Task ApproveRequest(Guid requestId)
+    {
+        var success = await TeamService.ApproveJoinRequestAsync(requestId);
+        if (success && _team != null)
+        {
+            _joinRequests = await TeamService.GetJoinRequestsAsync(_team.Id);
+            _members = await TeamService.GetTeamMembersAsync(_team.Id);
+        }
+    }
+
+    private async Task RejectRequest(Guid requestId)
+    {
+        var success = await TeamService.RejectJoinRequestAsync(requestId);
+        if (success && _team != null)
+        {
+            _joinRequests = await TeamService.GetJoinRequestsAsync(_team.Id);
+        }
+    }
+
+    private string GetRoleLabel(TeamRoleDto role) => role switch
+    {
+        TeamRoleDto.Leader => L["Role_Leader"],
+        TeamRoleDto.Officer => L["Role_Officer"],
+        _ => L["Role_Member"]
+    };
+
+    private BadgeVariant GetRoleBadgeVariant(TeamRoleDto role) => role switch
+    {
+        TeamRoleDto.Leader => BadgeVariant.Warning,
+        TeamRoleDto.Officer => BadgeVariant.Info,
+        _ => BadgeVariant.Info
+    };
+}

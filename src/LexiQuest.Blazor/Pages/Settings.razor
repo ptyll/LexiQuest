@@ -1,0 +1,390 @@
+@page "/settings"
+@using LexiQuest.Shared.DTOs.Users
+@inject IStringLocalizer<Settings> L
+@inject IUserService UserService
+@inject NavigationManager NavigationManager
+@inject ToastService ToastService
+
+<div class="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
+    <div class="max-w-4xl mx-auto px-4">
+        <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-8">@L["Settings_Title"]</h1>
+
+        @if (_isLoading)
+        {
+            <TmSkeleton Type="Rectangle" Height="400px" />
+        }
+        else if (_profile == null)
+        {
+            <TmEmptyState 
+                Icon="alert-circle"
+                Title="@L["Settings_LoadError"]"
+                Description="@L["Settings_LoadErrorDescription"]" />
+        }
+        else
+        {
+            <div class="space-y-8">
+                <!-- Profile Section -->
+                <div data-testid="profile-section" class="space-y-6">
+                    <TmCard Variant="CardVariant.Elevated" Class="p-6">
+                        <h2 class="text-xl font-semibold mb-4">@L["Settings_ProfileTitle"]</h2>
+                        
+                        <!-- Avatar -->
+                        <div class="flex items-center gap-4 mb-6">
+                            <TmAvatar Src="@_profile.AvatarUrl" Alt="@_profile.Username" />
+                            <TmButton Variant="ButtonVariant.Outline">
+                                @L["Settings_ChangeAvatar"]
+                            </TmButton>
+                        </div>
+
+                        <!-- Username -->
+                        <TmFormField Label="@L["Settings_Username"]" Class="mb-4">
+                            <div class="flex gap-2" data-testid="username-input">
+                                <TmTextInput 
+                                    @bind-Value="_updateRequest.Username"
+                                    Placeholder="@L["Settings_UsernamePlaceholder"]" />
+                                @if (_isCheckingUsername)
+                                {
+                                    <TmIcon Name="loader" Class="animate-spin" />
+                                }
+                                else if (_usernameAvailable == true)
+                                {
+                                    <TmIcon Name="check" Class="text-green-500" />
+                                }
+                                else if (_usernameAvailable == false)
+                                {
+                                    <TmIcon Name="x" Class="text-red-500" />
+                                }
+                            </div>
+                        </TmFormField>
+
+                        <!-- Email -->
+                        <div data-testid="email-input">
+                            <TmFormField Label="@L["Settings_Email"]" Class="mb-4">
+                                <TmTextInput
+                                    @bind-Value="_updateRequest.Email"
+                                    Placeholder="@L["Settings_EmailPlaceholder"]" />
+                            </TmFormField>
+                        </div>
+
+                        <div data-testid="save-profile-btn">
+                            <TmButton
+                                Variant="ButtonVariant.Primary"
+                                OnClick="SaveProfile"
+                                Disabled="_isSaving">
+                                @if (_isSaving)
+                                {
+                                    <TmIcon Name="spinner" Class="animate-spin mr-2" />
+                                }
+                                @L["Settings_SaveChanges"]
+                            </TmButton>
+                        </div>
+                    </TmCard>
+                </div>
+
+                <!-- Password Section -->
+                <div data-testid="password-section" class="space-y-6">
+                    <TmCard Variant="CardVariant.Elevated" Class="p-6">
+                        <h2 class="text-xl font-semibold mb-4">@L["Settings_ChangePassword"]</h2>
+                        
+                        <div data-testid="current-password-input">
+                            <TmFormField Label="@L["Settings_CurrentPassword"]" Class="mb-4">
+                                <TmTextInput
+                                    @bind-Value="_passwordRequest.CurrentPassword"
+                                    Type="password"
+                                    Placeholder="@L["Settings_CurrentPasswordPlaceholder"]" />
+                            </TmFormField>
+                        </div>
+
+                        <div data-testid="new-password-input">
+                            <TmFormField Label="@L["Settings_NewPassword"]" Class="mb-4">
+                                <TmTextInput
+                                    @bind-Value="_passwordRequest.NewPassword"
+                                    Type="password"
+                                    Placeholder="@L["Settings_NewPasswordPlaceholder"]" />
+                            </TmFormField>
+                        </div>
+
+                        <div data-testid="confirm-password-input">
+                            <TmFormField Label="@L["Settings_ConfirmPassword"]" Class="mb-4">
+                                <TmTextInput
+                                    @bind-Value="_passwordRequest.ConfirmPassword"
+                                    Type="password"
+                                    Placeholder="@L["Settings_ConfirmPasswordPlaceholder"]" />
+                            </TmFormField>
+                        </div>
+
+                        <div data-testid="change-password-btn">
+                            <TmButton
+                                Variant="ButtonVariant.Primary"
+                                OnClick="ChangePassword"
+                                Disabled="_isChangingPassword">
+                                @if (_isChangingPassword)
+                                {
+                                    <TmIcon Name="spinner" Class="animate-spin mr-2" />
+                                }
+                                @L["Settings_ChangePasswordBtn"]
+                            </TmButton>
+                        </div>
+                    </TmCard>
+                </div>
+
+                <!-- Preferences Section -->
+                <div data-testid="preferences-section" class="space-y-6">
+                    <TmCard Variant="CardVariant.Elevated" Class="p-6">
+                        <h2 class="text-xl font-semibold mb-4">@L["Settings_Notifications"]</h2>
+                        
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between" data-testid="push-notifications-toggle">
+                                <span>@L["Settings_PushNotifications"]</span>
+                                <TmToggle
+                                    @bind-Value="_preferences.PushNotificationsEnabled" 
+                                     />
+                            </div>
+
+                            <div class="flex items-center justify-between" data-testid="email-notifications-toggle">
+                                <span>@L["Settings_EmailNotifications"]</span>
+                                <TmToggle
+                                    @bind-Value="_preferences.EmailNotificationsEnabled" 
+                                     />
+                            </div>
+
+                            <div class="flex items-center justify-between">
+                                <span>@L["Settings_LeagueUpdates"]</span>
+                                <TmToggle 
+                                    @bind-Value="_preferences.LeagueUpdatesEnabled" 
+                                     />
+                            </div>
+
+                            <div class="flex items-center justify-between">
+                                <span>@L["Settings_AchievementNotifications"]</span>
+                                <TmToggle 
+                                    @bind-Value="_preferences.AchievementNotificationsEnabled" 
+                                     />
+                            </div>
+                        </div>
+                        <TmButton Variant="ButtonVariant.Primary" OnClick="SavePreferences" Class="mt-4">
+                            @L["Settings_SaveChanges"]
+                        </TmButton>
+                    </TmCard>
+
+                    <TmCard Variant="CardVariant.Elevated" Class="p-6">
+                        <h2 class="text-xl font-semibold mb-4">@L["Settings_Display"]</h2>
+                        
+                        <div class="space-y-4">
+                            <TmFormField Label="@L["Settings_Theme"]">
+                                <TmRadioGroup 
+                                    @bind-Value="_preferences.Theme"
+                                    Options="_themeOptions"
+                                     />
+                            </TmFormField>
+
+                            <div class="flex items-center justify-between" data-testid="animations-toggle">
+                                <span>@L["Settings_Animations"]</span>
+                                <TmToggle
+                                    @bind-Value="_preferences.AnimationsEnabled" 
+                                     />
+                            </div>
+
+                            <div class="flex items-center justify-between" data-testid="sounds-toggle">
+                                <span>@L["Settings_Sounds"]</span>
+                                <TmToggle
+                                    @bind-Value="_preferences.SoundsEnabled" 
+                                     />
+                            </div>
+                        </div>
+                        <TmButton Variant="ButtonVariant.Primary" OnClick="SavePreferences" Class="mt-4">
+                            @L["Settings_SaveChanges"]
+                        </TmButton>
+                    </TmCard>
+                </div>
+
+                <!-- Privacy Section -->
+                <div data-testid="privacy-section" class="space-y-6">
+                    <TmCard Variant="CardVariant.Elevated" Class="p-6">
+                        <h2 class="text-xl font-semibold mb-4">@L["Settings_PrivacyTitle"]</h2>
+                        
+                        <div data-testid="profile-visibility-group">
+                            <TmFormField Label="@L["Settings_ProfileVisibility"]" Class="mb-4">
+                                <TmRadioGroup
+                                    @bind-Value="_privacy.ProfileVisibility"
+                                    Options="_visibilityOptions"
+                                     />
+                            </TmFormField>
+                        </div>
+
+                        <div class="flex items-center justify-between mb-4" data-testid="leaderboard-visibility-toggle">
+                            <span>@L["Settings_LeaderboardVisible"]</span>
+                            <TmToggle
+                                @bind-Value="_privacy.LeaderboardVisible" 
+                                 />
+                        </div>
+
+                        <div class="flex items-center justify-between" data-testid="stats-sharing-toggle">
+                            <span>@L["Settings_StatsSharing"]</span>
+                            <TmToggle
+                                @bind-Value="_privacy.StatsSharingEnabled" 
+                                 />
+                        </div>
+                        <TmButton Variant="ButtonVariant.Primary" OnClick="SavePrivacy" Class="mt-4">
+                            @L["Settings_SaveChanges"]
+                        </TmButton>
+                    </TmCard>
+
+                    <!-- Danger Zone -->
+                    <TmCard Variant="CardVariant.Elevated" Class="p-6 border-red-200">
+                        <h2 class="text-xl font-semibold mb-4 text-red-600">@L["Settings_DangerZone"]</h2>
+                        
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <div class="font-medium">@L["Settings_Logout"]</div>
+                                    <div class="text-sm text-gray-500">@L["Settings_LogoutDescription"]</div>
+                                </div>
+                                <TmButton Variant="ButtonVariant.Outline" OnClick="Logout">
+                                    @L["Settings_LogoutBtn"]
+                                </TmButton>
+                            </div>
+
+                            <div class="border-t pt-4 flex items-center justify-between">
+                                <div>
+                                    <div class="font-medium text-red-600">@L["Settings_DeleteAccount"]</div>
+                                    <div class="text-sm text-gray-500">@L["Settings_DeleteAccountDescription"]</div>
+                                </div>
+                                <TmButton Variant="ButtonVariant.Danger" OnClick="ShowDeleteConfirm">
+                                    @L["Settings_DeleteAccountBtn"]
+                                </TmButton>
+                            </div>
+                        </div>
+                    </TmCard>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    private bool _isLoading = true;
+    private bool _isSaving;
+    private bool _isChangingPassword;
+    private bool _isCheckingUsername;
+    private bool? _usernameAvailable;
+    
+    private UserProfileDto? _profile;
+    private UpdateProfileRequest _updateRequest = new();
+    private ChangePasswordRequest _passwordRequest = new();
+    private UserPreferencesDto _preferences = new();
+    private PrivacySettingsDto _privacy = new();
+
+    private List<RadioOption<string>> _themeOptions = new()
+    {
+        new RadioOption<string>("light", "Light"),
+        new RadioOption<string>("dark", "Dark"),
+        new RadioOption<string>("auto", "Auto")
+    };
+
+    private List<RadioOption<ProfileVisibility>> _visibilityOptions = new()
+    {
+        new RadioOption<ProfileVisibility>("Public", ProfileVisibility.Public),
+        new RadioOption<ProfileVisibility>("Friends", ProfileVisibility.Friends),
+        new RadioOption<ProfileVisibility>("Private", ProfileVisibility.Private)
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadProfile();
+    }
+
+    private async Task LoadProfile()
+    {
+        _isLoading = true;
+        try
+        {
+            _profile = await UserService.GetProfileAsync();
+            if (_profile != null)
+            {
+                _updateRequest = new UpdateProfileRequest
+                {
+                    Username = _profile.Username,
+                    Email = _profile.Email
+                };
+                _preferences = _profile.Preferences;
+                _privacy = _profile.Privacy;
+            }
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private async Task SaveProfile()
+    {
+        _isSaving = true;
+        try
+        {
+            var success = await UserService.UpdateProfileAsync(_updateRequest);
+            if (success)
+            {
+                ToastService.ShowSuccess(L["Settings_ProfileSaved"]);
+            }
+            else
+            {
+                ToastService.ShowError(L["Settings_SaveFailed"]);
+            }
+        }
+        finally
+        {
+            _isSaving = false;
+        }
+    }
+
+    private async Task ChangePassword()
+    {
+        _isChangingPassword = true;
+        try
+        {
+            var success = await UserService.ChangePasswordAsync(_passwordRequest);
+            if (success)
+            {
+                ToastService.ShowSuccess(L["Settings_PasswordChanged"]);
+                _passwordRequest = new ChangePasswordRequest();
+            }
+            else
+            {
+                ToastService.ShowError(L["Settings_PasswordChangeFailed"]);
+            }
+        }
+        finally
+        {
+            _isChangingPassword = false;
+        }
+    }
+
+    private async Task SavePreferences()
+    {
+        var success = await UserService.UpdatePreferencesAsync(_preferences);
+        if (success)
+        {
+            ToastService.ShowSuccess(L["Settings_PreferencesSaved"]);
+        }
+    }
+
+    private async Task SavePrivacy()
+    {
+        var success = await UserService.UpdatePrivacyAsync(_privacy);
+        if (success)
+        {
+            ToastService.ShowSuccess(L["Settings_PrivacySaved"]);
+        }
+    }
+
+    private void Logout()
+    {
+        NavigationManager.NavigateTo("/logout");
+    }
+
+    private void ShowDeleteConfirm()
+    {
+        // Show confirmation modal
+    }
+}

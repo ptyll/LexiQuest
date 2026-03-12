@@ -1,0 +1,147 @@
+.series-score-overlay {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-md);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-md);
+}
+
+.series-score-display {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-lg);
+}
+
+.player-avatar {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-xs);
+}
+
+.player-avatar .player-name {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-secondary);
+    max-width: 80px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.score-display {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-xs);
+}
+
+.series-label {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.score-box {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-bold);
+}
+
+.score {
+    padding: var(--spacing-xs) var(--spacing-md);
+    border-radius: var(--radius-md);
+    background: var(--color-background);
+    color: var(--color-text-secondary);
+    min-width: 40px;
+    text-align: center;
+}
+
+.score.leading {
+    background: var(--color-success);
+    color: white;
+}
+
+.score-separator {
+    color: var(--color-text-secondary);
+}
+
+.game-indicator {
+    font-size: var(--font-size-xs);
+}
+
+/* Series Complete */
+.series-complete {
+    text-align: center;
+    padding: var(--spacing-md);
+    border-top: 1px solid var(--color-border);
+    width: 100%;
+}
+
+.winner-announcement {
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-success);
+    margin-bottom: var(--spacing-md);
+}
+
+.rematch-section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+}
+
+.rematch-actions {
+    display: flex;
+    gap: var(--spacing-sm);
+    justify-content: center;
+}
+
+/* Next Game Countdown */
+.next-game-section {
+    text-align: center;
+    padding: var(--spacing-md);
+    border-top: 1px solid var(--color-border);
+    width: 100%;
+}
+
+.next-game-section p {
+    margin: 0 0 var(--spacing-sm) 0;
+    color: var(--color-text-secondary);
+}
+
+.next-game-countdown {
+    font-size: 3rem;
+    font-weight: var(--font-weight-bold);
+    color: var(--color-primary);
+    animation: pulse 1s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+    .series-score-display {
+        gap: var(--spacing-md);
+    }
+
+    .score-box {
+        font-size: var(--font-size-xl);
+    }
+
+    .player-avatar .player-name {
+        max-width: 60px;
+    }
+
+    .next-game-countdown {
+        font-size: 2rem;
+    }
+}

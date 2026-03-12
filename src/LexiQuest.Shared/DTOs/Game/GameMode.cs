@@ -8,5 +8,6 @@ public enum GameMode
     Training,
     Path,
     TimeAttack,
-    DailyChallenge
+    DailyChallenge,
+    Boss
 }

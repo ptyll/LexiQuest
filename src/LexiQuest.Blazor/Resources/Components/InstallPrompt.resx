@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="InstallTitle" xml:space="preserve">
+    <value>Nainstaluj LexiQuest</value>
+  </data>
+  <data name="InstallMessage" xml:space="preserve">
+    <value>Přidej si LexiQuest na domovskou obrazovku pro lepší zážitek!</value>
+  </data>
+  <data name="InstallButton" xml:space="preserve">
+    <value>Nainstalovat</value>
+  </data>
+  <data name="DismissButton" xml:space="preserve">
+    <value>Později</value>
+  </data>
+</root>

@@ -1,0 +1,108 @@
+.testimonials-section {
+    padding: var(--tm-spacing-16) var(--tm-spacing-4);
+    background: linear-gradient(135deg, var(--tm-color-surface) 0%, var(--tm-color-background) 100%);
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 var(--tm-spacing-4);
+}
+
+.section-title {
+    text-align: center;
+    font-size: var(--tm-font-size-3xl);
+    font-weight: var(--tm-font-weight-bold);
+    color: var(--tm-color-text-primary);
+    margin-bottom: var(--tm-spacing-10);
+}
+
+.testimonials-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--tm-spacing-6);
+}
+
+.testimonial-card {
+    background: var(--tm-color-surface);
+    border-radius: var(--tm-radius-xl);
+    padding: var(--tm-spacing-6);
+    box-shadow: var(--tm-shadow-md);
+    transition: all var(--tm-transition-normal);
+    border: 1px solid var(--tm-color-border);
+}
+
+.testimonial-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--tm-shadow-lg);
+}
+
+.stars {
+    display: flex;
+    gap: var(--tm-spacing-1);
+    margin-bottom: var(--tm-spacing-4);
+    color: #fbbf24; /* Amber-400 for stars */
+}
+
+::deep .star-icon {
+    color: #fbbf24;
+}
+
+.quote {
+    font-size: var(--tm-font-size-base);
+    color: var(--tm-color-text-primary);
+    line-height: 1.6;
+    margin-bottom: var(--tm-spacing-4);
+    font-style: italic;
+}
+
+.author {
+    display: flex;
+    align-items: center;
+    gap: var(--tm-spacing-3);
+}
+
+.testimonial-avatar {
+    flex-shrink: 0;
+}
+
+.author-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.author-name {
+    font-weight: var(--tm-font-weight-semibold);
+    color: var(--tm-color-text-primary);
+    font-size: var(--tm-font-size-sm);
+}
+
+.author-role {
+    font-size: var(--tm-font-size-xs);
+    color: var(--tm-color-text-secondary);
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .testimonials-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 640px) {
+    .testimonials-section {
+        padding: var(--tm-spacing-10) var(--tm-spacing-4);
+    }
+
+    .section-title {
+        font-size: var(--tm-font-size-2xl);
+    }
+
+    .testimonials-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .testimonial-card {
+        padding: var(--tm-spacing-5);
+    }
+}

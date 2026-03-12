@@ -1,68 +1,147 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
-  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
-    <xsd:element name="root" msdata:IsDataSet="true">
-      <xsd:complexType>
-        <xsd:choice maxOccurs="unbounded">
-          <xsd:element name="data">
-            <xsd:complexType>
-              <xsd:sequence>
-                <xsd:element name="value" minOccurs="0" msdata:Ordinal="1" />
-              </xsd:sequence>
-              <xsd:attribute name="name" type="xsd:string" msdata:Ordinal="0" />
-              <xsd:attribute name="xml:space" type="xsd:string" />
-            </xsd:complexType>
-          </xsd:element>
-          <xsd:element name="resheader">
-            <xsd:complexType>
-              <xsd:sequence>
-                <xsd:element name="value" minOccurs="0" msdata:Ordinal="1" />
-              </xsd:sequence>
-              <xsd:attribute name="name" type="xsd:string" use="required" />
-            </xsd:complexType>
-          </xsd:element>
-        </xsd:choice>
-      </xsd:complexType>
-    </xsd:element>
-  </xsd:schema>
-  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
-  <resheader name="version"><value>2.0</value></resheader>
-  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
-  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
-  <data name="Title" xml:space="preserve">
+  <data name="Settings_Title" xml:space="preserve">
     <value>Nastavení</value>
   </data>
-  <data name="Section.Account" xml:space="preserve">
-    <value>Účet</value>
+  <data name="Settings_LoadError" xml:space="preserve">
+    <value>Chyba při načítání</value>
   </data>
-  <data name="Section.Preferences" xml:space="preserve">
-    <value>Preference</value>
+  <data name="Settings_LoadErrorDescription" xml:space="preserve">
+    <value>Nepodařilo se načíst nastavení. Zkuste to prosím později.</value>
   </data>
-  <data name="Section.Notifications" xml:space="preserve">
-    <value>Oznámení</value>
+  <data name="Settings_ProfileTab" xml:space="preserve">
+    <value>Profil</value>
   </data>
-  <data name="Theme.Light" xml:space="preserve">
-    <value>Světlý</value>
+  <data name="Settings_ProfileTitle" xml:space="preserve">
+    <value>Osobní údaje</value>
   </data>
-  <data name="Theme.Dark" xml:space="preserve">
-    <value>Tmavý</value>
+  <data name="Settings_ChangeAvatar" xml:space="preserve">
+    <value>Změnit avatar</value>
   </data>
-  <data name="Language" xml:space="preserve">
-    <value>Jazyk</value>
+  <data name="Settings_Username" xml:space="preserve">
+    <value>Uživatelské jméno</value>
   </data>
-  <data name="Animations" xml:space="preserve">
+  <data name="Settings_UsernamePlaceholder" xml:space="preserve">
+    <value>Zadejte uživatelské jméno</value>
+  </data>
+  <data name="Settings_Email" xml:space="preserve">
+    <value>Email</value>
+  </data>
+  <data name="Settings_EmailPlaceholder" xml:space="preserve">
+    <value>Zadejte email</value>
+  </data>
+  <data name="Settings_SaveChanges" xml:space="preserve">
+    <value>Uložit změny</value>
+  </data>
+  <data name="Settings_ProfileSaved" xml:space="preserve">
+    <value>Profil byl úspěšně uložen.</value>
+  </data>
+  <data name="Settings_SaveFailed" xml:space="preserve">
+    <value>Uložení se nezdařilo. Zkuste to prosím znovu.</value>
+  </data>
+  <data name="Settings_PasswordTab" xml:space="preserve">
+    <value>Heslo</value>
+  </data>
+  <data name="Settings_ChangePassword" xml:space="preserve">
+    <value>Změna hesla</value>
+  </data>
+  <data name="Settings_CurrentPassword" xml:space="preserve">
+    <value>Aktuální heslo</value>
+  </data>
+  <data name="Settings_CurrentPasswordPlaceholder" xml:space="preserve">
+    <value>Zadejte aktuální heslo</value>
+  </data>
+  <data name="Settings_NewPassword" xml:space="preserve">
+    <value>Nové heslo</value>
+  </data>
+  <data name="Settings_NewPasswordPlaceholder" xml:space="preserve">
+    <value>Zadejte nové heslo</value>
+  </data>
+  <data name="Settings_ConfirmPassword" xml:space="preserve">
+    <value>Potvrzení hesla</value>
+  </data>
+  <data name="Settings_ConfirmPasswordPlaceholder" xml:space="preserve">
+    <value>Potvrďte nové heslo</value>
+  </data>
+  <data name="Settings_ChangePasswordBtn" xml:space="preserve">
+    <value>Změnit heslo</value>
+  </data>
+  <data name="Settings_PasswordChanged" xml:space="preserve">
+    <value>Heslo bylo úspěšně změněno.</value>
+  </data>
+  <data name="Settings_PasswordChangeFailed" xml:space="preserve">
+    <value>Změna hesla se nezdařila. Zkontrolujte aktuální heslo.</value>
+  </data>
+  <data name="Settings_PreferencesTab" xml:space="preserve">
+    <value>Předvolby</value>
+  </data>
+  <data name="Settings_Notifications" xml:space="preserve">
+    <value>Notifikace</value>
+  </data>
+  <data name="Settings_PushNotifications" xml:space="preserve">
+    <value>Push notifikace</value>
+  </data>
+  <data name="Settings_EmailNotifications" xml:space="preserve">
+    <value>Email notifikace</value>
+  </data>
+  <data name="Settings_LeagueUpdates" xml:space="preserve">
+    <value>Aktualizace ligy</value>
+  </data>
+  <data name="Settings_AchievementNotifications" xml:space="preserve">
+    <value>Notifikace o achievementech</value>
+  </data>
+  <data name="Settings_Display" xml:space="preserve">
+    <value>Zobrazení</value>
+  </data>
+  <data name="Settings_Theme" xml:space="preserve">
+    <value>Motiv</value>
+  </data>
+  <data name="Settings_Animations" xml:space="preserve">
     <value>Animace</value>
   </data>
-  <data name="Sounds" xml:space="preserve">
+  <data name="Settings_Sounds" xml:space="preserve">
     <value>Zvuky</value>
   </data>
-  <data name="Button.Save" xml:space="preserve">
-    <value>Uložit</value>
+  <data name="Settings_PreferencesSaved" xml:space="preserve">
+    <value>Předvolby byly uloženy.</value>
   </data>
-  <data name="Button.Logout" xml:space="preserve">
+  <data name="Settings_PrivacyTab" xml:space="preserve">
+    <value>Soukromí</value>
+  </data>
+  <data name="Settings_PrivacyTitle" xml:space="preserve">
+    <value>Nastavení soukromí</value>
+  </data>
+  <data name="Settings_ProfileVisibility" xml:space="preserve">
+    <value>Viditelnost profilu</value>
+  </data>
+  <data name="Settings_LeaderboardVisible" xml:space="preserve">
+    <value>Zobrazit v žebříčku</value>
+  </data>
+  <data name="Settings_StatsSharing" xml:space="preserve">
+    <value>Sdílení statistik</value>
+  </data>
+  <data name="Settings_PrivacySaved" xml:space="preserve">
+    <value>Nastavení soukromí bylo uloženo.</value>
+  </data>
+  <data name="Settings_DangerZone" xml:space="preserve">
+    <value>Nebezpečná zóna</value>
+  </data>
+  <data name="Settings_Logout" xml:space="preserve">
     <value>Odhlásit se</value>
   </data>
-  <data name="Button.DeleteAccount" xml:space="preserve">
+  <data name="Settings_LogoutDescription" xml:space="preserve">
+    <value>Odhlásit se z aktuálního sezení.</value>
+  </data>
+  <data name="Settings_LogoutBtn" xml:space="preserve">
+    <value>Odhlásit</value>
+  </data>
+  <data name="Settings_DeleteAccount" xml:space="preserve">
     <value>Smazat účet</value>
+  </data>
+  <data name="Settings_DeleteAccountDescription" xml:space="preserve">
+    <value>Trvale smazat účet a všechna data.</value>
+  </data>
+  <data name="Settings_DeleteAccountBtn" xml:space="preserve">
+    <value>Smazat</value>
   </data>
 </root>

@@ -1,0 +1,125 @@
+/* Login Page - Layout only, using Tempo.Blazor design tokens */
+
+.login-page {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: var(--tm-spacing-4);
+    background: var(--tm-color-bg-secondary);
+}
+
+.login-card {
+    width: 100%;
+    max-width: 420px;
+    padding: var(--tm-spacing-8);
+}
+
+.login-header {
+    text-align: center;
+    margin-bottom: var(--tm-spacing-6);
+}
+
+.login-brand {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--tm-color-primary);
+    margin: 0 0 var(--tm-spacing-4);
+}
+
+.login-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--tm-color-text-primary);
+    margin: 0 0 var(--tm-spacing-2);
+}
+
+.login-subtitle {
+    font-size: 0.875rem;
+    color: var(--tm-color-text-secondary);
+    margin: 0;
+}
+
+.login-alert {
+    margin-bottom: var(--tm-spacing-4);
+}
+
+.login-form-fields {
+    display: flex;
+    flex-direction: column;
+    gap: var(--tm-spacing-4);
+    margin-bottom: var(--tm-spacing-6);
+}
+
+.login-submit-btn {
+    margin-bottom: var(--tm-spacing-4);
+}
+
+.login-links {
+    text-align: center;
+    margin-bottom: var(--tm-spacing-4);
+}
+
+.login-forgot-link {
+    font-size: 0.875rem;
+}
+
+.login-divider {
+    display: flex;
+    align-items: center;
+    margin: var(--tm-spacing-4) 0;
+    color: var(--tm-color-text-muted);
+    font-size: 0.875rem;
+}
+
+.login-divider::before,
+.login-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--tm-color-border);
+}
+
+.login-divider span {
+    padding: 0 var(--tm-spacing-3);
+}
+
+.login-google-btn {
+    margin-bottom: var(--tm-spacing-6);
+}
+
+.google-icon {
+    margin-right: var(--tm-spacing-2);
+}
+
+.login-register-prompt {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: var(--tm-spacing-2);
+    font-size: 0.875rem;
+    color: var(--tm-color-text-secondary);
+}
+
+.login-register-link {
+    font-weight: 500;
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+    .login-page {
+        padding: var(--tm-spacing-2);
+    }
+
+    .login-card {
+        padding: var(--tm-spacing-6);
+    }
+
+    .login-brand {
+        font-size: 1.75rem;
+    }
+
+    .login-title {
+        font-size: 1.25rem;
+    }
+}

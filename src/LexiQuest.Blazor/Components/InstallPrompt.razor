@@ -1,0 +1,81 @@
+@implements IAsyncDisposable
+@inject IStringLocalizer<InstallPrompt> L
+@inject IJSRuntime JS
+
+@if (_showPrompt)
+{
+    <div class="install-prompt">
+        <TmAlert Severity="AlertSeverity.Info">
+            <div class="install-prompt-content">
+                <div class="install-prompt-text">
+                    <strong>@L["InstallTitle"]</strong>
+                    <span>@L["InstallMessage"]</span>
+                </div>
+                <div class="install-prompt-actions">
+                    <TmButton Variant="ButtonVariant.Primary"
+                              Size="ButtonSize.Sm"
+                              OnClick="InstallApp">
+                        @L["InstallButton"]
+                    </TmButton>
+                    <TmButton Variant="ButtonVariant.Ghost"
+                              Size="ButtonSize.Sm"
+                              OnClick="Dismiss">
+                        @L["DismissButton"]
+                    </TmButton>
+                </div>
+            </div>
+        </TmAlert>
+    </div>
+}
+
+@code {
+    private bool _showPrompt;
+    private DotNetObjectReference<InstallPrompt>? _dotNetRef;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _dotNetRef = DotNetObjectReference.Create(this);
+            var isStandalone = await JS.InvokeAsync<bool>("lexiQuestPwa.isStandalone");
+            if (!isStandalone)
+            {
+                await JS.InvokeVoidAsync("lexiQuestPwa.registerInstallPromptHandler", _dotNetRef);
+            }
+        }
+    }
+
+    [JSInvokable]
+    public void OnBeforeInstallPrompt()
+    {
+        _showPrompt = true;
+        InvokeAsync(StateHasChanged);
+    }
+
+    private async Task InstallApp()
+    {
+        var accepted = await JS.InvokeAsync<bool>("lexiQuestPwa.promptInstall");
+        _showPrompt = false;
+    }
+
+    private void Dismiss()
+    {
+        _showPrompt = false;
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_dotNetRef is not null)
+        {
+            try
+            {
+                await JS.InvokeVoidAsync("lexiQuestPwa.unregisterInstallPromptHandler");
+            }
+            catch (JSDisconnectedException)
+            {
+                // Ignore during app shutdown
+            }
+            _dotNetRef.Dispose();
+        }
+    }
+}

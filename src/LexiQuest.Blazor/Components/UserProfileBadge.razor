@@ -1,0 +1,44 @@
+@inject IStringLocalizer<UserProfileBadge> L
+@inject NavigationManager Navigation
+
+<div class="user-profile-badge @GetContainerClass()">
+    @if (IsPremium)
+    {
+        <div class="premium-badge" @onclick="NavigateToPremium">
+            <TmTooltip Text="@L["PremiumActiveTooltip"]">
+                <span class="premium-icon">⭐</span>
+                <span class="premium-text">@L["Premium"]</span>
+            </TmTooltip>
+        </div>
+    }
+    else if (ShowUpgradePrompt)
+    {
+        <div class="upgrade-badge" @onclick="NavigateToPremium">
+            <TmTooltip Text="@L["UpgradeTooltip"]">
+                <span class="upgrade-icon">🔒</span>
+                <span class="upgrade-text">@L["Upgrade"]</span>
+            </TmTooltip>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public bool IsPremium { get; set; }
+
+    [Parameter]
+    public bool ShowUpgradePrompt { get; set; }
+
+    [Parameter]
+    public string? CssClass { get; set; }
+
+    private string GetContainerClass()
+    {
+        return CssClass ?? "";
+    }
+
+    private void NavigateToPremium()
+    {
+        Navigation.NavigateTo("/premium");
+    }
+}

@@ -1,24 +1,95 @@
-@using LexiQuest.Shared.DTOs.Game
+@using LexiQuest.Shared.DTOs.Streak
 @inject IStringLocalizer<StreakIndicator> L
 
 <div class="streak-indicator @GetFireLevelClass()">
-    <div class="streak-flames">
-        @for (int i = 0; i < GetFireCount(); i++)
-        {
-            <span class="flame">🔥</span>
-        }
+    <div class="streak-main">
+        <div class="streak-flames">
+            @for (int i = 0; i < GetFireCount(); i++)
+            {
+                <span class="flame">🔥</span>
+            }
+        </div>
+        <div class="streak-info">
+            <span class="streak-days">@GetStreakText()</span>
+            @if (IsAtRisk)
+            {
+                <span class="streak-risk">⚠️ @L["AtRisk"]</span>
+            }
+        </div>
     </div>
-    <div class="streak-info">
-        <span class="streak-days">@GetStreakText()</span>
-        @if (IsAtRisk)
-        {
-            <span class="streak-risk">⚠️ @L["AtRisk"]</span>
-        }
-    </div>
+
     @if (TimeRemaining.HasValue)
     {
         <div class="streak-timer">
-            @L["TimeRemaining"]: @TimeRemaining.Value.ToString(@"hh\:mm")
+            @L["TimeRemaining"]: @TimeRemaining.Value.ToString("hh\\:mm")
+        </div>
+    }
+
+    <!-- Shield Management Section -->
+    @if (ShieldProtection != null)
+    {
+        <div class="shield-management">
+            <!-- Active Shield -->
+            @if (ShieldProtection.HasActiveShield)
+            {
+                <div class="shield-active">
+                    <span class="shield-icon">🛡️</span>
+                    <span class="shield-text">@L["ShieldActive"]</span>
+                </div>
+            }
+            <!-- Available Shields -->
+            else if (ShieldProtection.ShieldsRemaining > 0)
+            {
+                <div class="shield-available">
+                    <span class="shield-icon">🛡️</span>
+                    <span class="shield-count">@ShieldProtection.ShieldsRemaining @L["ShieldsRemaining"]</span>
+                </div>
+            }
+            <!-- Free Shield Available -->
+            else if (ShieldProtection.CanActivateFreeShield)
+            {
+                <button class="shield-activate-btn tm-btn tm-btn--primary tm-btn--sm" @onclick="OnActivateShield">
+                    <span>🛡️</span>
+                    <span>@L["ActivateShield"]</span>
+                    <span class="shield-badge">@L["FreeShieldAvailable"]</span>
+                </button>
+            }
+            <!-- Premium Shield Available (for premium users) -->
+            else if (IsPremium && ShieldProtection.NextShieldAvailableAt.HasValue)
+            {
+                @if (GetDaysUntilNextShield() <= 0)
+                {
+                    <button class="shield-activate-btn tm-btn tm-btn--primary tm-btn--sm" @onclick="OnActivateShield">
+                        <span>🛡️</span>
+                        <span>@L["ActivateShield"]</span>
+                        <span class="shield-badge premium">@L["PremiumShieldAvailable"]</span>
+                    </button>
+                }
+                else
+                {
+                    <div class="shield-countdown">
+                        <span>🛡️</span>
+                        <span>@L["NextShieldAvailable"]: @GetDaysUntilNextShield() @L["Days"]</span>
+                    </div>
+                }
+            }
+            <!-- Buy Shields Option -->
+            else if (OnBuyShields.HasDelegate)
+            {
+                <button class="buy-shields-btn tm-btn tm-btn--outline tm-btn--sm" @onclick="OnBuyShields">
+                    <span>🛡️</span>
+                    <span>@L["BuyShields"]</span>
+                </button>
+            }
+
+            <!-- Freeze Badge (Premium) -->
+            @if (IsPremium && !ShieldProtection.FreezeUsedThisWeek)
+            {
+                <div class="freeze-badge">
+                    <span>❄️</span>
+                    <span>@L["FreezeAvailable"]</span>
+                </div>
+            }
         </div>
     }
 </div>
@@ -35,6 +106,18 @@
 
     [Parameter]
     public bool IsAtRisk { get; set; }
+
+    [Parameter]
+    public bool IsPremium { get; set; }
+
+    [Parameter]
+    public StreakProtectionDto? ShieldProtection { get; set; }
+
+    [Parameter]
+    public EventCallback OnActivateShield { get; set; }
+
+    [Parameter]
+    public EventCallback OnBuyShields { get; set; }
 
     private string GetFireLevelClass()
     {
@@ -57,20 +140,20 @@
             "small" => 1,
             "medium" => 2,
             "large" => 3,
-            "legendary" => 4,
+            "legendary" => 5,
             _ => 0
         };
     }
 
     private string GetStreakText()
     {
-        var days = CurrentDays;
-        return days switch
-        {
-            0 => L["NoStreak"],
-            1 => $"1 {L["DaySingular"]}",
-            2 or 3 or 4 => $"{days} {L["DaysPlural24"]}",
-            _ => $"{days} {L["DaysPlural5plus"]}"
-        };
+        return CurrentDays == 1 ? $"1 {L["StreakDays"]}" : $"{CurrentDays} {L["StreakDays"]}";
+    }
+
+    private int GetDaysUntilNextShield()
+    {
+        if (ShieldProtection?.NextShieldAvailableAt.HasValue != true)
+            return 0;
+        return (ShieldProtection.NextShieldAvailableAt.Value - DateTime.UtcNow).Days;
     }
 }

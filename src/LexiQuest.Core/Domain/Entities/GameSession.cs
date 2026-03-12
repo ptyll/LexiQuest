@@ -22,6 +22,12 @@ public class GameSession
     public List<GameRound> Rounds { get; private set; } = [];
     public GameSessionStatus Status { get; private set; }
 
+    // Boss Level properties
+    public BossType? BossType { get; private set; }
+    public string? ForbiddenLetters { get; private set; }
+    public int RevealedLettersCount { get; private set; }
+    public bool IsGameOver => LivesRemaining <= 0 || Status == GameSessionStatus.Failed;
+
     // Stored word IDs for the game
     private List<Guid> _wordIds = [];
 
@@ -130,5 +136,47 @@ public class GameSession
         {
             Fail();
         }
+    }
+
+    public static GameSession CreateBossSession(Guid userId, BossType bossType, DifficultyLevel difficulty)
+    {
+        var (totalRounds, lives) = bossType switch
+        {
+            Shared.Enums.BossType.Marathon => (20, 3),
+            Shared.Enums.BossType.Condition => (15, 3),
+            Shared.Enums.BossType.Twist => (12, 3),
+            _ => (20, 3)
+        };
+
+        var session = new GameSession
+        {
+            Id = Guid.NewGuid(),
+            UserId = userId,
+            Mode = GameMode.Boss,
+            BossType = bossType,
+            Difficulty = difficulty,
+            TotalRounds = totalRounds,
+            LivesRemaining = lives,
+            CurrentRound = 1,
+            StartedAt = DateTime.UtcNow,
+            TotalXP = 0,
+            ComboCount = 0,
+            CorrectAnswers = 0,
+            Status = GameSessionStatus.InProgress,
+            Rounds = [],
+            ForbiddenLetters = bossType == Shared.Enums.BossType.Condition ? GenerateForbiddenLetters() : null,
+            RevealedLettersCount = bossType == Shared.Enums.BossType.Twist ? 2 : 0
+        };
+
+        return session;
+    }
+
+    private static string GenerateForbiddenLetters()
+    {
+        // Generate random forbidden letters for Condition boss
+        var random = new Random();
+        var vowels = new[] { 'A', 'E', 'I', 'O', 'U' };
+        var selected = vowels.OrderBy(_ => random.Next()).Take(2);
+        return new string(selected.ToArray());
     }
 }

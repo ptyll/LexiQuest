@@ -1,0 +1,37 @@
+@inject IStringLocalizer<Footer> L
+
+<footer class="footer" data-testid="footer">
+    <div class="container" data-testid="footer-container">
+        <div class="footer-content">
+            <div class="footer-brand">
+                <div class="footer-logo" data-testid="footer-logo">
+                    <TmIcon Name="puzzle" Size="IconSize.Lg" />
+                    <span>LexiQuest</span>
+                </div>
+            </div>
+
+            <nav class="footer-nav">
+                <a href="/about" data-testid="footer-about">@L["Footer.About"]</a>
+                <a href="/terms" data-testid="footer-terms">@L["Footer.Terms"]</a>
+                <a href="/privacy" data-testid="footer-privacy">@L["Footer.Privacy"]</a>
+                <a href="/contact" data-testid="footer-contact">@L["Footer.Contact"]</a>
+            </nav>
+
+            <div class="footer-social">
+                <a href="https://github.com" target="_blank" data-testid="footer-social-github" aria-label="GitHub">
+                    <TmIcon Name="github" Size="IconSize.Md" />
+                </a>
+                <a href="https://twitter.com" target="_blank" data-testid="footer-social-twitter" aria-label="Twitter">
+                    <TmIcon Name="twitter" Size="IconSize.Md" />
+                </a>
+                <a href="https://discord.com" target="_blank" data-testid="footer-social-discord" aria-label="Discord">
+                    <TmIcon Name="message-circle" Size="IconSize.Md" />
+                </a>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <p data-testid="footer-copyright">@L["Footer.Copyright"]</p>
+        </div>
+    </div>
+</footer>

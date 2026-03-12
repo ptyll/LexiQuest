@@ -1,0 +1,51 @@
+@implements IAsyncDisposable
+@inject IStringLocalizer<OfflineBanner> L
+@inject IJSRuntime JS
+
+@if (!_isOnline)
+{
+    <div class="offline-banner">
+        <TmAlert Severity="AlertSeverity.Warning">
+            <strong>@L["OfflineTitle"]</strong> @L["OfflineMessage"]
+        </TmAlert>
+    </div>
+}
+
+@code {
+    private bool _isOnline = true;
+    private DotNetObjectReference<OfflineBanner>? _dotNetRef;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _dotNetRef = DotNetObjectReference.Create(this);
+            _isOnline = await JS.InvokeAsync<bool>("lexiQuestPwa.getOnlineStatus");
+            await JS.InvokeVoidAsync("lexiQuestPwa.registerConnectivityHandler", _dotNetRef);
+            StateHasChanged();
+        }
+    }
+
+    [JSInvokable]
+    public void OnConnectivityChanged(bool isOnline)
+    {
+        _isOnline = isOnline;
+        InvokeAsync(StateHasChanged);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_dotNetRef is not null)
+        {
+            try
+            {
+                await JS.InvokeVoidAsync("lexiQuestPwa.unregisterConnectivityHandler");
+            }
+            catch (JSDisconnectedException)
+            {
+                // Ignore during app shutdown
+            }
+            _dotNetRef.Dispose();
+        }
+    }
+}

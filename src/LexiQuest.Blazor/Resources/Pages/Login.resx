@@ -39,4 +39,13 @@
   <data name="Error.InvalidCredentials" xml:space="preserve">
     <value>Nesprávný email nebo heslo</value>
   </data>
+  <data name="Alert.ErrorTitle" xml:space="preserve">
+    <value>Přihlášení selhalo</value>
+  </data>
+  <data name="Button.Loading" xml:space="preserve">
+    <value>Přihlašuji...</value>
+  </data>
+  <data name="Divider.Or" xml:space="preserve">
+    <value>nebo</value>
+  </data>
 </root>

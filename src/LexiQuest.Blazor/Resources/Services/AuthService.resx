@@ -1,39 +1,51 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
   <data name="Error.Register.Duplicate" xml:space="preserve">
-    <value>Uživatel s tímto emailem již existuje</value>
+    <value>Uživatel s tímto emailem již existuje.</value>
   </data>
   <data name="Error.Register.Failed" xml:space="preserve">
-    <value>Registrace selhala. Zkuste to prosím znovu.</value>
+    <value>Registrace se nezdařila. Zkuste to prosím později.</value>
   </data>
   <data name="Error.Register.InvalidResponse" xml:space="preserve">
-    <value>Neplatná odpověď serveru při registraci</value>
+    <value>Neplatná odpověď serveru.</value>
   </data>
   <data name="Error.Register.Exception" xml:space="preserve">
     <value>Chyba při registraci: {0}</value>
   </data>
   <data name="Error.Login.InvalidCredentials" xml:space="preserve">
-    <value>Nesprávný email nebo heslo</value>
+    <value>Neplatný email nebo heslo.</value>
   </data>
   <data name="Error.Login.Failed" xml:space="preserve">
-    <value>Přihlášení selhalo. Zkuste to prosím znovu.</value>
+    <value>Přihlášení se nezdařilo. Zkuste to prosím později.</value>
   </data>
   <data name="Error.Login.InvalidResponse" xml:space="preserve">
-    <value>Neplatná odpověď serveru při přihlášení</value>
+    <value>Neplatná odpověď serveru.</value>
   </data>
   <data name="Error.Login.Exception" xml:space="preserve">
     <value>Chyba při přihlášení: {0}</value>
   </data>
   <data name="Error.Refresh.NoToken" xml:space="preserve">
-    <value>Refresh token není k dispozici</value>
+    <value>Chybí refresh token.</value>
   </data>
   <data name="Error.Refresh.Failed" xml:space="preserve">
-    <value>Obnova přihlášení selhala. Přihlaste se znovu.</value>
+    <value>Obnovení sezení se nezdařilo.</value>
   </data>
   <data name="Error.Refresh.InvalidResponse" xml:space="preserve">
-    <value>Neplatná odpověď serveru při obnově tokenu</value>
+    <value>Neplatná odpověď serveru.</value>
   </data>
   <data name="Error.Refresh.Exception" xml:space="preserve">
-    <value>Chyba při obnově tokenu: {0}</value>
+    <value>Chyba při obnovení sezení: {0}</value>
+  </data>
+  <data name="Error.PasswordReset.InvalidRequest" xml:space="preserve">
+    <value>Neplatný požadavek. Zkontrolujte email.</value>
+  </data>
+  <data name="Error.PasswordReset.Failed" xml:space="preserve">
+    <value>Odeslání odkazu se nezdařilo. Zkuste to prosím později.</value>
+  </data>
+  <data name="Error.PasswordReset.InvalidToken" xml:space="preserve">
+    <value>Odkaz pro obnovení hesla je neplatný nebo vypršel.</value>
+  </data>
+  <data name="Error.PasswordReset.Exception" xml:space="preserve">
+    <value>Chyba: {0}</value>
   </data>
 </root>

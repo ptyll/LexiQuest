@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Page.Title" xml:space="preserve">
+    <value>AI Výzva</value>
+  </data>
+  <data name="Page.Subtitle" xml:space="preserve">
+    <value>Personalizovaný trénink na míru vašim slabinám</value>
+  </data>
+  <data name="Analysis.Title" xml:space="preserve">
+    <value>Analýza výkonu</value>
+  </data>
+  <data name="Analysis.WeakLetters" xml:space="preserve">
+    <value>Slabá písmena</value>
+  </data>
+  <data name="Analysis.WeakLetters.Empty" xml:space="preserve">
+    <value>Zatím nemáte žádná slabá písmena. Hrajte více her!</value>
+  </data>
+  <data name="Analysis.ErrorRate" xml:space="preserve">
+    <value>Chybovost: {0}%</value>
+  </data>
+  <data name="Analysis.CategoryPerformance" xml:space="preserve">
+    <value>Výkon podle kategorií</value>
+  </data>
+  <data name="Analysis.CategoryPerformance.Empty" xml:space="preserve">
+    <value>Zatím nemáte dostatek dat. Hrajte více her!</value>
+  </data>
+  <data name="Analysis.SuccessRate" xml:space="preserve">
+    <value>Úspěšnost: {0}%</value>
+  </data>
+  <data name="Analysis.AvgTime" xml:space="preserve">
+    <value>Průměrný čas: {0}s</value>
+  </data>
+  <data name="Analysis.Tips" xml:space="preserve">
+    <value>Tipy pro zlepšení</value>
+  </data>
+  <data name="Challenges.Title" xml:space="preserve">
+    <value>Vyberte typ výzvy</value>
+  </data>
+  <data name="Challenge.WeaknessFocus.Title" xml:space="preserve">
+    <value>Zaměření na slabiny</value>
+  </data>
+  <data name="Challenge.WeaknessFocus.Description" xml:space="preserve">
+    <value>Zaměřte se na písmena, se kterými máte největší potíže</value>
+  </data>
+  <data name="Challenge.SpeedTraining.Title" xml:space="preserve">
+    <value>Rychlostní trénink</value>
+  </data>
+  <data name="Challenge.SpeedTraining.Description" xml:space="preserve">
+    <value>Zrychlete své reakce s krátkými slovy</value>
+  </data>
+  <data name="Challenge.MemoryGame.Title" xml:space="preserve">
+    <value>Paměťová hra</value>
+  </data>
+  <data name="Challenge.MemoryGame.Description" xml:space="preserve">
+    <value>Zopakujte si slova, která jste dříve zodpověděli špatně</value>
+  </data>
+  <data name="Challenge.PatternRecognition.Title" xml:space="preserve">
+    <value>Rozpoznávání vzorů</value>
+  </data>
+  <data name="Challenge.PatternRecognition.Description" xml:space="preserve">
+    <value>Rozpoznejte vzory ve slovech podobných těm, se kterými jste měli potíže</value>
+  </data>
+  <data name="Button.Start" xml:space="preserve">
+    <value>Začít</value>
+  </data>
+  <data name="Loading.Analysis" xml:space="preserve">
+    <value>Analyzuji váš výkon...</value>
+  </data>
+  <data name="Error.AnalysisFailed" xml:space="preserve">
+    <value>Nepodařilo se načíst analýzu. Zkuste to prosím znovu.</value>
+  </data>
+  <data name="Error.GenerateFailed" xml:space="preserve">
+    <value>Nepodařilo se vygenerovat výzvu. Zkuste to prosím znovu.</value>
+  </data>
+  <data name="Challenge.Generating" xml:space="preserve">
+    <value>Generuji výzvu...</value>
+  </data>
+  <data name="Challenge.Icon.WeaknessFocus" xml:space="preserve">
+    <value>target</value>
+  </data>
+  <data name="Challenge.Icon.SpeedTraining" xml:space="preserve">
+    <value>zap</value>
+  </data>
+  <data name="Challenge.Icon.MemoryGame" xml:space="preserve">
+    <value>brain</value>
+  </data>
+  <data name="Challenge.Icon.PatternRecognition" xml:space="preserve">
+    <value>grid</value>
+  </data>
+</root>

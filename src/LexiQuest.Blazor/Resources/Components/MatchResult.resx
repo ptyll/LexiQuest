@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Result_Victory_Title" xml:space="preserve">
+    <value>🎉 VÍTĚZSTVÍ!</value>
+  </data>
+  <data name="Result_Defeat_Title" xml:space="preserve">
+    <value>😔 PROHRA</value>
+  </data>
+  <data name="Result_Draw_Title" xml:space="preserve">
+    <value>🤝 REMÍZA!</value>
+  </data>
+  <data name="Result_XP_Won" xml:space="preserve">
+    <value>⭐ +{0} XP</value>
+  </data>
+  <data name="Result_XP_League" xml:space="preserve">
+    <value>📈 Liga: +{0} XP</value>
+  </data>
+  <data name="Result_Motivation" xml:space="preserve">
+    <value>💪 Příště to dáš!</value>
+  </data>
+  <data name="Result_Speed_Tiebreaker" xml:space="preserve">
+    <value>🚀 Rychlejší vyhrává!</value>
+  </data>
+  <data name="Result_Winner_Badge" xml:space="preserve">
+    <value>🏆</value>
+  </data>
+  <data name="Button_NextMatch" xml:space="preserve">
+    <value>Další zápas</value>
+  </data>
+  <data name="Button_Home" xml:space="preserve">
+    <value>Domů</value>
+  </data>
+  <data name="Button_Rematch" xml:space="preserve">
+    <value>Rematch</value>
+  </data>
+  <data name="Button_Revenge" xml:space="preserve">
+    <value>Odveta</value>
+  </data>
+  <data name="Player_You" xml:space="preserve">
+    <value>Vy</value>
+  </data>
+  <data name="Player_Opponent" xml:space="preserve">
+    <value>Soupeř</value>
+  </data>
+  <data name="Score_Correct" xml:space="preserve">
+    <value>Správně</value>
+  </data>
+  <data name="PrivateRoom_NoLeagueXP" xml:space="preserve">
+    <value>Private room zápasy nedávají liga XP</value>
+  </data>
+  <data name="Series_Score" xml:space="preserve">
+    <value>Série: {0}:{1}</value>
+  </data>
+</root>

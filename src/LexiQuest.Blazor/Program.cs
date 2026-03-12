@@ -18,10 +18,32 @@ builder.Services.AddTempoBlazor();
 // Tempo.Blazor FluentValidation (scan Shared and Blazor assemblies for validators)
 builder.Services.AddTempoFluentValidation(
     typeof(LexiQuest.Shared.AssemblyMarker).Assembly,
-    typeof(RegisterModelValidator).Assembly);
+    typeof(Program).Assembly);
 
 // Auth Services
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IUserService, UserService>();
+
+// Game Services
+builder.Services.AddScoped<ILeagueService, LeagueService>();
+builder.Services.AddScoped<IDailyChallengeService, DailyChallengeService>();
+builder.Services.AddScoped<IAchievementService, AchievementService>();
+builder.Services.AddScoped<IStatsService, StatsService>();
+builder.Services.AddScoped<IGuestGameService, GuestGameService>();
+builder.Services.AddScoped<IDictionaryService, DictionaryService>();
+builder.Services.AddScoped<IAIChallengeClient, AIChallengeClient>();
+builder.Services.AddScoped<IPremiumService, PremiumService>();
+builder.Services.AddScoped<ITeamService, TeamService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
+
+// SignalR Multiplayer Service
+builder.Services.AddScoped<IMatchHubClient, MatchHubClient>();
+
+// Match History Service
+builder.Services.AddScoped<IMatchHistoryClient, MatchHistoryClient>();
+
+// Admin Service
+builder.Services.AddScoped<IAdminService, AdminService>();
 
 // HttpClient Factory with Authorization Handler
 builder.Services.AddTransient<AuthorizationMessageHandler>();

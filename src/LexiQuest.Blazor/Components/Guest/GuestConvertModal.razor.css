@@ -1,0 +1,123 @@
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
+}
+
+.modal-content {
+    background: var(--tm-color-surface);
+    border-radius: var(--tm-border-radius-lg);
+    max-width: 520px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: var(--tm-shadow-xl);
+}
+
+.modal-header {
+    display: flex;
+    align-items: center;
+    gap: var(--tm-spacing-sm);
+    padding: var(--tm-spacing-lg);
+    border-bottom: 1px solid var(--tm-color-border);
+}
+
+.header-icon {
+    color: var(--tm-color-warning);
+}
+
+.modal-header h3 {
+    flex: 1;
+    margin: 0;
+    font-size: var(--tm-font-size-lg);
+    font-weight: var(--tm-font-weight-semibold);
+}
+
+.btn-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--tm-color-text-secondary);
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--tm-border-radius-md);
+}
+
+.btn-close:hover {
+    background: var(--tm-color-background);
+}
+
+.modal-body {
+    padding: var(--tm-spacing-lg);
+}
+
+.description {
+    color: var(--tm-color-text-secondary);
+    margin-bottom: var(--tm-spacing-lg);
+}
+
+.results-card {
+    background: var(--tm-color-background);
+    border-radius: var(--tm-border-radius-lg);
+    padding: var(--tm-spacing-lg);
+    margin-bottom: var(--tm-spacing-lg);
+}
+
+.results-card h4 {
+    margin: 0 0 var(--tm-spacing-md) 0;
+    font-size: var(--tm-font-size-lg);
+    font-weight: var(--tm-font-weight-semibold);
+    color: var(--tm-color-text-primary);
+}
+
+.result-stat {
+    display: flex;
+    align-items: center;
+    gap: var(--tm-spacing-sm);
+    padding: var(--tm-spacing-sm) 0;
+    border-bottom: 1px solid var(--tm-color-border);
+}
+
+.result-stat:last-child {
+    border-bottom: none;
+}
+
+.result-stat.highlight {
+    font-weight: var(--tm-font-weight-semibold);
+    font-size: var(--tm-font-size-lg);
+}
+
+.stat-icon.success {
+    color: var(--tm-color-success);
+}
+
+.stat-icon.warning {
+    color: var(--tm-color-warning);
+}
+
+.save-alert {
+    margin-bottom: 0;
+}
+
+.modal-footer {
+    display: flex;
+    gap: var(--tm-spacing-md);
+    padding: var(--tm-spacing-lg);
+    border-top: 1px solid var(--tm-color-border);
+    justify-content: flex-end;
+}
+
+@media (max-width: 480px) {
+    .modal-footer {
+        flex-direction: column-reverse;
+    }
+}

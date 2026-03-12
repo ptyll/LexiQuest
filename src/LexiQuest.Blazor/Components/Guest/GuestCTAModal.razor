@@ -1,0 +1,55 @@
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<GuestCTAModal> L
+
+@if (IsOpen)
+{
+    <div class="modal-overlay" @onclick="OnClose">
+        <div class="modal-content" @onclick:stopPropagation data-testid="guest-cta-modal">
+            <div class="modal-header">
+                <TmIcon Name="@IconNames.Zap" Class="header-icon" />
+                <h3>@L["Title"]</h3>
+                <button class="btn-close" @onclick="OnClose">×</button>
+            </div>
+            <div class="modal-body">
+                <p class="description">@L["Description"]</p>
+                <div class="benefits-list">
+                    <div class="benefit-item">
+                        <TmIcon Name="@IconNames.Save" Class="benefit-icon" />
+                        <span>@L["Benefit_SaveProgress"]</span>
+                    </div>
+                    <div class="benefit-item">
+                        <TmIcon Name="@IconNames.Trophy" Class="benefit-icon" />
+                        <span>@L["Benefit_Achievements"]</span>
+                    </div>
+                    <div class="benefit-item">
+                        <TmIcon Name="@IconNames.Users" Class="benefit-icon" />
+                        <span>@L["Benefit_Leagues"]</span>
+                    </div>
+                    <div class="benefit-item">
+                        <TmIcon Name="@IconNames.Activity" Class="benefit-icon" />
+                        <span>@L["Benefit_Stats"]</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div data-testid="btn-later">
+                    <TmButton Variant="ButtonVariant.Outline" OnClick="OnLater">
+                        @L["Later"]
+                    </TmButton>
+                </div>
+                <div data-testid="btn-register">
+                    <TmButton Variant="ButtonVariant.Primary" OnClick="OnRegister">
+                        @L["Register"]
+                    </TmButton>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public bool IsOpen { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+    [Parameter] public EventCallback OnRegister { get; set; }
+    [Parameter] public EventCallback OnLater { get; set; }
+}

@@ -1,0 +1,249 @@
+@page "/ai-challenge"
+@inject IAIChallengeClient AIChallengeClient
+@inject IStringLocalizer<AIChallenge> L
+@inject NavigationManager Navigation
+
+<div class="ai-challenge-page">
+    <div class="page-header">
+        <h1>@L["Page.Title"]</h1>
+        <p>@L["Page.Subtitle"]</p>
+    </div>
+
+    @if (isLoading)
+    {
+        <div class="loading-state">
+            <TmSkeleton Type="Rectangle" Height="200px" />
+            <TmSkeleton Type="Rectangle" Height="120px" />
+            <TmSkeleton Type="Rectangle" Height="120px" />
+        </div>
+    }
+    else if (errorMessage is not null)
+    {
+        <TmAlert Severity="AlertSeverity.Error">@errorMessage</TmAlert>
+    }
+    else
+    {
+        @if (analysis is not null)
+        {
+            <div class="analysis-section">
+                <h2>@L["Analysis.Title"]</h2>
+
+                <div class="analysis-grid">
+                    <TmCard>
+                        <div class="analysis-card-content">
+                            <h3>@L["Analysis.WeakLetters"]</h3>
+                            @if (analysis.WeakLetters.Count == 0)
+                            {
+                                <p class="empty-hint">@L["Analysis.WeakLetters.Empty"]</p>
+                            }
+                            else
+                            {
+                                <div class="weak-letters-list">
+                                    @foreach (var letter in analysis.WeakLetters)
+                                    {
+                                        <div class="weak-letter-item">
+                                            <span class="letter">@letter.Letter</span>
+                                            <TmProgressBar Value="@letter.ErrorRate" Max="1" />
+                                            <span class="error-rate">@L["Analysis.ErrorRate", (int)(letter.ErrorRate * 100)]</span>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    </TmCard>
+
+                    <TmCard>
+                        <div class="analysis-card-content">
+                            <h3>@L["Analysis.CategoryPerformance"]</h3>
+                            @if (analysis.CategoryPerformance.Count == 0)
+                            {
+                                <p class="empty-hint">@L["Analysis.CategoryPerformance.Empty"]</p>
+                            }
+                            else
+                            {
+                                <div class="category-list">
+                                    @foreach (var category in analysis.CategoryPerformance)
+                                    {
+                                        <div class="category-item">
+                                            <span class="category-name">@category.Category</span>
+                                            <div class="category-stats">
+                                                <TmBadge Variant="@GetSuccessRateVariant(category.SuccessRate)">
+                                                    @L["Analysis.SuccessRate", (int)(category.SuccessRate * 100)]
+                                                </TmBadge>
+                                                <span class="avg-time">@L["Analysis.AvgTime", category.AvgTimeSeconds]</span>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    </TmCard>
+                </div>
+
+                @if (analysis.Tips.Count > 0)
+                {
+                    <TmCard>
+                        <div class="tips-card-content">
+                            <h3>@L["Analysis.Tips"]</h3>
+                            <ul class="tips-list">
+                                @foreach (var tip in analysis.Tips)
+                                {
+                                    <li>@tip</li>
+                                }
+                            </ul>
+                        </div>
+                    </TmCard>
+                }
+            </div>
+        }
+
+        <div class="challenges-section">
+            <h2>@L["Challenges.Title"]</h2>
+
+            <div class="challenges-grid">
+                <TmCard>
+                    <div class="challenge-card-content">
+                        <TmIcon Name="target" />
+                        <h3>@L["Challenge.WeaknessFocus.Title"]</h3>
+                        <p>@L["Challenge.WeaknessFocus.Description"]</p>
+                        <TmButton Variant="ButtonVariant.Primary"
+                                  Size="ButtonSize.Sm"
+                                  OnClick="@(() => StartChallengeAsync(AIChallengeType.WeaknessFocus))"
+                                  Disabled="@isGenerating">
+                            @if (generatingType == AIChallengeType.WeaknessFocus)
+                            {
+                                @L["Challenge.Generating"]
+                            }
+                            else
+                            {
+                                @L["Button.Start"]
+                            }
+                        </TmButton>
+                    </div>
+                </TmCard>
+
+                <TmCard>
+                    <div class="challenge-card-content">
+                        <TmIcon Name="zap" />
+                        <h3>@L["Challenge.SpeedTraining.Title"]</h3>
+                        <p>@L["Challenge.SpeedTraining.Description"]</p>
+                        <TmButton Variant="ButtonVariant.Primary"
+                                  Size="ButtonSize.Sm"
+                                  OnClick="@(() => StartChallengeAsync(AIChallengeType.SpeedTraining))"
+                                  Disabled="@isGenerating">
+                            @if (generatingType == AIChallengeType.SpeedTraining)
+                            {
+                                @L["Challenge.Generating"]
+                            }
+                            else
+                            {
+                                @L["Button.Start"]
+                            }
+                        </TmButton>
+                    </div>
+                </TmCard>
+
+                <TmCard>
+                    <div class="challenge-card-content">
+                        <TmIcon Name="brain" />
+                        <h3>@L["Challenge.MemoryGame.Title"]</h3>
+                        <p>@L["Challenge.MemoryGame.Description"]</p>
+                        <TmButton Variant="ButtonVariant.Primary"
+                                  Size="ButtonSize.Sm"
+                                  OnClick="@(() => StartChallengeAsync(AIChallengeType.MemoryGame))"
+                                  Disabled="@isGenerating">
+                            @if (generatingType == AIChallengeType.MemoryGame)
+                            {
+                                @L["Challenge.Generating"]
+                            }
+                            else
+                            {
+                                @L["Button.Start"]
+                            }
+                        </TmButton>
+                    </div>
+                </TmCard>
+
+                <TmCard>
+                    <div class="challenge-card-content">
+                        <TmIcon Name="grid" />
+                        <h3>@L["Challenge.PatternRecognition.Title"]</h3>
+                        <p>@L["Challenge.PatternRecognition.Description"]</p>
+                        <TmButton Variant="ButtonVariant.Primary"
+                                  Size="ButtonSize.Sm"
+                                  OnClick="@(() => StartChallengeAsync(AIChallengeType.PatternRecognition))"
+                                  Disabled="@isGenerating">
+                            @if (generatingType == AIChallengeType.PatternRecognition)
+                            {
+                                @L["Challenge.Generating"]
+                            }
+                            else
+                            {
+                                @L["Button.Start"]
+                            }
+                        </TmButton>
+                    </div>
+                </TmCard>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private PlayerAnalysisDto? analysis;
+    private bool isLoading = true;
+    private bool isGenerating;
+    private AIChallengeType? generatingType;
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAnalysisAsync();
+    }
+
+    private async Task LoadAnalysisAsync()
+    {
+        isLoading = true;
+        errorMessage = null;
+
+        analysis = await AIChallengeClient.GetAnalysisAsync();
+
+        if (analysis is null)
+        {
+            errorMessage = L["Error.AnalysisFailed"].Value;
+        }
+
+        isLoading = false;
+    }
+
+    private async Task StartChallengeAsync(AIChallengeType type)
+    {
+        if (isGenerating)
+            return;
+
+        isGenerating = true;
+        generatingType = type;
+        errorMessage = null;
+
+        var challenge = await AIChallengeClient.GenerateChallengeAsync(type);
+
+        if (challenge is null)
+        {
+            errorMessage = L["Error.GenerateFailed"].Value;
+        }
+        else
+        {
+            Navigation.NavigateTo($"/game?mode=ai-challenge&type={type}");
+        }
+
+        isGenerating = false;
+        generatingType = null;
+    }
+
+    private static BadgeVariant GetSuccessRateVariant(double rate) => rate switch
+    {
+        >= 0.8 => BadgeVariant.Success,
+        >= 0.5 => BadgeVariant.Warning,
+        _ => BadgeVariant.Danger
+    };
+}

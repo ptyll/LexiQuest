@@ -1,0 +1,234 @@
+@page "/admin/users"
+@using LexiQuest.Shared.DTOs.Admin
+@inject IStringLocalizer<AdminUsers> L
+@inject NavigationManager NavigationManager
+@inject IAdminService AdminService
+@inject ToastService ToastService
+
+<PageTitle>@L["Title"] - LexiQuest</PageTitle>
+
+<div class="admin-users-page">
+    <div class="admin-header">
+        <h1>@L["Title"]</h1>
+        <p>@L["Subtitle"]</p>
+    </div>
+
+    <div class="search-bar">
+        <TmFormField Label="@L["Search.Label"]">
+            <TmTextInput @bind-Value="_searchText"
+                         Placeholder="@L["Search.Placeholder"]"
+                         OnChange="OnSearchChanged" />
+        </TmFormField>
+    </div>
+
+    @if (_isLoading)
+    {
+        <TmSkeleton Variant="SkeletonVariant.Rect" Height="400px" />
+    }
+    else if (_users != null && _users.Items.Count > 0)
+    {
+        <div class="table-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>@L["Table.Username"]</th>
+                        <th>@L["Table.Email"]</th>
+                        <th>@L["Table.Level"]</th>
+                        <th>@L["Table.Streak"]</th>
+                        <th>@L["Table.Status"]</th>
+                        <th>@L["Table.Actions"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var user in _users.Items)
+                    {
+                        <tr>
+                            <td class="username-cell">@user.Username</td>
+                            <td>@user.Email</td>
+                            <td>@user.Level</td>
+                            <td>@user.StreakDays</td>
+                            <td>
+                                @if (user.IsSuspended)
+                                {
+                                    <TmBadge Variant="BadgeVariant.Danger">
+                                        @L["Status.Suspended"]
+                                    </TmBadge>
+                                }
+                                else if (user.IsPremium)
+                                {
+                                    <TmBadge Variant="BadgeVariant.Warning">
+                                        @L["Status.Premium"]
+                                    </TmBadge>
+                                }
+                                else
+                                {
+                                    <TmBadge Variant="BadgeVariant.Success">
+                                        @L["Status.Active"]
+                                    </TmBadge>
+                                }
+                            </td>
+                            <td>
+                                @if (user.IsSuspended)
+                                {
+                                    <TmButton Variant="ButtonVariant.Secondary"
+                                              Size="ButtonSize.Sm"
+                                              OnClick="() => UnsuspendUser(user.Id)">
+                                        @L["Button.Unsuspend"]
+                                    </TmButton>
+                                }
+                                else
+                                {
+                                    <TmButton Variant="ButtonVariant.Danger"
+                                              Size="ButtonSize.Sm"
+                                              OnClick="() => SuspendUser(user.Id)">
+                                        @L["Button.Suspend"]
+                                    </TmButton>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="pagination">
+            <TmButton Variant="ButtonVariant.Outline"
+                      Size="ButtonSize.Sm"
+                      Disabled="_currentPage <= 1"
+                      OnClick="PreviousPage">
+                @L["Pagination.Previous"]
+            </TmButton>
+            <span class="page-info">@string.Format(L["Pagination.Info"], _currentPage, TotalPages)</span>
+            <TmButton Variant="ButtonVariant.Outline"
+                      Size="ButtonSize.Sm"
+                      Disabled="_currentPage >= TotalPages"
+                      OnClick="NextPage">
+                @L["Pagination.Next"]
+            </TmButton>
+        </div>
+    }
+    else
+    {
+        <TmEmptyState Icon="@IconNames.Users"
+                      Title="@L["Empty.Title"]"
+                      Description="@L["Empty.Description"]" />
+    }
+</div>
+
+@code {
+    private PaginatedResult<AdminUserDto>? _users;
+    private bool _isLoading = true;
+    private string _searchText = string.Empty;
+    private int _currentPage = 1;
+    private const int PageSize = 25;
+
+    private int TotalPages => _users == null || _users.TotalCount == 0
+        ? 1
+        : (int)Math.Ceiling((double)_users.TotalCount / PageSize);
+
+    protected override async Task OnInitializedAsync()
+    {
+        var isAdmin = await AdminService.IsCurrentUserAdminAsync();
+        if (!isAdmin)
+        {
+            NavigationManager.NavigateTo("/");
+            return;
+        }
+
+        await LoadUsersAsync();
+    }
+
+    private async Task LoadUsersAsync()
+    {
+        _isLoading = true;
+        StateHasChanged();
+
+        try
+        {
+            var request = new AdminUserListRequest(
+                Search: string.IsNullOrWhiteSpace(_searchText) ? null : _searchText,
+                IsSuspended: null,
+                IsPremium: null,
+                MinLevel: null,
+                MaxLevel: null,
+                Page: _currentPage,
+                PageSize: PageSize);
+            _users = await AdminService.GetUsersAsync(request);
+        }
+        catch
+        {
+            ToastService.ShowError(L["Error.LoadFailed"]);
+        }
+        finally
+        {
+            _isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task OnSearchChanged()
+    {
+        _currentPage = 1;
+        await LoadUsersAsync();
+    }
+
+    private async Task PreviousPage()
+    {
+        if (_currentPage > 1)
+        {
+            _currentPage--;
+            await LoadUsersAsync();
+        }
+    }
+
+    private async Task NextPage()
+    {
+        if (_currentPage < TotalPages)
+        {
+            _currentPage++;
+            await LoadUsersAsync();
+        }
+    }
+
+    private async Task SuspendUser(Guid userId)
+    {
+        try
+        {
+            var success = await AdminService.SuspendUserAsync(userId);
+            if (success)
+            {
+                ToastService.ShowSuccess(L["Success.UserSuspended"]);
+                await LoadUsersAsync();
+            }
+            else
+            {
+                ToastService.ShowError(L["Error.SuspendFailed"]);
+            }
+        }
+        catch
+        {
+            ToastService.ShowError(L["Error.SuspendFailed"]);
+        }
+    }
+
+    private async Task UnsuspendUser(Guid userId)
+    {
+        try
+        {
+            var success = await AdminService.UnsuspendUserAsync(userId);
+            if (success)
+            {
+                ToastService.ShowSuccess(L["Success.UserUnsuspended"]);
+                await LoadUsersAsync();
+            }
+            else
+            {
+                ToastService.ShowError(L["Error.UnsuspendFailed"]);
+            }
+        }
+        catch
+        {
+            ToastService.ShowError(L["Error.UnsuspendFailed"]);
+        }
+    }
+}

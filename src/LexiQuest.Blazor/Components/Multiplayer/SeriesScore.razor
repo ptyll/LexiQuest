@@ -1,0 +1,99 @@
+@inject IStringLocalizer<Pages.Multiplayer> Localizer
+
+@if (BestOf > 1)
+{
+    <div class="series-score-overlay">
+        <div class="series-score-display">
+            <div class="player-avatar player1">
+                <TmAvatar Name="@Player1Username" Src="@Player1Avatar" Size="AvatarSize.Sm" />
+                <span class="player-name">@Player1Username</span>
+            </div>
+            
+            <div class="score-display">
+                <span class="series-label">@string.Format(Localizer["Room_Series_Score"], Player1Wins, Player2Wins)</span>
+                <div class="score-box">
+                    <span class="score player1-score @(Player1Wins > Player2Wins ? "leading" : "")">@Player1Wins</span>
+                    <span class="score-separator">:</span>
+                    <span class="score player2-score @(Player2Wins > Player1Wins ? "leading" : "")">@Player2Wins</span>
+                </div>
+            </div>
+            
+            <div class="player-avatar player2">
+                <TmAvatar Name="@Player2Username" Src="@Player2Avatar" Size="AvatarSize.Sm" />
+                <span class="player-name">@Player2Username</span>
+            </div>
+        </div>
+
+        <TmBadge Variant="BadgeVariant.Default" Size="BadgeSize.Md" Class="game-indicator">
+            @string.Format(Localizer["Room_Series_GameOf"], CurrentGame, BestOf)
+        </TmBadge>
+
+        @if (IsSeriesComplete)
+        {
+            <div class="series-complete">
+                <div class="winner-announcement">
+                    @if (Player1Wins > Player2Wins)
+                    {
+                        <span>🏆 @Player1Username - @Localizer["MatchHistory_Result_Win"]</span>
+                    }
+                    else
+                    {
+                        <span>🏆 @Player2Username - @Localizer["MatchHistory_Result_Win"]</span>
+                    }
+                </div>
+                
+                @if (ShowRematchOption)
+                {
+                    <div class="rematch-section">
+                        @if (RematchRequestedBy == null)
+                        {
+                            <TmButton Variant="ButtonVariant.Primary" OnClick="OnRequestRematch">
+                                @Localizer["Room_Rematch_Request"]
+                            </TmButton>
+                        }
+                        else if (RematchRequestedBy != CurrentUserId)
+                        {
+                            <TmAlert Severity="AlertSeverity.Info">
+                                Soupeř chce rematch!
+                            </TmAlert>
+                            <div class="rematch-actions">
+                                <TmButton Variant="ButtonVariant.Primary" OnClick="OnAcceptRematch">
+                                    @Localizer["Room_Rematch_Accept"]
+                                </TmButton>
+                                <TmButton Variant="ButtonVariant.Ghost" OnClick="OnDeclineRematch">
+                                    @Localizer["Room_Rematch_Decline"]
+                                </TmButton>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        }
+        else if (NextGameCountdown.HasValue && NextGameCountdown.Value > 0)
+        {
+            <div class="next-game-section">
+                <p>Další hra začíná za...</p>
+                <div class="next-game-countdown">@NextGameCountdown</div>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    [Parameter] public int CurrentGame { get; set; }
+    [Parameter] public int BestOf { get; set; }
+    [Parameter] public int Player1Wins { get; set; }
+    [Parameter] public int Player2Wins { get; set; }
+    [Parameter] public string Player1Username { get; set; } = "";
+    [Parameter] public string Player2Username { get; set; } = "";
+    [Parameter] public string? Player1Avatar { get; set; }
+    [Parameter] public string? Player2Avatar { get; set; }
+    [Parameter] public bool IsSeriesComplete { get; set; }
+    [Parameter] public int? NextGameCountdown { get; set; }
+    [Parameter] public bool ShowRematchOption { get; set; }
+    [Parameter] public Guid? RematchRequestedBy { get; set; }
+    [Parameter] public Guid CurrentUserId { get; set; }
+    [Parameter] public EventCallback OnRequestRematch { get; set; }
+    [Parameter] public EventCallback OnAcceptRematch { get; set; }
+    [Parameter] public EventCallback OnDeclineRematch { get; set; }
+}

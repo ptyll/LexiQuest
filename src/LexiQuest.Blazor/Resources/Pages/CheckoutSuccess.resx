@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Title" xml:space="preserve">
+    <value>Platba úspěšná!</value>
+  </data>
+  <data name="Message" xml:space="preserve">
+    <value>Děkujeme za zakoupení LexiQuest Premium. Vaše premium funkce jsou nyní aktivní.</value>
+  </data>
+  <data name="Features_Title" xml:space="preserve">
+    <value>Vaše premium výhody</value>
+  </data>
+  <data name="Feature_NoAds" xml:space="preserve">
+    <value>Žádné reklamy</value>
+  </data>
+  <data name="Feature_StreakFreeze" xml:space="preserve">
+    <value>Streak Freeze - automatická ochrana</value>
+  </data>
+  <data name="Feature_StreakShield" xml:space="preserve">
+    <value>Streak Shield - manuální ochrana</value>
+  </data>
+  <data name="Feature_DoubleXP" xml:space="preserve">
+    <value>2x XP o víkendech</value>
+  </data>
+  <data name="Feature_ExclusivePaths" xml:space="preserve">
+    <value>Exkluzivní prémiové cesty</value>
+  </data>
+  <data name="Feature_CustomDictionaries" xml:space="preserve">
+    <value>Vlastní slovníky</value>
+  </data>
+  <data name="Button_Dashboard" xml:space="preserve">
+    <value>Přejít na dashboard</value>
+  </data>
+  <data name="Button_Settings" xml:space="preserve">
+    <value>Nastavení účtu</value>
+  </data>
+</root>

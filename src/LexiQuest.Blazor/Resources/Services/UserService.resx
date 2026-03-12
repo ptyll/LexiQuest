@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Error.Profile.LoadFailed" xml:space="preserve">
+    <value>Nepodařilo se načíst profil.</value>
+  </data>
+  <data name="Error.Profile.UpdateFailed" xml:space="preserve">
+    <value>Aktualizace profilu se nezdařila.</value>
+  </data>
+  <data name="Error.Password.ChangeFailed" xml:space="preserve">
+    <value>Změna hesla se nezdařila. Zkontrolujte aktuální heslo.</value>
+  </data>
+  <data name="Error.Preferences.UpdateFailed" xml:space="preserve">
+    <value>Aktualizace předvoleb se nezdařila.</value>
+  </data>
+  <data name="Error.Privacy.UpdateFailed" xml:space="preserve">
+    <value>Aktualizace soukromí se nezdařila.</value>
+  </data>
+</root>

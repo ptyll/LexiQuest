@@ -1,0 +1,71 @@
+@inject IStringLocalizer<PathsPreviewSection> L
+
+<section class="paths-section" data-testid="paths-section">
+    <div class="container">
+        <h2 class="section-title" data-testid="paths-title">
+            @L["Paths.Title"]
+        </h2>
+
+        <div class="paths-grid">
+            <!-- Path 1: Beginner -->
+            <div class="path-card path-card--beginner" data-testid="path-card-1">
+                <div class="path-icon">
+                    <TmIcon Name="sprout" Size="IconSize.Lg" />
+                </div>
+                <h3 class="path-name">@L["Path1.Name"]</h3>
+                <p class="path-description">@L["Path1.Description"]</p>
+                <div class="path-meta">
+                    <TmBadge Variant="BadgeVariant.Success" Size="BadgeSize.Sm">
+                        @L["Path1.Letters"]
+                    </TmBadge>
+                    <span class="path-levels">50 úrovní</span>
+                </div>
+            </div>
+
+            <!-- Path 2: Advanced -->
+            <div class="path-card path-card--advanced" data-testid="path-card-2">
+                <div class="path-icon">
+                    <TmIcon Name="leaf" Size="IconSize.Lg" />
+                </div>
+                <h3 class="path-name">@L["Path2.Name"]</h3>
+                <p class="path-description">@L["Path2.Description"]</p>
+                <div class="path-meta">
+                    <TmBadge Variant="BadgeVariant.Warning" Size="BadgeSize.Sm">
+                        @L["Path2.Letters"]
+                    </TmBadge>
+                    <span class="path-levels">50 úrovní</span>
+                </div>
+            </div>
+
+            <!-- Path 3: Expert -->
+            <div class="path-card path-card--expert" data-testid="path-card-3">
+                <div class="path-icon">
+                    <TmIcon Name="flame" Size="IconSize.Lg" />
+                </div>
+                <h3 class="path-name">@L["Path3.Name"]</h3>
+                <p class="path-description">@L["Path3.Description"]</p>
+                <div class="path-meta">
+                    <TmBadge Variant="BadgeVariant.Danger" Size="BadgeSize.Sm">
+                        @L["Path3.Letters"]
+                    </TmBadge>
+                    <span class="path-levels">50 úrovní</span>
+                </div>
+            </div>
+
+            <!-- Path 4: Master -->
+            <div class="path-card path-card--master" data-testid="path-card-4">
+                <div class="path-icon">
+                    <TmIcon Name="crown" Size="IconSize.Lg" />
+                </div>
+                <h3 class="path-name">@L["Path4.Name"]</h3>
+                <p class="path-description">@L["Path4.Description"]</p>
+                <div class="path-meta">
+                    <TmBadge Variant="BadgeVariant.Primary" Size="BadgeSize.Sm">
+                        @L["Path4.Letters"]
+                    </TmBadge>
+                    <span class="path-levels">50 úrovní</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

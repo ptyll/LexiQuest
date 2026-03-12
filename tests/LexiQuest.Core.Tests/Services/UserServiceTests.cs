@@ -14,27 +14,30 @@ namespace LexiQuest.Core.Tests.Services;
 public class UserServiceTests
 {
     private readonly IUserRepository _userRepository;
-    private readonly ITokenService _tokenService;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IStringLocalizer<UserService> _localizer;
     private readonly IPasswordHasher<User> _passwordHasher;
+    private readonly ITokenService _tokenService;
     private readonly UserService _sut;
 
     public UserServiceTests()
     {
         _userRepository = Substitute.For<IUserRepository>();
-        _tokenService = Substitute.For<ITokenService>();
         _unitOfWork = Substitute.For<IUnitOfWork>();
         _localizer = Substitute.For<IStringLocalizer<UserService>>();
         _passwordHasher = Substitute.For<IPasswordHasher<User>>();
+        _tokenService = Substitute.For<ITokenService>();
         
-        _localizer["Error.Email.Exists"].Returns(new LocalizedString("Error.Email.Exists", "Tento email je již registrován"));
-        _localizer["Error.Username.Exists"].Returns(new LocalizedString("Error.Username.Exists", "Toto uživatelské jméno je již obsazeno"));
+        _localizer["Error.EmailAlreadyExists"].Returns(new LocalizedString("Error.EmailAlreadyExists", "Tento email je již registrován"));
+        _localizer["Error.UsernameAlreadyExists"].Returns(new LocalizedString("Error.UsernameAlreadyExists", "Toto uživatelské jméno je již obsazeno"));
 
         _passwordHasher.HashPassword(Arg.Any<User>(), Arg.Any<string>())
             .Returns((callInfo) => "hashed_" + callInfo.ArgAt<string>(1));
 
-        _sut = new UserService(_userRepository, _tokenService, _unitOfWork, _localizer, _passwordHasher);
+        _tokenService.GenerateAccessToken(Arg.Any<User>()).Returns("test-access-token");
+        _tokenService.GenerateRefreshToken().Returns("test-refresh-token");
+
+        _sut = new UserService(_userRepository, _unitOfWork, _passwordHasher, _localizer, _tokenService);
     }
 
     [Fact]
@@ -50,10 +53,8 @@ public class UserServiceTests
             AcceptTerms = true
         };
 
-        _userRepository.ExistsByEmailAsync(request.Email, Arg.Any<CancellationToken>()).Returns(false);
-        _userRepository.ExistsByUsernameAsync(request.Username, Arg.Any<CancellationToken>()).Returns(false);
-        _tokenService.GenerateAccessToken(Arg.Any<User>()).Returns("access_token");
-        _tokenService.GenerateRefreshToken().Returns("refresh_token");
+        _userRepository.GetByEmailAsync(request.Email, Arg.Any<CancellationToken>()).Returns((User?)null);
+        _userRepository.GetByUsernameAsync(request.Username, Arg.Any<CancellationToken>()).Returns((User?)null);
 
         // Act
         var result = await _sut.RegisterAsync(request);
@@ -80,7 +81,7 @@ public class UserServiceTests
             AcceptTerms = true
         };
 
-        _userRepository.ExistsByEmailAsync(request.Email, Arg.Any<CancellationToken>()).Returns(true);
+        _userRepository.GetByEmailAsync(request.Email, Arg.Any<CancellationToken>()).Returns(User.Create(request.Email, "existing"));
 
         // Act
         var result = await _sut.RegisterAsync(request);
@@ -104,8 +105,8 @@ public class UserServiceTests
             AcceptTerms = true
         };
 
-        _userRepository.ExistsByEmailAsync(request.Email, Arg.Any<CancellationToken>()).Returns(false);
-        _userRepository.ExistsByUsernameAsync(request.Username, Arg.Any<CancellationToken>()).Returns(true);
+        _userRepository.GetByEmailAsync(request.Email, Arg.Any<CancellationToken>()).Returns((User?)null);
+        _userRepository.GetByUsernameAsync(request.Username, Arg.Any<CancellationToken>()).Returns(User.Create("existing@test.com", request.Username));
 
         // Act
         var result = await _sut.RegisterAsync(request);
@@ -129,10 +130,8 @@ public class UserServiceTests
             AcceptTerms = true
         };
 
-        _userRepository.ExistsByEmailAsync(request.Email, Arg.Any<CancellationToken>()).Returns(false);
-        _userRepository.ExistsByUsernameAsync(request.Username, Arg.Any<CancellationToken>()).Returns(false);
-        _tokenService.GenerateAccessToken(Arg.Any<User>()).Returns("access_token");
-        _tokenService.GenerateRefreshToken().Returns("refresh_token");
+        _userRepository.GetByEmailAsync(request.Email, Arg.Any<CancellationToken>()).Returns((User?)null);
+        _userRepository.GetByUsernameAsync(request.Username, Arg.Any<CancellationToken>()).Returns((User?)null);
 
         // Act
         var result = await _sut.RegisterAsync(request);
@@ -165,10 +164,8 @@ public class UserServiceTests
             AcceptTerms = true
         };
 
-        _userRepository.ExistsByEmailAsync(request.Email, Arg.Any<CancellationToken>()).Returns(false);
-        _userRepository.ExistsByUsernameAsync(request.Username, Arg.Any<CancellationToken>()).Returns(false);
-        _tokenService.GenerateAccessToken(Arg.Any<User>()).Returns("access_token");
-        _tokenService.GenerateRefreshToken().Returns("refresh_token");
+        _userRepository.GetByEmailAsync(request.Email, Arg.Any<CancellationToken>()).Returns((User?)null);
+        _userRepository.GetByUsernameAsync(request.Username, Arg.Any<CancellationToken>()).Returns((User?)null);
 
         // Act
         var result = await _sut.RegisterAsync(request);
@@ -180,35 +177,7 @@ public class UserServiceTests
             Arg.Any<CancellationToken>());
     }
 
-    [Fact]
-    public async Task UserService_Register_GeneratesTokens()
-    {
-        // Arrange
-        var request = new RegisterRequest
-        {
-            Email = "test@example.com",
-            Username = "testuser",
-            Password = "Strong1!Pass",
-            ConfirmPassword = "Strong1!Pass",
-            AcceptTerms = true
-        };
-
-        _userRepository.ExistsByEmailAsync(request.Email, Arg.Any<CancellationToken>()).Returns(false);
-        _userRepository.ExistsByUsernameAsync(request.Username, Arg.Any<CancellationToken>()).Returns(false);
-        _tokenService.GenerateAccessToken(Arg.Any<User>()).Returns("test_access_token");
-        _tokenService.GenerateRefreshToken().Returns("test_refresh_token");
-
-        // Act
-        var result = await _sut.RegisterAsync(request);
-
-        // Assert
-        result.IsSuccess.Should().BeTrue();
-        result.Value.Should().NotBeNull();
-        result.Value!.AccessToken.Should().Be("test_access_token");
-        result.Value.RefreshToken.Should().Be("test_refresh_token");
-        _tokenService.Received(1).GenerateAccessToken(Arg.Any<User>());
-        _tokenService.Received(1).GenerateRefreshToken();
-    }
+    // Note: Token generation is handled by LoginService, not UserService
 
     [Fact]
     public async Task UserService_Register_HashesPassword()
@@ -223,10 +192,8 @@ public class UserServiceTests
             AcceptTerms = true
         };
 
-        _userRepository.ExistsByEmailAsync(request.Email, Arg.Any<CancellationToken>()).Returns(false);
-        _userRepository.ExistsByUsernameAsync(request.Username, Arg.Any<CancellationToken>()).Returns(false);
-        _tokenService.GenerateAccessToken(Arg.Any<User>()).Returns("access_token");
-        _tokenService.GenerateRefreshToken().Returns("refresh_token");
+        _userRepository.GetByEmailAsync(request.Email, Arg.Any<CancellationToken>()).Returns((User?)null);
+        _userRepository.GetByUsernameAsync(request.Username, Arg.Any<CancellationToken>()).Returns((User?)null);
 
         // Act
         var result = await _sut.RegisterAsync(request);

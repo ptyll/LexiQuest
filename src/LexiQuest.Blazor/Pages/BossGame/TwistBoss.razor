@@ -1,0 +1,381 @@
+@page "/boss/twist/{SessionId:guid}"
+@inject IStringLocalizer<TwistBoss> L
+@inject IBossService BossService
+@inject IGameService GameService
+@inject NavigationManager NavigationManager
+@implements IDisposable
+
+<div class="min-h-screen bg-gray-50 dark:bg-gray-900">
+    @if (_session == null)
+    {
+        <TmSkeleton Type="Rectangle" Class="h-32 mb-4" />
+        <TmSkeleton Type="Rectangle" Class="h-64" />
+    }
+    else
+    {
+        <!-- Twist Header -->
+        <div class="bg-gradient-to-r from-cyan-800 to-teal-700 text-white p-6 shadow-lg">
+            <div class="max-w-4xl mx-auto">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-3">
+                        <TmIcon Name="Eye" Class="text-cyan-300" />
+                        <div>
+                            <h1 class="text-2xl font-bold">@L["TwistBoss_Title"]</h1>
+                            <p class="text-cyan-200 text-sm">@L["TwistBoss_Subtitle"]</p>
+                        </div>
+                    </div>
+                    <TmBadge Variant="BadgeVariant.Info">
+                        @L["TwistBoss_Level"]
+                    </TmBadge>
+                </div>
+
+                <!-- Progress Bar -->
+                <div class="mb-4">
+                    <div class="flex justify-between text-sm text-cyan-200 mb-1">
+                        <span>@L["TwistBoss_Progress"]</span>
+                        <span>@_session.CurrentRound/@_session.TotalRounds</span>
+                    </div>
+                    <TmProgressBar 
+                        Value="@CalculateProgress()" 
+                        Max="100" />
+                </div>
+
+                <!-- Stats Row -->
+                <div class="flex items-center gap-6">
+                    <div class="flex items-center gap-2 bg-cyan-950/50 px-4 py-2 rounded-lg">
+                        <TmIcon Name="Star" Class="text-yellow-400" />
+                        <span class="font-bold text-lg">@_session.TotalXP</span>
+                        <span class="text-cyan-300 text-sm">XP</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Arena -->
+        <div class="max-w-4xl mx-auto p-6">
+            @if (!_session.IsGameOver && !_session.IsCompleted)
+            {
+                <div class="space-y-4">
+                    <!-- Reveal Grid -->
+                    <TmCard Variant="CardVariant.Elevated" Class="p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="font-bold text-gray-700">@L["TwistBoss_RevealedLetters"]</h3>
+                            <div data-testid="early-guess-bonus" class="text-lg font-bold text-green-600">
+                                +@CalculateCurrentBonus() XP
+                            </div>
+                        </div>
+
+                        <!-- Reveal Grid Display -->
+                        <div data-testid="reveal-grid" class="flex justify-center gap-3 mb-6">
+                            @for (int i = 0; i < _wordLength; i++)
+                            {
+                                var position = i;
+                                var isRevealed = _revealedPositions?.Contains(position) ?? false;
+                                var letter = isRevealed ? GetLetterAtPosition(position) : '?';
+                                
+                                <div class="@GetLetterBoxClass(isRevealed)">
+                                    @if (isRevealed)
+                                    {
+                                        <span data-testid="letter-revealed" class="text-3xl font-bold">@letter</span>
+                                    }
+                                    else
+                                    {
+                                        <span data-testid="letter-hidden" class="text-2xl text-gray-400">?</span>
+                                    }
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Reveal Timer -->
+                        @if (_revealedPositions?.Count < _wordLength)
+                        {
+                            <div data-testid="reveal-timer" class="space-y-2">
+                                <div class="flex justify-between text-sm text-gray-600">
+                                    <span>@L["TwistBoss_NextReveal"]</span>
+                                    <span>@_timeUntilNextReveal?.ToString("ss")s</span>
+                                </div>
+                                <TmProgressBar 
+                                    Value="@CalculateTimerProgress()" 
+                                    Max="100" />
+                            </div>
+                        }
+                    </TmCard>
+
+                    <!-- Early Guess Bonus Info -->
+                    <TmCard Variant="CardVariant.Outlined" Class="p-4 bg-teal-50">
+                        <h4 class="font-bold text-teal-800 mb-2">@L["TwistBoss_BonusTable"]</h4>
+                        <div class="grid grid-cols-4 gap-2 text-sm">
+                            <div class="text-center p-2 rounded @GetBonusClass(2)">
+                                <div class="font-bold">2 @L["TwistBoss_Letters"]</div>
+                                <div class="text-green-600">+10 XP</div>
+                            </div>
+                            <div class="text-center p-2 rounded @GetBonusClass(3)">
+                                <div class="font-bold">3 @L["TwistBoss_Letters"]</div>
+                                <div class="text-green-600">+7 XP</div>
+                            </div>
+                            <div class="text-center p-2 rounded @GetBonusClass(4)">
+                                <div class="font-bold">4 @L["TwistBoss_Letters"]</div>
+                                <div class="text-green-600">+5 XP</div>
+                            </div>
+                            <div class="text-center p-2 rounded @GetBonusClass(5)">
+                                <div class="font-bold">5 @L["TwistBoss_Letters"]</div>
+                                <div class="text-green-600">+2 XP</div>
+                            </div>
+                        </div>
+                    </TmCard>
+
+                    <!-- Bonus Applied Message -->
+                    @if (LastResult?.EarlyGuessBonus > 0)
+                    {
+                        <TmAlert 
+                            data-testid="bonus-applied"
+                            Severity="AlertSeverity.Success"
+                            Variant="AlertVariant.Filled"
+                            Class="animate-bounce">
+                            <div class="flex items-center gap-2">
+                                <TmIcon Name="Zap" />
+                                <span>@L["TwistBoss_EarlyGuessBonus"]</span>
+                                <span class="font-bold text-green-200">+@LastResult.EarlyGuessBonus XP</span>
+                            </div>
+                        </TmAlert>
+                    }
+
+                    <!-- Answer Section -->
+                    <TmCard Variant="CardVariant.Elevated" Class="p-8">
+                        <div class="text-center mb-8">
+                            <p class="text-gray-500 mb-4">@L["TwistBoss_UnscrambleHint"]</p>
+                        </div>
+
+                        <!-- Answer Input -->
+                        <TmFormField Label="@L["TwistBoss_AnswerLabel"]" Class="mb-6">
+                            <TmTextInput 
+                                @bind-Value="_currentAnswer"
+                                Placeholder="@L["TwistBoss_AnswerPlaceholder"]"
+                                Size="InputSize.Large"
+                                Disabled="_isSubmitting"
+                                Class="text-center text-xl tracking-wide" />
+                        </TmFormField>
+
+                        <!-- Submit Button -->
+                        <TmButton 
+                            Variant="ButtonVariant.Primary"
+                            OnClick="SubmitAnswer"
+                            Class="w-full"
+                            Disabled="_isSubmitting || string.IsNullOrWhiteSpace(_currentAnswer)">
+                            @if (_isSubmitting)
+                            {
+                                <TmIcon Name="Spinner" Class="animate-spin mr-2" />
+                            }
+                            @L["TwistBoss_Submit"]
+                        </TmButton>
+                    </TmCard>
+                </div>
+            }
+        </div>
+
+        <!-- Victory Modal -->
+        @if (_session.IsCompleted)
+        {
+            <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                <TmCard Variant="CardVariant.Elevated" Class="max-w-md w-full mx-4">
+                    <div class="p-6">
+                        <div class="flex items-center gap-3 text-green-600 mb-4">
+                            <TmIcon Name="Trophy" />
+                            <span class="text-2xl font-bold">@L["TwistBoss_Victory"]</span>
+                        </div>
+                        
+                        <div class="text-center py-4">
+                            <div class="text-6xl mb-4">👁️</div>
+                            <h3 class="text-xl font-bold mb-2">@L["TwistBoss_Congratulations"]</h3>
+                            <p class="text-gray-600 mb-6">@L["TwistBoss_VictoryMessage"]</p>
+                            
+                            <TmCard Variant="CardVariant.Elevated" Class="p-4 mb-6 bg-teal-50">
+                                <div class="text-3xl font-bold text-teal-600">@_session.TotalXP XP</div>
+                                <div class="text-gray-600">@L["TwistBoss_TotalEarned"]</div>
+                            </TmCard>
+
+                            <TmButton Variant="ButtonVariant.Primary" OnClick="ReturnToDashboard" Class="w-full">
+                                @L["TwistBoss_BackToDashboard"]
+                            </TmButton>
+                        </div>
+                    </div>
+                </TmCard>
+            </div>
+        }
+
+        <!-- Defeat Modal -->
+        @if (_session.IsGameOver && !_session.IsCompleted)
+        {
+            <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                <TmCard Variant="CardVariant.Elevated" Class="max-w-md w-full mx-4">
+                    <div class="p-6">
+                        <div class="flex items-center gap-3 text-red-600 mb-4">
+                            <TmIcon Name="XCircle" />
+                            <span class="text-2xl font-bold">@L["TwistBoss_Defeat"]</span>
+                        </div>
+                        
+                        <div class="text-center py-4">
+                            <div class="text-6xl mb-4">😵</div>
+                            <h3 class="text-xl font-bold mb-2">@L["TwistBoss_GameOver"]</h3>
+                            <p class="text-gray-600 mb-6">@L["TwistBoss_DefeatMessage"]</p>
+
+                            <TmButton Variant="ButtonVariant.Primary" OnClick="TryAgain" Class="w-full">
+                                @L["TwistBoss_TryAgain"]
+                            </TmButton>
+                        </div>
+                    </div>
+                </TmCard>
+            </div>
+        }
+    }
+</div>
+
+@code {
+    [Parameter] public Guid SessionId { get; set; }
+    [Parameter] public BossSessionDto? Session { get; set; }
+    [Parameter] public BossRoundResultDto? LastResult { get; set; }
+
+    private BossSessionDto? _session;
+    private List<int>? _revealedPositions;
+    private int _wordLength = 6;
+    private TimeSpan? _timeUntilNextReveal;
+    private string _currentAnswer = "";
+    private bool _isSubmitting;
+    private System.Timers.Timer? _revealTimer;
+
+    protected override void OnInitialized()
+    {
+        _session = Session;
+        _revealedPositions = _session?.RevealedPositions ?? new List<int> { 0, 1 };
+        _timeUntilNextReveal = _session?.TimeUntilNextReveal ?? TimeSpan.FromSeconds(3);
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (_session == null)
+        {
+            _session = await BossService.GetBossStateAsync(SessionId);
+            _revealedPositions = _session?.RevealedPositions ?? new List<int> { 0, 1 };
+        }
+
+        StartRevealTimer();
+    }
+
+    private void StartRevealTimer()
+    {
+        _revealTimer = new System.Timers.Timer(100);
+        _revealTimer.Elapsed += async (s, e) =>
+        {
+            await InvokeAsync(async () =>
+            {
+                if (_timeUntilNextReveal?.TotalSeconds > 0)
+                {
+                    _timeUntilNextReveal = _timeUntilNextReveal.Value.Subtract(TimeSpan.FromMilliseconds(100));
+                    if (_timeUntilNextReveal.Value.TotalSeconds <= 0)
+                    {
+                        await RevealNextLetter();
+                    }
+                    StateHasChanged();
+                }
+            });
+        };
+        _revealTimer.Start();
+    }
+
+    private async Task RevealNextLetter()
+    {
+        var state = await BossService.GetTwistRevealStateAsync(SessionId);
+        if (state != null)
+        {
+            _revealedPositions = state.RevealedPositions;
+            _timeUntilNextReveal = state.TimeUntilNextReveal;
+            StateHasChanged();
+        }
+    }
+
+    private int CalculateProgress() => (_session?.CurrentRound ?? 1) * 100 / (_session?.TotalRounds ?? 12);
+
+    private int CalculateTimerProgress()
+    {
+        if (_timeUntilNextReveal == null) return 0;
+        var total = TimeSpan.FromSeconds(3).TotalMilliseconds;
+        var current = _timeUntilNextReveal.Value.TotalMilliseconds;
+        return (int)((total - current) * 100 / total);
+    }
+
+    private int CalculateCurrentBonus()
+    {
+        var revealedCount = _revealedPositions?.Count ?? 2;
+        return revealedCount switch
+        {
+            2 => 10,
+            3 => 7,
+            4 => 5,
+            >= 5 => 2,
+            _ => 0
+        };
+    }
+
+    private string GetLetterBoxClass(bool isRevealed)
+    {
+        var baseClass = "w-16 h-16 rounded-xl flex items-center justify-center text-2xl font-bold transition-all duration-300";
+        return isRevealed 
+            ? $"{baseClass} bg-green-100 border-2 border-green-500 text-green-700" 
+            : $"{baseClass} bg-gray-100 border-2 border-gray-300";
+    }
+
+    private string GetBonusClass(int revealedCount)
+    {
+        var currentCount = _revealedPositions?.Count ?? 2;
+        var baseClass = "transition-colors";
+        return revealedCount == currentCount 
+            ? $"{baseClass} bg-green-200 border-2 border-green-500" 
+            : $"{baseClass} bg-gray-100";
+    }
+
+    private char GetLetterAtPosition(int position)
+    {
+        var word = "SLOVOA";
+        return position < word.Length ? word[position] : '?';
+    }
+
+    private async Task SubmitAnswer()
+    {
+        if (string.IsNullOrWhiteSpace(_currentAnswer) || _isSubmitting) return;
+
+        _isSubmitting = true;
+        try
+        {
+            var result = await BossService.SubmitAnswerAsync(SessionId, _currentAnswer.Trim());
+            LastResult = result;
+            
+            _session!.IsGameOver = result.IsGameOver;
+            _session.IsCompleted = result.IsCompleted;
+            _session.TotalXP += result.XPGained;
+            
+            if (result.IsCorrect && !result.IsCompleted)
+            {
+                _session.CurrentRound++;
+                _revealedPositions = new List<int> { 0, 1 };
+                _timeUntilNextReveal = TimeSpan.FromSeconds(3);
+                _currentAnswer = "";
+            }
+            else if (!result.IsGameOver)
+            {
+                _currentAnswer = "";
+            }
+        }
+        finally
+        {
+            _isSubmitting = false;
+        }
+    }
+
+    private void ReturnToDashboard() => NavigationManager.NavigateTo("/dashboard");
+    private void TryAgain() => NavigationManager.NavigateTo("/game/boss", forceLoad: true);
+
+    public void Dispose()
+    {
+        _revealTimer?.Dispose();
+    }
+}

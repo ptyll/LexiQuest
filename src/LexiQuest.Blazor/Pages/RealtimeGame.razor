@@ -1,0 +1,335 @@
+@page "/multiplayer/game/{MatchId:guid}"
+@attribute [Authorize]
+@namespace LexiQuest.Blazor.Pages
+@using Microsoft.AspNetCore.Authorization
+@inject IMatchHubClient MatchHubClient
+@inject IStringLocalizer<RealtimeGame> L
+@inject NavigationManager NavigationManager
+@implements IAsyncDisposable
+
+@using Tempo.Blazor.Components.Feedback
+@using Tempo.Blazor.Components.Avatars
+@using Tempo.Blazor.Components.Buttons
+@using Tempo.Blazor.Components.Inputs
+@using Tempo.Blazor.Components.Layout
+@using Tempo.Blazor.Components.Icons
+@using LexiQuest.Shared.DTOs.Multiplayer
+
+<div class="realtime-game">
+    <!-- Header with Timer and Progress -->
+    <div class="game-header">
+        <div class="timer-section">
+            <TmIcon Name="timer" />
+            <span class="timer-display">@FormatTime(_timeRemaining)</span>
+            <TmProgressBar Value="GetTimeProgress()" Max="100" Size="ProgressBarSize.Sm" Class="timer-bar" />
+        </div>
+        <div class="word-progress">
+            <span>@L["Game_Header_Word"] @_currentRound/@_totalRounds</span>
+        </div>
+        <TmButton Variant="ButtonVariant.Ghost" Size="ButtonSize.Sm" OnClick="ShowForfeitConfirm">
+            @L["Game_Button_Forfeit"]
+        </TmButton>
+    </div>
+
+    <!-- Player Cards -->
+    <div class="players-container">
+        <!-- Your Card -->
+        <TmCard Class="@(GetFlashClass())">
+            <CardBody>
+                <div class="player-header">
+                    <TmAvatar Name="@L["Game_Player_You"]" Size="AvatarSize.Lg" Color="AvatarColor.Blue" />
+                    <div class="player-info">
+                        <span class="player-name">@L["Game_Player_You"]</span>
+                        <span class="player-score">@_playerScore/@_totalRounds ✓</span>
+                    </div>
+                </div>
+                <TmProgressBar Value="_playerScore" Max="_totalRounds" Size="ProgressBarSize.Md" Variant="ProgressBarVariant.Success" />
+                @if (_playerCombo > 0)
+                {
+                    <TmBadge Variant="BadgeVariant.Warning" Class="combo-badge">
+                        @string.Format(L["Game_Combo_Label"], _playerCombo)
+                    </TmBadge>
+                }
+            </CardBody>
+        </TmCard>
+
+        <!-- VS Badge -->
+        <div class="vs-badge">VS</div>
+
+        <!-- Opponent Card -->
+        <TmCard Class="@(GetOpponentFlashClass())">
+            <CardBody>
+                <div class="player-header">
+                    <TmAvatar Name="@_opponentName" Src="@_opponentAvatar" Size="AvatarSize.Lg" Color="AvatarColor.Red" />
+                    <div class="player-info">
+                        <span class="player-name">@_opponentName</span>
+                        <span class="player-score score-opponent">@_opponentScore/@_totalRounds ✓</span>
+                    </div>
+                </div>
+                <TmProgressBar Value="_opponentScore" Max="_totalRounds" Size="ProgressBarSize.Md" Variant="ProgressBarVariant.Warning" />
+                @if (_opponentCombo > 0)
+                {
+                    <TmBadge Variant="BadgeVariant.Warning" Class="combo-badge">
+                        @string.Format(L["Game_Combo_Label"], _opponentCombo)
+                    </TmBadge>
+                }
+            </CardBody>
+        </TmCard>
+    </div>
+
+    <!-- Game Board -->
+    <div class="game-board">
+        @if (!string.IsNullOrEmpty(_scrambledWord))
+        {
+            <div class="scrambled-word">
+                @foreach (var letter in _scrambledWord.ToUpper())
+                {
+                    <div class="letter-box">@letter</div>
+                }
+            </div>
+        }
+
+        <div class="answer-section @GetShakeClass()">
+            <TmTextInput @bind-Value="_currentAnswer"
+                         Placeholder="@L["Game_Input_Placeholder"]"
+                         Disabled="_isSubmitting"
+                         AutoFocus="true"
+                         OnKeyDown="HandleKeyDown"
+                         Class="answer-input" />
+
+            <TmButton Variant="ButtonVariant.Primary"
+                      Size="ButtonSize.Lg"
+                      OnClick="SubmitAnswer"
+                      Disabled="!CanSubmit"
+                      IsLoading="_isSubmitting"
+                      Class="btn-submit">
+                @L["Game_Button_Submit"]
+            </TmButton>
+        </div>
+
+        <!-- Feedback -->
+        @if (_showFeedback)
+        {
+            <div class="feedback @_feedbackClass">
+                <span>@_feedbackMessage</span>
+                @if (_lastXPEarned > 0)
+                {
+                    <span class="xp-float">+@_lastXPEarned XP</span>
+                }
+            </div>
+        }
+    </div>
+
+    <!-- Connection Status -->
+    @if (MatchHubClient.ConnectionState != HubConnectionState.Connected)
+    {
+        <div class="connection-status">
+            <TmSpinner Size="SpinnerSize.Sm" />
+            <span>@L["Game_Waiting_Opponent"]</span>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public Guid MatchId { get; set; }
+
+    private string _scrambledWord = "TEST";
+    private string _currentAnswer = "";
+    private int _currentRound = 1;
+    private int _totalRounds = 15;
+    private int _timeRemaining = 180; // 3 minutes
+    private int _playerScore = 0;
+    private int _opponentScore = 0;
+    private int _playerCombo = 0;
+    private int _opponentCombo = 0;
+    private string _opponentName = "Soupeř";
+    private string? _opponentAvatar;
+    private bool _isSubmitting = false;
+    private bool _showFeedback = false;
+    private string _feedbackClass = "";
+    private string _feedbackMessage = "";
+    private int _lastXPEarned = 0;
+    private bool _shouldFlash = false;
+    private bool _opponentShouldFlash = false;
+    private bool _shouldShake = false;
+    private Timer? _timer;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await InitializeGameAsync();
+    }
+
+    private async Task InitializeGameAsync()
+    {
+        try
+        {
+            // Setup event handlers
+            MatchHubClient.OnRoundStarted += OnRoundStarted;
+            MatchHubClient.OnOpponentProgress += OnOpponentProgress;
+            MatchHubClient.OnMatchEnded += OnMatchEnded;
+            MatchHubClient.OnOpponentDisconnected += OnOpponentDisconnected;
+
+            await MatchHubClient.StartAsync();
+
+            // Start game timer
+            _timer = new Timer(_ =>
+            {
+                if (_timeRemaining > 0)
+                {
+                    _timeRemaining--;
+                    InvokeAsync(StateHasChanged);
+                }
+            }, null, TimeSpan.Zero, TimeSpan.FromSeconds(1));
+        }
+        catch (Exception)
+        {
+            _feedbackMessage = L["Game_Connection_Lost"];
+            _feedbackClass = "error";
+            _showFeedback = true;
+        }
+    }
+
+    private void OnRoundStarted(object? sender, MultiplayerRoundDto round)
+    {
+        _scrambledWord = round.ScrambledWord;
+        _currentRound = round.RoundNumber;
+        _currentAnswer = "";
+        _isSubmitting = false;
+        _showFeedback = false;
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void OnOpponentProgress(object? sender, OpponentProgressDto progress)
+    {
+        _opponentScore = progress.CorrectCount;
+        _opponentCombo = progress.ComboCount;
+        _opponentShouldFlash = true;
+        
+        // Reset flash after animation
+        _ = Task.Run(async () =>
+        {
+            await Task.Delay(500);
+            _opponentShouldFlash = false;
+            await InvokeAsync(StateHasChanged);
+        });
+        
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void OnMatchEnded(object? sender, MatchResultDto result)
+    {
+        _timer?.Dispose();
+        InvokeAsync(() => NavigationManager.NavigateTo($"/multiplayer/result/{MatchId}"));
+    }
+
+    private void OnOpponentDisconnected(object? sender, EventArgs e)
+    {
+        _feedbackMessage = L["Game_Waiting_Opponent"];
+        _feedbackClass = "warning";
+        _showFeedback = true;
+        InvokeAsync(StateHasChanged);
+    }
+
+    private async Task SubmitAnswer()
+    {
+        if (!CanSubmit) return;
+
+        _isSubmitting = true;
+        _showFeedback = false;
+
+        try
+        {
+            var timeSpentMs = (180 - _timeRemaining) * 1000;
+            await MatchHubClient.SubmitAnswerAsync(_currentAnswer.ToUpper(), timeSpentMs);
+            
+            // For demo, assume correct if matches (in real app, wait for server response)
+            _playerScore++;
+            _playerCombo++;
+            _shouldFlash = true;
+            _lastXPEarned = 10;
+            
+            _feedbackMessage = L["Game_Feedback_Correct"];
+            _feedbackClass = "success";
+            
+            // Reset flash after animation
+            _ = Task.Run(async () =>
+            {
+                await Task.Delay(500);
+                _shouldFlash = false;
+                await InvokeAsync(StateHasChanged);
+            });
+        }
+        catch
+        {
+            _playerCombo = 0;
+            _shouldShake = true;
+            _feedbackMessage = L["Game_Feedback_Wrong"];
+            _feedbackClass = "error";
+            
+            // Reset shake after animation
+            _ = Task.Run(async () =>
+            {
+                await Task.Delay(500);
+                _shouldShake = false;
+                await InvokeAsync(StateHasChanged);
+            });
+        }
+
+        _showFeedback = true;
+        _isSubmitting = false;
+        _currentAnswer = "";
+    }
+
+    private async Task HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" && CanSubmit)
+        {
+            await SubmitAnswer();
+        }
+    }
+
+    private void ShowForfeitConfirm()
+    {
+        // Show confirmation modal (simplified for demo)
+        if (true) // In real app, use modal
+        {
+            _ = ForfeitAsync();
+        }
+    }
+
+    private async Task ForfeitAsync()
+    {
+        await MatchHubClient.ForfeitAsync();
+    }
+
+    private string FormatTime(int seconds)
+    {
+        var mins = seconds / 60;
+        var secs = seconds % 60;
+        return string.Format(L["Game_Timer_Format"], mins, secs);
+    }
+
+    private double GetTimeProgress()
+    {
+        return (_timeRemaining / 180.0) * 100;
+    }
+
+    private string GetFlashClass() => _shouldFlash ? "player-card you flash-success" : "player-card you";
+    private string GetOpponentFlashClass() => _opponentShouldFlash ? "player-card opponent flash-success" : "player-card opponent";
+    private string GetShakeClass() => _shouldShake ? "shake" : "";
+
+    private bool CanSubmit => !string.IsNullOrWhiteSpace(_currentAnswer) && !_isSubmitting;
+
+    public async ValueTask DisposeAsync()
+    {
+        _timer?.Dispose();
+        
+        MatchHubClient.OnRoundStarted -= OnRoundStarted;
+        MatchHubClient.OnOpponentProgress -= OnOpponentProgress;
+        MatchHubClient.OnMatchEnded -= OnMatchEnded;
+        MatchHubClient.OnOpponentDisconnected -= OnOpponentDisconnected;
+        
+        await MatchHubClient.DisposeAsync();
+    }
+}

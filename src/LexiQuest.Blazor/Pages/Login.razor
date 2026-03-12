@@ -7,79 +7,87 @@
 @inject IStringLocalizer<Login> L
 @inject NavigationManager NavigationManager
 
-<div class="login-container">
-    <div class="login-card">
-        <div class="login-logo">
-            <h1>LexiQuest</h1>
+<div class="login-page">
+    <TmCard Variant="CardVariant.Elevated" Class="login-card">
+        <div class="login-header">
+            <h1 class="login-brand">LexiQuest</h1>
+            <h2 class="login-title">@L["Title"]</h2>
+            <p class="login-subtitle">@L["Subtitle"]</p>
         </div>
-        
-        <h2 class="login-title">@L["Title"]</h2>
-        <p class="login-subtitle">@L["Subtitle"]</p>
 
         @if (!string.IsNullOrEmpty(errorMessage))
         {
-            <div class="alert alert-error">
+            <TmAlert Severity="AlertSeverity.Error"
+                     Title="@L["Alert.ErrorTitle"]"
+                     Dismissable="true"
+                     OnDismiss="ClearError"
+                     Class="login-alert">
                 @errorMessage
-            </div>
+            </TmAlert>
         }
 
         <EditForm Model="@model" OnValidSubmit="HandleLogin" FormName="loginForm">
             <FluentValidationValidator />
-            
-            <div class="form-field">
-                <label for="email">@L["Input.Email.Label"]</label>
-                <InputText 
-                    id="email"
-                    type="email"
-                    @bind-Value="model.Email" 
-                    placeholder="@L["Input.Email.Placeholder"]" />
-                <ValidationMessage For="@(() => model.Email)" />
+
+            <div class="login-form-fields">
+                <TmValidatedField Label="@L["Input.Email.Label"]"
+                                  Placeholder="@L["Input.Email.Placeholder"]"
+                                  Type="email"
+                                  Required="true"
+                                  AutoComplete="email"
+                                  @bind-Value="model.Email" />
+
+                <TmValidatedField Label="@L["Input.Password.Label"]"
+                                  Placeholder="@L["Input.Password.Placeholder"]"
+                                  Type="password"
+                                  Required="true"
+                                  AutoComplete="current-password"
+                                  @bind-Value="model.Password" />
+
+                <TmCheckbox @bind-Value="model.RememberMe"
+                            Label="@L["Input.RememberMe.Label"]" />
             </div>
 
-            <div class="form-field">
-                <label for="password">@L["Input.Password.Label"]</label>
-                <InputText 
-                    id="password"
-                    type="password"
-                    @bind-Value="model.Password" 
-                    placeholder="@L["Input.Password.Placeholder"]" />
-                <ValidationMessage For="@(() => model.Password)" />
-            </div>
-
-            <div class="form-field checkbox-field">
-                <InputCheckbox id="rememberMe" @bind-Value="model.RememberMe" />
-                <label for="rememberMe">@L["Input.RememberMe.Label"]</label>
-            </div>
-
-            <button type="submit" class="btn btn-primary btn-block" disabled="@isLoading">
-                @if (isLoading)
-                {
-                    <span>Loading...</span>
-                }
-                else
-                {
-                    @L["Button.Submit"]
-                }
-            </button>
+            <TmButton Type="ButtonType.Submit"
+                      Variant="ButtonVariant.Primary"
+                      Block="true"
+                      IsLoading="isLoading"
+                      LoadingText="@L["Button.Loading"]"
+                      Class="login-submit-btn">
+                @L["Button.Submit"]
+            </TmButton>
         </EditForm>
 
         <div class="login-links">
-            <a href="/password-reset">@L["Link.ForgotPassword"]</a>
+            <TmButton Variant="ButtonVariant.Link"
+                      OnClick="NavigateToPasswordReset"
+                      Class="login-forgot-link">
+                @L["Link.ForgotPassword"]
+            </TmButton>
         </div>
 
         <div class="login-divider">
-            <span>nebo</span>
+            <span>@L["Divider.Or"]</span>
         </div>
 
-        <button class="btn btn-outline btn-block" @onclick="HandleGoogleLogin">
+        <TmButton Variant="ButtonVariant.Outline"
+                  Block="true"
+                  OnClick="HandleGoogleLogin"
+                  Disabled="isLoading"
+                  Class="login-google-btn">
+            <TmIcon Name="@IconNames.ExternalLink" Class="google-icon" />
             @L["Button.Google"]
-        </button>
+        </TmButton>
 
         <div class="login-register-prompt">
             <span>@L["Link.Register.Text"]</span>
-            <a href="/register">@L["Link.Register"]</a>
+            <TmButton Variant="ButtonVariant.Link"
+                      OnClick="NavigateToRegister"
+                      Class="login-register-link">
+                @L["Link.Register"]
+            </TmButton>
         </div>
-    </div>
+    </TmCard>
 </div>
 
 @code {
@@ -89,13 +97,6 @@
 
     private async Task HandleLogin()
     {
-        // Client-side validation check
-        if (string.IsNullOrWhiteSpace(model.Email) || string.IsNullOrWhiteSpace(model.Password))
-        {
-            errorMessage = L["Error.InvalidCredentials"];
-            return;
-        }
-
         isLoading = true;
         errorMessage = null;
         StateHasChanged();
@@ -103,7 +104,7 @@
         try
         {
             var result = await AuthService.LoginAsync(model.Email, model.Password, model.RememberMe);
-            
+
             if (result?.Success == true)
             {
                 NavigationManager.NavigateTo("/dashboard");
@@ -113,7 +114,7 @@
                 errorMessage = result?.ErrorMessage ?? L["Error.InvalidCredentials"];
             }
         }
-        catch
+        catch (Exception ex)
         {
             errorMessage = L["Error.InvalidCredentials"];
         }
@@ -126,6 +127,22 @@
 
     private void HandleGoogleLogin()
     {
-        // TODO: Implement Google OAuth login
+        var redirectUrl = NavigationManager.ToAbsoluteUri("/auth/google-challenge").ToString();
+        NavigationManager.NavigateTo($"/api/v1/users/google-login?redirectUri={Uri.EscapeDataString(redirectUrl)}", forceLoad: true);
+    }
+
+    private void NavigateToPasswordReset()
+    {
+        NavigationManager.NavigateTo("/password-reset");
+    }
+
+    private void NavigateToRegister()
+    {
+        NavigationManager.NavigateTo("/register");
+    }
+
+    private void ClearError()
+    {
+        errorMessage = null;
     }
 }

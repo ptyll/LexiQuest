@@ -1,0 +1,84 @@
+/* Dashboard Page - Layout only, using Tempo.Blazor design tokens */
+
+.dashboard-page {
+    padding: var(--tm-spacing-6);
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.dashboard-header {
+    margin-bottom: var(--tm-spacing-6);
+}
+
+.dashboard-header h1 {
+    font-size: 1.875rem;
+    font-weight: 700;
+    color: var(--tm-color-text-primary);
+    margin: 0 0 var(--tm-spacing-2);
+}
+
+.dashboard-header p {
+    font-size: 1rem;
+    color: var(--tm-color-text-secondary);
+    margin: 0;
+}
+
+.dashboard-skeleton {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: var(--tm-spacing-4);
+    margin-bottom: var(--tm-spacing-6);
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: var(--tm-spacing-4);
+    margin-bottom: var(--tm-spacing-6);
+}
+
+.dashboard-sections {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: var(--tm-spacing-4);
+}
+
+.daily-challenge-card ::deep .tm-card-content,
+.quick-actions-card ::deep .tm-card-content {
+    padding: var(--tm-spacing-4);
+}
+
+.action-buttons {
+    display: flex;
+    gap: var(--tm-spacing-3);
+    flex-wrap: wrap;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .dashboard-page {
+        padding: var(--tm-spacing-4);
+    }
+
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .action-buttons {
+        flex-direction: column;
+    }
+}
+
+@media (max-width: 480px) {
+    .dashboard-page {
+        padding: var(--tm-spacing-3);
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .dashboard-header h1 {
+        font-size: 1.5rem;
+    }
+}

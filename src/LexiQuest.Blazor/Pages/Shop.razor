@@ -1,0 +1,198 @@
+@page "/shop"
+@using LexiQuest.Blazor.Components.Shop
+@using LexiQuest.Blazor.Services
+@using LexiQuest.Shared.DTOs.Shop
+@inject IShopService ShopService
+@inject IPremiumService PremiumService
+@inject IStringLocalizer<Shop> L
+@inject IToastService ToastService
+@inject NavigationManager NavigationManager
+
+<PageTitle>@L["Title"] - LexiQuest</PageTitle>
+
+<div class="shop-page">
+    <div class="shop-header">
+        <div class="header-content">
+            <h1 class="page-title">@L["Title"]</h1>
+            <p class="page-subtitle">@L["Subtitle"]</p>
+        </div>
+        <div class="coin-balance">
+            <TmBadge Variant="BadgeVariant.Warning" Icon="@IconNames.Star">
+                @L["Coins_Balance"] @UserCoins
+            </TmBadge>
+        </div>
+    </div>
+
+    <TmTabs @bind-ActiveTabId="ActiveCategory" Variant="TabVariant.Line" Class="shop-tabs">
+        <TmTabPanel Id="" Title="@L["Tab_All"]">
+            <div class="shop-grid">
+                @foreach (var item in FilteredItems)
+                {
+                    <ShopItemCard
+                        Item="item"
+                        IsOwned="IsItemOwned(item.Id)"
+                        IsEquipped="IsItemEquipped(item.Id)"
+                        OnPurchase="() => PurchaseItem(item)"
+                        OnEquip="() => EquipItem(item.Id)" />
+                }
+            </div>
+        </TmTabPanel>
+        <TmTabPanel Id="Avatar" Title="@L["Tab_Avatars"]">
+            <div class="shop-grid">
+                @foreach (var item in FilteredItems.Where(i => i.Category == "Avatar"))
+                {
+                    <ShopItemCard
+                        Item="item"
+                        IsOwned="IsItemOwned(item.Id)"
+                        IsEquipped="IsItemEquipped(item.Id)"
+                        OnPurchase="() => PurchaseItem(item)"
+                        OnEquip="() => EquipItem(item.Id)" />
+                }
+            </div>
+        </TmTabPanel>
+        <TmTabPanel Id="Frame" Title="@L["Tab_Frames"]">
+            <div class="shop-grid">
+                @foreach (var item in FilteredItems.Where(i => i.Category == "Frame"))
+                {
+                    <ShopItemCard
+                        Item="item"
+                        IsOwned="IsItemOwned(item.Id)"
+                        IsEquipped="IsItemEquipped(item.Id)"
+                        OnPurchase="() => PurchaseItem(item)"
+                        OnEquip="() => EquipItem(item.Id)" />
+                }
+            </div>
+        </TmTabPanel>
+        <TmTabPanel Id="Theme" Title="@L["Tab_Themes"]">
+            <div class="shop-grid">
+                @foreach (var item in FilteredItems.Where(i => i.Category == "Theme"))
+                {
+                    <ShopItemCard
+                        Item="item"
+                        IsOwned="IsItemOwned(item.Id)"
+                        IsEquipped="IsItemEquipped(item.Id)"
+                        OnPurchase="() => PurchaseItem(item)"
+                        OnEquip="() => EquipItem(item.Id)" />
+                }
+            </div>
+        </TmTabPanel>
+        <TmTabPanel Id="Shield" Title="@L["Tab_Shields"]">
+            <div class="shop-grid">
+                @foreach (var item in FilteredItems.Where(i => i.Category == "Shield"))
+                {
+                    <ShopItemCard
+                        Item="item"
+                        IsOwned="IsItemOwned(item.Id)"
+                        IsEquipped="IsItemEquipped(item.Id)"
+                        OnPurchase="() => PurchaseItem(item)"
+                        OnEquip="() => EquipItem(item.Id)" />
+                }
+            </div>
+        </TmTabPanel>
+    </TmTabs>
+</div>
+
+@code {
+    private List<ShopItemDto> AllItems { get; set; } = new();
+    private List<UserInventoryItemDto> UserInventory { get; set; } = new();
+    private int UserCoins { get; set; }
+    private bool IsPremium { get; set; }
+    private string ActiveCategory { get; set; } = "";
+
+    private IEnumerable<ShopItemDto> FilteredItems =>
+        string.IsNullOrEmpty(ActiveCategory)
+            ? AllItems
+            : AllItems.Where(i => i.Category == ActiveCategory);
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDataAsync();
+    }
+
+    private async Task LoadDataAsync()
+    {
+        try
+        {
+            var itemsTask = ShopService.GetShopItemsAsync();
+            var inventoryTask = ShopService.GetUserInventoryAsync();
+            var coinsTask = ShopService.GetUserCoinsAsync();
+            var premiumTask = PremiumService.IsPremiumAsync();
+
+            await Task.WhenAll(itemsTask, inventoryTask, coinsTask, premiumTask);
+
+            AllItems = (await itemsTask).ToList();
+            UserInventory = (await inventoryTask).ToList();
+            UserCoins = await coinsTask;
+            IsPremium = await premiumTask;
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"{L["Load_Error"]}: {ex.Message}");
+        }
+    }
+
+    private bool IsItemOwned(Guid itemId)
+    {
+        return UserInventory.Any(i => i.ShopItemId == itemId);
+    }
+
+    private bool IsItemEquipped(Guid itemId)
+    {
+        return UserInventory.Any(i => i.ShopItemId == itemId && i.IsEquipped);
+    }
+
+    private async Task PurchaseItem(ShopItemDto item)
+    {
+        if (item.IsPremiumOnly && !IsPremium)
+        {
+            ToastService.ShowWarning(L["Premium_Required"], () =>
+            {
+                NavigationManager.NavigateTo("/premium");
+            });
+            return;
+        }
+
+        try
+        {
+            var result = await ShopService.PurchaseItemAsync(item.Id);
+            if (result.Success)
+            {
+                UserCoins = result.RemainingCoins;
+                await LoadDataAsync(); // Refresh inventory
+                ToastService.ShowSuccess(L["Purchase_Success"]);
+            }
+            else
+            {
+                ToastService.ShowError(result.ErrorMessage ?? L["Purchase_Error"]);
+            }
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"{L["Purchase_Error"]}: {ex.Message}");
+        }
+    }
+
+    private async Task EquipItem(Guid itemId)
+    {
+        try
+        {
+            var inventoryItem = UserInventory.FirstOrDefault(i => i.ShopItemId == itemId);
+            if (inventoryItem == null) return;
+
+            var result = await ShopService.EquipItemAsync(inventoryItem.Id);
+            if (result.Success)
+            {
+                await LoadDataAsync(); // Refresh to update equipped status
+                ToastService.ShowSuccess(L["Equip_Success"]);
+            }
+            else
+            {
+                ToastService.ShowError(result.ErrorMessage ?? L["Equip_Error"]);
+            }
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"{L["Equip_Error"]}: {ex.Message}");
+        }
+    }
+}

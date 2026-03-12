@@ -1,5 +1,58 @@
 @page "/"
+@layout LandingLayout
 
-<PageTitle>LexiQuest</PageTitle>
+<PageTitle>LexiQuest - Rozlušti slova, získej moc</PageTitle>
 
-<h1>LexiQuest</h1>
+<HeadContent>
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="LexiQuest je interaktivní česká slovní hra. Rozkládej písmena, získávej XP, odemykej úrovně a soutěž v ligách. Procvič si češtinu zábavnou formou!">
+    <meta name="keywords" content="slovní hra, čeština, puzzle, vzdělávací hra, xp, ligy, achievementy">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://lexiquest.cz/">
+    <meta property="og:title" content="LexiQuest - Rozlušti slova, získej moc">
+    <meta property="og:description" content="Interaktivní česká slovní hra s RPG prvky. Rozkládej písmena, získávej XP a soutěž v ligách!">
+    <meta property="og:image" content="https://lexiquest.cz/og-image.jpg">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://lexiquest.cz/">
+    <meta property="twitter:title" content="LexiQuest - Rozlušti slova, získej moc">
+    <meta property="twitter:description" content="Interaktivní česká slovní hra s RPG prvky. Rozkládej písmena, získávej XP a soutěž v ligách!">
+    <meta property="twitter:image" content="https://lexiquest.cz/og-image.jpg">
+</HeadContent>
+
+@* JSON-LD Schema - loaded via JS interop to avoid Razor parsing issues *@
+<script suppress-error="BL9992">
+    (function() {
+        var script = document.createElement('script');
+        script.type = 'application/ld+json';
+        script.text = JSON.stringify({
+            "@@context": "https://schema.org",
+            "@@type": "WebApplication",
+            "name": "LexiQuest",
+            "description": "Interaktivní česká slovní hra s RPG prvky",
+            "url": "https://lexiquest.cz",
+            "applicationCategory": "GameApplication",
+            "operatingSystem": "Web",
+            "inLanguage": "cs",
+            "offers": {
+                "@@type": "Offer",
+                "price": "0",
+                "priceCurrency": "CZK"
+            }
+        });
+        document.head.appendChild(script);
+    })();
+</script>
+
+<div class="landing-page">
+    <HeroSection />
+    <HowItWorksSection />
+    <FeaturesSection />
+    <PathsPreviewSection />
+    <TestimonialsSection />
+    <FinalCTASection />
+    <Footer />
+</div>

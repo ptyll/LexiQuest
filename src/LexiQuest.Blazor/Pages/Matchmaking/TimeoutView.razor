@@ -1,0 +1,44 @@
+@using Tempo.Blazor.Components.Buttons
+@using Tempo.Blazor.Components.Icons
+@using Microsoft.Extensions.Localization
+
+<div class="timeout-view">
+    <div class="timeout-icon">
+        <TmIcon Name="timer-off" Size="IconSize.Xl" />
+    </div>
+    
+    <h1 class="timeout-title">@Localizer["Matchmaking_Timeout_Title"]</h1>
+    
+    <p class="timeout-message">Nepodařilo se najít žádného dostupného soupeře.</p>
+    
+    <div class="timeout-actions">
+        <TmButton Variant="ButtonVariant.Primary" OnClick="OnRetry" Class="btn-retry">
+            <TmIcon Name="refresh" />
+            @Localizer["Matchmaking_Retry"]
+        </TmButton>
+        
+        <TmButton Variant="ButtonVariant.Secondary" OnClick="OnPlayVsAI" Class="btn-play-ai">
+            <TmIcon Name="smart-toy" />
+            @Localizer["Matchmaking_PlayVsAI"]
+        </TmButton>
+        
+        <TmButton Variant="ButtonVariant.Ghost" OnClick="OnBack" Class="btn-back">
+            <TmIcon Name="arrow-back" />
+            @Localizer["Matchmaking_Back"]
+        </TmButton>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public required IStringLocalizer<QuickMatch> Localizer { get; set; }
+    
+    [Parameter, EditorRequired]
+    public EventCallback OnRetry { get; set; }
+    
+    [Parameter, EditorRequired]
+    public EventCallback OnPlayVsAI { get; set; }
+    
+    [Parameter, EditorRequired]
+    public EventCallback OnBack { get; set; }
+}

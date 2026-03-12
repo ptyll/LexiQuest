@@ -1,0 +1,292 @@
+@page "/multiplayer/history"
+@inject IStringLocalizer<Multiplayer> Localizer
+@inject NavigationManager NavigationManager
+@inject IMatchHistoryClient MatchHistoryClient
+
+<div class="match-history-page">
+    <div class="page-header">
+        <TmButton Variant="ButtonVariant.Ghost" Size="ButtonSize.Md" OnClick="GoBack" Class="back-button">
+            ← @Localizer["MatchHistory_Back"]
+        </TmButton>
+        <h1 class="page-title">@Localizer["MatchHistory_Title"]</h1>
+    </div>
+
+    @if (_stats != null)
+    {
+        <div class="stats-grid">
+            <div class="stat-card">
+                <span class="stat-value">@_stats.TotalMatchesPlayed</span>
+                <span class="stat-label">@Localizer["MatchHistory_Stats_Played"]</span>
+            </div>
+            <div class="stat-card win">
+                <span class="stat-value">@_stats.Wins</span>
+                <span class="stat-label">@Localizer["MatchHistory_Stats_Wins"]</span>
+            </div>
+            <div class="stat-card loss">
+                <span class="stat-value">@_stats.Losses</span>
+                <span class="stat-label">@Localizer["MatchHistory_Stats_Losses"]</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-value">@_stats.WinRatePercentage.ToString("F0")%</span>
+                <span class="stat-label">@Localizer["MatchHistory_Stats_WinRate"]</span>
+            </div>
+        </div>
+    }
+
+    <div class="filter-tabs">
+        <TmButton 
+            Variant="GetFilterButtonVariant(MatchHistoryFilter.All)" 
+            Size="ButtonSize.Md"
+            OnClick="() => SetFilter(MatchHistoryFilter.All)">
+            @Localizer["MatchHistory_Tab_All"]
+        </TmButton>
+        <TmButton 
+            Variant="GetFilterButtonVariant(MatchHistoryFilter.QuickMatch)" 
+            Size="ButtonSize.Md"
+            OnClick="() => SetFilter(MatchHistoryFilter.QuickMatch)">
+            @Localizer["MatchHistory_Tab_QuickMatch"]
+        </TmButton>
+        <TmButton 
+            Variant="GetFilterButtonVariant(MatchHistoryFilter.PrivateRoom)" 
+            Size="ButtonSize.Md"
+            OnClick="() => SetFilter(MatchHistoryFilter.PrivateRoom)">
+            @Localizer["MatchHistory_Tab_PrivateRoom"]
+        </TmButton>
+    </div>
+
+    @if (_isLoading)
+    {
+        <div class="loading-state">
+            <TmSpinner Size="SpinnerSize.Lg" />
+        </div>
+    }
+    else if (_matches == null || !_matches.Any())
+    {
+        <div class="empty-state">
+            <TmEmptyState
+                Icon="🎮"
+                Title="@Localizer["MatchHistory_Empty"]"
+                Description="@Localizer["MatchHistory_Empty_Description"]">
+                <TmButton Variant="ButtonVariant.Primary" OnClick="GoToMultiplayer">
+                    @Localizer["QuickMatch_Button"]
+                </TmButton>
+            </TmEmptyState>
+        </div>
+    }
+    else
+    {
+        <div class="matches-list">
+            @foreach (var group in GetGroupedMatches())
+            {
+                <div class="match-group">
+                    <h3 class="group-header">@group.Key</h3>
+                    @foreach (var match in group.Value)
+                    {
+                        <div class="match-entry @GetResultClass(match.Result)">
+                            <div class="match-opponent">
+                                <TmAvatar 
+                                    Name="@match.OpponentUsername" 
+                                    Src="@match.OpponentAvatar" 
+                                    Size="AvatarSize.Md" />
+                                <span class="opponent-name">@match.OpponentUsername</span>
+                            </div>
+                            
+                            <div class="match-score">
+                                <span class="your-score">@match.YourScore</span>
+                                <span class="score-separator">:</span>
+                                <span class="opponent-score">@match.OpponentScore</span>
+                            </div>
+                            
+                            <div class="match-details">
+                                <TmBadge 
+                                    Variant="GetResultBadgeVariant(match.Result)" 
+                                    Size="BadgeSize.Sm"
+                                    Class="result-badge">
+                                    @GetResultText(match.Result)
+                                </TmBadge>
+                                
+                                <TmBadge 
+                                    Variant="BadgeVariant.Default" 
+                                    Size="BadgeSize.Sm">
+                                    @(match.Type == MatchType.QuickMatch 
+                                        ? Localizer["MatchHistory_Type_Quick"] 
+                                        : Localizer["MatchHistory_Type_Private"])
+                                </TmBadge>
+                                
+                                @if (match.SeriesScoreYou.HasValue && match.SeriesScoreOpponent.HasValue)
+                                {
+                                    <span class="series-score">
+                                        @string.Format(Localizer["Room_Series_Score"], match.SeriesScoreYou, match.SeriesScoreOpponent)
+                                    </span>
+                                }
+                            </div>
+                            
+                            <div class="match-meta">
+                                <span class="xp-earned">⭐ +@match.XPEarned @Localizer["MatchHistory_XP"]</span>
+                                <span class="duration">@FormatDuration(match.Duration)</span>
+                                <span class="played-at">@FormatDate(match.PlayedAt)</span>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+
+        @if (_totalCount > _pageSize)
+        {
+            <div class="pagination">
+                <TmButton 
+                    Variant="ButtonVariant.Outline" 
+                    Size="ButtonSize.Sm"
+                    Disabled="_pageNumber <= 1"
+                    OnClick="PreviousPage">
+                    ←
+                </TmButton>
+                <span class="page-info">@_pageNumber / @TotalPages</span>
+                <TmButton 
+                    Variant="ButtonVariant.Outline" 
+                    Size="ButtonSize.Sm"
+                    Disabled="_pageNumber >= TotalPages"
+                    OnClick="NextPage">
+                    →
+                </TmButton>
+            </div>
+        }
+    }
+</div>
+
+@code {
+    private List<MatchHistoryEntryDto>? _matches;
+    private MultiplayerStatsDto? _stats;
+    private bool _isLoading = true;
+    private MatchHistoryFilter _currentFilter = MatchHistoryFilter.All;
+    private int _pageNumber = 1;
+    private int _pageSize = 20;
+    private int _totalCount = 0;
+
+    public MatchHistoryFilter CurrentFilter => _currentFilter;
+    public int TotalPages => (int)Math.Ceiling((double)_totalCount / _pageSize);
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDataAsync();
+    }
+
+    private async Task LoadDataAsync()
+    {
+        _isLoading = true;
+        try
+        {
+            var historyTask = MatchHistoryClient.GetHistoryAsync(_currentFilter, _pageNumber, _pageSize);
+            var statsTask = MatchHistoryClient.GetStatsAsync();
+            
+            await Task.WhenAll(historyTask, statsTask);
+            
+            var history = await historyTask;
+            _matches = history.Entries.ToList();
+            _totalCount = history.TotalCount;
+            
+            _stats = await statsTask;
+        }
+        catch (Exception)
+        {
+            // Handle error - could show toast notification
+            _matches = new List<MatchHistoryEntryDto>();
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private async Task SetFilter(MatchHistoryFilter filter)
+    {
+        _currentFilter = filter;
+        _pageNumber = 1;
+        await LoadDataAsync();
+    }
+
+    private async Task PreviousPage()
+    {
+        if (_pageNumber > 1)
+        {
+            _pageNumber--;
+            await LoadDataAsync();
+        }
+    }
+
+    private async Task NextPage()
+    {
+        if (_pageNumber < TotalPages)
+        {
+            _pageNumber++;
+            await LoadDataAsync();
+        }
+    }
+
+    private void GoBack() => NavigationManager.NavigateTo("/multiplayer");
+    private void GoToMultiplayer() => NavigationManager.NavigateTo("/multiplayer");
+
+    private ButtonVariant GetFilterButtonVariant(MatchHistoryFilter filter) => 
+        _currentFilter == filter ? ButtonVariant.Primary : ButtonVariant.Outline;
+
+    private Dictionary<string, List<MatchHistoryEntryDto>> GetGroupedMatches()
+    {
+        if (_matches == null) return new Dictionary<string, List<MatchHistoryEntryDto>>();
+
+        var today = DateTime.UtcNow.Date;
+        var yesterday = today.AddDays(-1);
+        var weekStart = today.AddDays(-(int)today.DayOfWeek);
+
+        return _matches
+            .GroupBy(m =>
+            {
+                var matchDate = m.PlayedAt.Date;
+                if (matchDate == today) return Localizer["MatchHistory_Today"].Value;
+                if (matchDate == yesterday) return Localizer["MatchHistory_Yesterday"].Value;
+                if (matchDate >= weekStart) return Localizer["MatchHistory_ThisWeek"].Value;
+                return Localizer["MatchHistory_Older"].Value;
+            })
+            .ToDictionary(g => g.Key, g => g.ToList());
+    }
+
+    private static string GetResultClass(MatchResultType result) => result switch
+    {
+        MatchResultType.Win => "win",
+        MatchResultType.Loss => "loss",
+        MatchResultType.Draw => "draw",
+        _ => ""
+    };
+
+    private static BadgeVariant GetResultBadgeVariant(MatchResultType result) => result switch
+    {
+        MatchResultType.Win => BadgeVariant.Success,
+        MatchResultType.Loss => BadgeVariant.Danger,
+        MatchResultType.Draw => BadgeVariant.Warning,
+        _ => BadgeVariant.Default
+    };
+
+    private string GetResultText(MatchResultType result) => result switch
+    {
+        MatchResultType.Win => Localizer["MatchHistory_Result_Win"],
+        MatchResultType.Loss => Localizer["MatchHistory_Result_Loss"],
+        MatchResultType.Draw => Localizer["MatchHistory_Result_Draw"],
+        _ => ""
+    };
+
+    private static string FormatDuration(TimeSpan duration) => $"{duration.Minutes:D2}:{duration.Seconds:D2}";
+
+    private static string FormatDate(DateTime date)
+    {
+        var localDate = date.ToLocalTime();
+        return localDate.ToString("dd.MM. HH:mm");
+    }
+
+    // Test helper method
+    public void LoadTestData(List<MatchHistoryEntryDto> matches, MultiplayerStatsDto stats)
+    {
+        _matches = matches;
+        _stats = stats;
+        _isLoading = false;
+    }
+}

@@ -1,0 +1,250 @@
+@page "/play"
+@layout MainLayout
+@using LexiQuest.Blazor.Components.Guest
+@using LexiQuest.Blazor.Services
+@using LexiQuest.Shared.DTOs.Game
+@using Microsoft.Extensions.Localization
+@inject IGuestGameService GuestGameService
+@inject NavigationManager NavigationManager
+@inject IStringLocalizer<GuestGame> L
+
+<PageTitle>@L["Title"]</PageTitle>
+
+<div class="guest-game-page">
+    <div class="back-button-wrapper" data-testid="btn-back">
+        <TmButton Variant="ButtonVariant.Ghost" Class="back-button" OnClick="GoBack">
+            <TmIcon Name="@IconNames.ArrowLeft" />
+            @L["BackToHome"]
+        </TmButton>
+    </div>
+
+    @if (_isLoading)
+    {
+        <div class="loading-container">
+            <TmSkeleton Type="Rectangle" Height="100px" Class="loading-skeleton" />
+            <p class="loading-text">@L["Loading"]</p>
+        </div>
+    }
+    else if (_rateLimitReached)
+    {
+        <GuestLimitReached
+            OnRegister="NavigateToRegister"
+            OnLogin="NavigateToLogin"
+            OnBack="GoBack" />
+    }
+    else if (_session == null)
+    {
+        <div class="welcome-container" data-testid="guest-welcome">
+            <TmCard Variant="CardVariant.Elevated" Class="welcome-card">
+                <div class="welcome-icon">
+                    <TmIcon Name="@IconNames.User" Class="icon-user" />
+                </div>
+                <h1 class="welcome-title">@L["Welcome"]</h1>
+                <p class="welcome-description">@L["GuestDescription"]</p>
+                <TmButton Variant="ButtonVariant.Primary" Size="ButtonSize.Lg" OnClick="StartGame" data-testid="btn-start-guest">
+                    <TmIcon Name="@IconNames.Play" />
+                    @L["StartGame"]
+                </TmButton>
+                <div class="login-prompt">
+                    <span>@L["AlreadyHaveAccount"]</span>
+                    <TmButton Variant="ButtonVariant.Link" OnClick="NavigateToLogin">
+                        @L["Login"]
+                    </TmButton>
+                </div>
+            </TmCard>
+        </div>
+    }
+    else
+    {
+        <div class="game-container" data-testid="game-arena">
+            <TmCard Variant="CardVariant.Elevated" Class="game-card">
+                <div class="game-header">
+                    <div class="progress-info">
+                        <TmBadge Variant="BadgeVariant.Primary">
+                            @string.Format(L["WordProgress"], _currentWordIndex + 1, _session.ScrambledWords.Count)
+                        </TmBadge>
+                        <TmBadge Variant="BadgeVariant.Default" data-testid="remaining-games">
+                            @string.Format(L["RemainingGames"], _session.RemainingGames)
+                        </TmBadge>
+                    </div>
+                    <div class="xp-display">
+                        <TmIcon Name="@IconNames.Star" Class="xp-icon" />
+                        <span>@string.Format(L["SessionXp"], _totalSessionXp)</span>
+                    </div>
+                </div>
+
+                <div class="word-display">
+                    <span class="scrambled-word">@_currentWord?.Scrambled</span>
+                </div>
+
+                <div class="answer-section">
+                    <TmTextInput
+                        @bind-Value="_currentAnswer"
+                        Placeholder="@L["EnterAnswer"]"
+                        Disabled="_showingFeedback"
+                        Class="answer-input"
+                        data-testid="answer-input" />
+                    <TmButton
+                        Variant="ButtonVariant.Primary"
+                        OnClick="SubmitAnswer"
+                        Disabled="string.IsNullOrWhiteSpace(_currentAnswer) || _showingFeedback"
+                        data-testid="btn-submit">
+                        @L["Submit"]
+                    </TmButton>
+                </div>
+
+                @if (_showingFeedback)
+                {
+                    <div class="feedback @(_lastAnswerCorrect ? "correct" : "incorrect")">
+                        <TmIcon Name="@(_lastAnswerCorrect ? IconNames.Check : IconNames.X)" />
+                        <span>@(_lastAnswerCorrect ? L["Correct"] : $"{L["Wrong"]}: {_lastCorrectAnswer}")</span>
+                    </div>
+                }
+            </TmCard>
+        </div>
+    }
+</div>
+
+<GuestCTAModal
+    IsOpen="_showCTAModal"
+    OnClose="() => _showCTAModal = false"
+    OnRegister="NavigateToRegister"
+    OnLater="ContinueGame" />
+
+<GuestConvertModal
+    IsOpen="_showConvertModal"
+    WordsSolved="_wordsSolved"
+    TotalXp="_totalSessionXp"
+    OnClose="() => _showConvertModal = false"
+    OnRegister="NavigateToRegisterWithProgress"
+    OnPlayAgain="ResetGame" />
+
+@code {
+    [Parameter, SupplyParameterFromQuery]
+    public Guid? SessionId { get; set; }
+
+    private bool _isLoading = true;
+    private bool _rateLimitReached = false;
+    private GuestStartResponse? _session;
+    private int _currentWordIndex = 0;
+    private GuestScrambledWordDto? _currentWord => _session?.ScrambledWords.ElementAtOrDefault(_currentWordIndex);
+    private string _currentAnswer = "";
+    private bool _showingFeedback = false;
+    private bool _lastAnswerCorrect = false;
+    private string? _lastCorrectAnswer;
+    private int _totalSessionXp = 0;
+    private int _wordsSolved = 0;
+    private bool _showCTAModal = false;
+    private bool _showConvertModal = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (SessionId.HasValue)
+        {
+            await LoadExistingSession(SessionId.Value);
+        }
+        _isLoading = false;
+    }
+
+    private async Task LoadExistingSession(Guid sessionId)
+    {
+        _session = await GuestGameService.GetSessionAsync(sessionId);
+    }
+
+    private async Task StartGame()
+    {
+        _isLoading = true;
+        _session = await GuestGameService.StartGameAsync();
+        _isLoading = false;
+
+        if (_session == null)
+        {
+            _rateLimitReached = true;
+        }
+        else
+        {
+            _currentWordIndex = 0;
+            _totalSessionXp = 0;
+            _wordsSolved = 0;
+            _currentAnswer = "";
+        }
+    }
+
+    private async Task SubmitAnswer()
+    {
+        if (_session == null || _currentWord == null || string.IsNullOrWhiteSpace(_currentAnswer))
+            return;
+
+        var response = await GuestGameService.SubmitAnswerAsync(
+            _session.SessionId,
+            _currentWord.WordId,
+            _currentAnswer.Trim());
+
+        if (response == null)
+            return;
+
+        _showingFeedback = true;
+        _lastAnswerCorrect = response.IsCorrect;
+        _lastCorrectAnswer = response.CorrectAnswer;
+        _totalSessionXp = response.TotalSessionXp;
+
+        if (response.IsCorrect)
+        {
+            _wordsSolved++;
+        }
+
+        StateHasChanged();
+
+        await Task.Delay(1500);
+
+        if (response.IsGameComplete)
+        {
+            _showConvertModal = true;
+        }
+        else if (response.IsCorrect)
+        {
+            _showCTAModal = true;
+            _currentWordIndex++;
+            _currentAnswer = "";
+        }
+
+        _showingFeedback = false;
+    }
+
+    private void ContinueGame()
+    {
+        _showCTAModal = false;
+        _currentWordIndex++;
+        _currentAnswer = "";
+    }
+
+    private void ResetGame()
+    {
+        _showConvertModal = false;
+        _session = null;
+        _currentWordIndex = 0;
+        _totalSessionXp = 0;
+        _wordsSolved = 0;
+        _currentAnswer = "";
+    }
+
+    private void NavigateToRegister()
+    {
+        NavigationManager.NavigateTo("/register");
+    }
+
+    private void NavigateToLogin()
+    {
+        NavigationManager.NavigateTo("/login");
+    }
+
+    private void NavigateToRegisterWithProgress()
+    {
+        NavigationManager.NavigateTo($"/register?guestSession={_session?.SessionId}");
+    }
+
+    private void GoBack()
+    {
+        NavigationManager.NavigateTo("/");
+    }
+}

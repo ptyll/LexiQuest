@@ -7,96 +7,99 @@
 @inject IStringLocalizer<Register> L
 @inject NavigationManager NavigationManager
 
-<div class="register-container">
-    <div class="register-card">
-        <div class="register-logo">
-            <h1>LexiQuest</h1>
+<div class="register-page">
+    <TmCard Variant="CardVariant.Elevated" Class="register-card">
+        <div class="register-header">
+            <h1 class="register-brand">LexiQuest</h1>
+            <h2 class="register-title">@L["Title"]</h2>
+            <p class="register-subtitle">@L["Subtitle"]</p>
         </div>
-        
-        <h2 class="register-title">@L["Title"]</h2>
-        <p class="register-subtitle">@L["Subtitle"]</p>
 
         @if (!string.IsNullOrEmpty(errorMessage))
         {
-            <div class="alert alert-error">
+            <TmAlert Severity="AlertSeverity.Error"
+                     Title="@L["Alert.ErrorTitle"]"
+                     Dismissable="true"
+                     OnDismiss="ClearError"
+                     Class="register-alert">
                 @errorMessage
-            </div>
+            </TmAlert>
         }
 
         <EditForm Model="@model" OnValidSubmit="HandleRegister" FormName="registerForm">
             <FluentValidationValidator />
-            
-            <div class="form-field">
-                <label for="email">@L["Input.Email.Label"]</label>
-                <InputText 
-                    id="email"
-                    type="email"
-                    @bind-Value="model.Email" 
-                    placeholder="@L["Input.Email.Placeholder"]" />
-                <ValidationMessage For="@(() => model.Email)" />
+
+            <div class="register-form-fields">
+                <TmValidatedField Label="@L["Input.Email.Label"]"
+                                  Placeholder="@L["Input.Email.Placeholder"]"
+                                  Type="email"
+                                  Required="true"
+                                  AutoComplete="email"
+                                  @bind-Value="model.Email" />
+
+                <TmValidatedField Label="@L["Input.Username.Label"]"
+                                  Placeholder="@L["Input.Username.Placeholder"]"
+                                  Type="text"
+                                  Required="true"
+                                  AutoComplete="username"
+                                  @bind-Value="model.Username" />
+
+                <div class="password-field-group">
+                    <TmValidatedField Label="@L["Input.Password.Label"]"
+                                      Placeholder="@L["Input.Password.Placeholder"]"
+                                      Type="password"
+                                      Required="true"
+                                      AutoComplete="new-password"
+                                      @bind-Value="model.Password" />
+
+                    <TmPasswordStrengthIndicator Password="@model.Password"
+                                                  Class="password-strength" />
+                </div>
+
+                <TmValidatedField Label="@L["Input.ConfirmPassword.Label"]"
+                                  Placeholder="@L["Input.ConfirmPassword.Placeholder"]"
+                                  Type="password"
+                                  Required="true"
+                                  AutoComplete="new-password"
+                                  @bind-Value="model.ConfirmPassword" />
+
+                <TmCheckbox @bind-Value="model.AcceptTerms"
+                            Label="@L["Input.Terms.Label"]"
+                            Required="true" />
             </div>
 
-            <div class="form-field">
-                <label for="username">@L["Input.Username.Label"]</label>
-                <InputText 
-                    id="username"
-                    type="text"
-                    @bind-Value="model.Username" 
-                    placeholder="@L["Input.Username.Placeholder"]" />
-                <ValidationMessage For="@(() => model.Username)" />
-            </div>
-
-            <div class="form-field">
-                <label for="password">@L["Input.Password.Label"]</label>
-                <InputText 
-                    id="password"
-                    type="password"
-                    @bind-Value="model.Password" 
-                    placeholder="@L["Input.Password.Placeholder"]" />
-                <ValidationMessage For="@(() => model.Password)" />
-            </div>
-
-            <div class="form-field">
-                <label for="confirmPassword">@L["Input.ConfirmPassword.Label"]</label>
-                <InputText 
-                    id="confirmPassword"
-                    type="password"
-                    @bind-Value="model.ConfirmPassword" 
-                    placeholder="@L["Input.ConfirmPassword.Placeholder"]" />
-                <ValidationMessage For="@(() => model.ConfirmPassword)" />
-            </div>
-
-            <div class="form-field checkbox-field">
-                <InputCheckbox id="acceptTerms" @bind-Value="model.AcceptTerms" />
-                <label for="acceptTerms">@L["Checkbox.Terms"]</label>
-                <ValidationMessage For="@(() => model.AcceptTerms)" />
-            </div>
-
-            <button type="submit" class="btn btn-primary btn-block" disabled="@isLoading">
-                @if (isLoading)
-                {
-                    <span>Loading...</span>
-                }
-                else
-                {
-                    @L["Button.Submit"]
-                }
-            </button>
+            <TmButton Type="ButtonType.Submit"
+                      Variant="ButtonVariant.Primary"
+                      Block="true"
+                      IsLoading="isLoading"
+                      LoadingText="@L["Button.Loading"]"
+                      Class="register-submit-btn">
+                @L["Button.Submit"]
+            </TmButton>
         </EditForm>
 
         <div class="register-divider">
-            <span>nebo</span>
+            <span>@L["Divider.Or"]</span>
         </div>
 
-        <button class="btn btn-outline btn-block" @onclick="HandleGoogleRegister">
+        <TmButton Variant="ButtonVariant.Outline"
+                  Block="true"
+                  OnClick="HandleGoogleRegister"
+                  Disabled="isLoading"
+                  Class="register-google-btn">
+            <TmIcon Name="@IconNames.ExternalLink" Class="google-icon" />
             @L["Button.Google"]
-        </button>
+        </TmButton>
 
         <div class="register-login-prompt">
             <span>@L["Link.Login.Text"]</span>
-            <a href="/login">@L["Link.Login"]</a>
+            <TmButton Variant="ButtonVariant.Link"
+                      OnClick="NavigateToLogin"
+                      Class="register-login-link">
+                @L["Link.Login"]
+            </TmButton>
         </div>
-    </div>
+    </TmCard>
 </div>
 
 @code {
@@ -113,7 +116,7 @@
         try
         {
             var result = await AuthService.RegisterAsync(model);
-            
+
             if (result?.Success == true)
             {
                 NavigationManager.NavigateTo("/dashboard");
@@ -123,7 +126,7 @@
                 errorMessage = result?.ErrorMessage ?? L["Error.RegistrationFailed"];
             }
         }
-        catch
+        catch (Exception ex)
         {
             errorMessage = L["Error.RegistrationFailed"];
         }
@@ -136,6 +139,17 @@
 
     private void HandleGoogleRegister()
     {
-        // TODO: Implement Google OAuth registration
+        var redirectUrl = NavigationManager.ToAbsoluteUri("/auth/google-callback").ToString();
+        NavigationManager.NavigateTo($"/api/v1/users/google-register?redirectUri={Uri.EscapeDataString(redirectUrl)}", forceLoad: true);
+    }
+
+    private void NavigateToLogin()
+    {
+        NavigationManager.NavigateTo("/login");
+    }
+
+    private void ClearError()
+    {
+        errorMessage = null;
     }
 }

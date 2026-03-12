@@ -1,0 +1,128 @@
+.shop-page {
+    padding: var(--space-lg);
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.shop-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-xl);
+    padding-bottom: var(--space-lg);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.header-content {
+    flex: 1;
+}
+
+.page-title {
+    font-size: var(--font-size-3xl);
+    font-weight: 700;
+    color: var(--color-text-primary);
+    margin: 0 0 var(--space-sm) 0;
+}
+
+.page-subtitle {
+    font-size: var(--font-size-lg);
+    color: var(--color-text-secondary);
+    margin: 0;
+}
+
+.coin-balance {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+}
+
+.coin-balance ::deep .tm-badge {
+    font-size: var(--font-size-lg);
+    padding: var(--space-sm) var(--space-md);
+}
+
+.shop-tabs {
+    margin-bottom: var(--space-xl);
+}
+
+.shop-tabs ::deep .tm-tabs-nav {
+    display: flex;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-lg);
+    flex-wrap: wrap;
+}
+
+.shop-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: var(--space-lg);
+    padding: var(--space-md) 0;
+}
+
+/* Animation for items appearing */
+.shop-grid ::deep .shop-item-card {
+    animation: fadeInUp 0.3s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .shop-page {
+        padding: var(--space-md);
+    }
+
+    .shop-header {
+        flex-direction: column;
+        gap: var(--space-md);
+        text-align: center;
+    }
+
+    .page-title {
+        font-size: var(--font-size-2xl);
+    }
+
+    .shop-grid {
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        gap: var(--space-md);
+    }
+}
+
+@media (max-width: 480px) {
+    .shop-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .shop-tabs ::deep .tm-tabs-nav {
+        justify-content: center;
+    }
+}
+
+/* Premium required overlay on the whole page section */
+.premium-section-locked {
+    position: relative;
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+.premium-section-locked::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        135deg,
+        rgba(255, 193, 7, 0.1) 0%,
+        rgba(255, 152, 0, 0.05) 100%
+    );
+    pointer-events: none;
+    border-radius: var(--border-radius-lg);
+}

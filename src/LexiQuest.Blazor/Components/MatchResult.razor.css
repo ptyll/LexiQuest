@@ -1,0 +1,133 @@
+/* Match Result Modal Styles */
+.match-result-modal {
+    padding: 0.5rem;
+    text-align: center;
+}
+
+/* Result Header */
+.result-header {
+    margin-bottom: 1.5rem;
+}
+
+.result-title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin: 0 0 0.5rem 0;
+    line-height: 1.2;
+}
+
+.victory .result-title {
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: victory-pulse 2s ease-in-out infinite;
+}
+
+.defeat .result-title {
+    color: var(--tm-color-danger);
+}
+
+.draw .result-title {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+@keyframes victory-pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+.motivation-text {
+    font-size: 1.25rem;
+    color: var(--tm-text-secondary);
+    margin: 0.5rem 0 0 0;
+}
+
+.tiebreaker-text {
+    font-size: 1.125rem;
+    color: var(--tm-color-warning);
+    font-weight: 600;
+    margin: 0.5rem 0 0 0;
+}
+
+/* Players Comparison */
+.players-comparison {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+/* VS Divider */
+.vs-divider {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--tm-text-tertiary);
+    padding: 0.75rem;
+    background: var(--tm-bg-secondary);
+    border-radius: 50%;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+/* XP Rewards */
+.xp-rewards {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: center;
+    margin-bottom: 1rem;
+}
+
+::deep .xp-badge {
+    font-size: 1rem;
+    padding: 0.5rem 1rem;
+}
+
+::deep .xp-league {
+    background: linear-gradient(135deg, var(--tm-color-primary) 0%, #6366f1 100%);
+}
+
+/* No League Info Alert */
+::deep .no-league-info {
+    margin-top: 0.5rem;
+}
+
+/* Action Buttons */
+.action-buttons {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: center;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+    .result-title {
+        font-size: 1.75rem;
+    }
+    
+    .players-comparison {
+        flex-direction: column;
+    }
+    
+    .vs-divider {
+        order: -1;
+        margin: 0.5rem 0;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    ::deep .action-buttons .tm-btn {
+        width: 100%;
+    }
+}

@@ -1,0 +1,198 @@
+@page "/multiplayer/quick-match"
+@namespace LexiQuest.Blazor.Pages
+@attribute [Authorize]
+@inject IMatchHubClient MatchHubClient
+@inject IStringLocalizer<QuickMatch> L
+@inject NavigationManager NavigationManager
+@inject IAuthService AuthService
+@implements IAsyncDisposable
+
+@using Microsoft.AspNetCore.Authorization
+@using Tempo.Blazor.Components.Feedback
+@using Tempo.Blazor.Components.Avatars
+@using Tempo.Blazor.Components.Buttons
+@using Tempo.Blazor.Components.Layout
+@using LexiQuest.Shared.DTOs.Multiplayer
+
+<div class="matchmaking-page">
+    @switch (_currentState)
+    {
+        case MatchmakingState.Searching:
+            <SearchingView 
+                Localizer="L"
+                ElapsedSeconds="_elapsedSeconds"
+                OnCancel="CancelMatchmakingAsync" />
+            break;
+            
+        case MatchmakingState.MatchFound:
+            <MatchFoundView
+                Localizer="L"
+                OpponentUsername="_opponentUsername"
+                OpponentLevel="_opponentLevel"
+                OpponentAvatar="_opponentAvatar"
+                CountdownSeconds="_countdownSeconds"
+                UserAvatar="_userAvatar"
+                Username="_username"
+                UserLevel="_userLevel" />
+            break;
+            
+        case MatchmakingState.Timeout:
+            <TimeoutView
+                Localizer="L"
+                OnRetry="RetryAsync"
+                OnPlayVsAI="PlayVsAI"
+                OnBack="GoBack" />
+            break;
+            
+        case MatchmakingState.Error:
+            <ErrorView
+                Localizer="L"
+                ErrorMessage="_errorMessage"
+                OnRetry="RetryAsync"
+                OnBack="GoBack" />
+            break;
+    }
+</div>
+
+@code {
+    private MatchmakingState _currentState = MatchmakingState.Searching;
+    private int _elapsedSeconds = 0;
+    private int _countdownSeconds = 3;
+    private string _opponentUsername = string.Empty;
+    private int _opponentLevel;
+    private string? _opponentAvatar;
+    private string _username = string.Empty;
+    private int _userLevel;
+    private string? _userAvatar;
+    private string _errorMessage = string.Empty;
+    private Timer? _timer;
+    private Timer? _countdownTimer;
+    
+    protected override async Task OnInitializedAsync()
+    {
+        await InitializeMatchmakingAsync();
+    }
+    
+    private async Task InitializeMatchmakingAsync()
+    {
+        try
+        {
+            _currentState = MatchmakingState.Searching;
+            _elapsedSeconds = 0;
+            
+            // Get current user info
+            var token = await AuthService.GetTokenAsync();
+            if (!string.IsNullOrEmpty(token))
+            {
+                _username = "Player";
+                _userLevel = 1;
+            }
+            
+            // Start timer
+            _timer = new Timer(_ =>
+            {
+                _elapsedSeconds++;
+                InvokeAsync(StateHasChanged);
+            }, null, TimeSpan.Zero, TimeSpan.FromSeconds(1));
+            
+            // Setup event handlers
+            MatchHubClient.OnMatchFound += OnMatchFound;
+            MatchHubClient.OnMatchmakingTimeout += OnMatchmakingTimeout;
+            MatchHubClient.ConnectionStateChanged += OnConnectionStateChanged;
+            
+            // Start connection and join matchmaking
+            await MatchHubClient.StartAsync();
+            await MatchHubClient.JoinMatchmakingAsync();
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = ex.Message;
+            _currentState = MatchmakingState.Error;
+        }
+    }
+    
+    private void OnMatchFound(object? sender, MatchFoundEvent e)
+    {
+        _timer?.Dispose();
+        _opponentUsername = e.OpponentUsername;
+        _opponentLevel = e.OpponentLevel;
+        _opponentAvatar = e.OpponentAvatar;
+        _currentState = MatchmakingState.MatchFound;
+        
+        // Start countdown
+        _countdownSeconds = 3;
+        _countdownTimer = new Timer(_ =>
+        {
+            _countdownSeconds--;
+            if (_countdownSeconds <= 0)
+            {
+                _countdownTimer?.Dispose();
+                // Navigate to game
+                InvokeAsync(() => NavigationManager.NavigateTo($"/multiplayer/game/{e.MatchId}"));
+            }
+            InvokeAsync(StateHasChanged);
+        }, null, TimeSpan.Zero, TimeSpan.FromSeconds(1));
+        
+        InvokeAsync(StateHasChanged);
+    }
+    
+    private void OnMatchmakingTimeout(object? sender, EventArgs e)
+    {
+        _timer?.Dispose();
+        _currentState = MatchmakingState.Timeout;
+        InvokeAsync(StateHasChanged);
+    }
+    
+    private void OnConnectionStateChanged(object? sender, HubConnectionState e)
+    {
+        if (e == HubConnectionState.Disconnected && _currentState == MatchmakingState.Searching)
+        {
+            _timer?.Dispose();
+            _currentState = MatchmakingState.Error;
+            _errorMessage = "Connection lost";
+            InvokeAsync(StateHasChanged);
+        }
+    }
+    
+    private async Task CancelMatchmakingAsync()
+    {
+        _timer?.Dispose();
+        await MatchHubClient.CancelMatchmakingAsync();
+        NavigationManager.NavigateTo("/multiplayer");
+    }
+    
+    private async Task RetryAsync()
+    {
+        await InitializeMatchmakingAsync();
+    }
+    
+    private void PlayVsAI()
+    {
+        NavigationManager.NavigateTo("/game/practice");
+    }
+    
+    private void GoBack()
+    {
+        NavigationManager.NavigateTo("/multiplayer");
+    }
+    
+    public async ValueTask DisposeAsync()
+    {
+        _timer?.Dispose();
+        _countdownTimer?.Dispose();
+        
+        MatchHubClient.OnMatchFound -= OnMatchFound;
+        MatchHubClient.OnMatchmakingTimeout -= OnMatchmakingTimeout;
+        MatchHubClient.ConnectionStateChanged -= OnConnectionStateChanged;
+        
+        await MatchHubClient.DisposeAsync();
+    }
+    
+    private enum MatchmakingState
+    {
+        Searching,
+        MatchFound,
+        Timeout,
+        Error
+    }
+}

@@ -1,0 +1,349 @@
+@page "/admin/words"
+@using LexiQuest.Shared.DTOs.Admin
+@inject IStringLocalizer<AdminWords> L
+@inject NavigationManager NavigationManager
+@inject IAdminService AdminService
+@inject ToastService ToastService
+
+<PageTitle>@L["Title"] - LexiQuest</PageTitle>
+
+<div class="admin-words-page">
+    <div class="admin-header">
+        <div class="header-left">
+            <h1>@L["Title"]</h1>
+            <p>@L["Subtitle"]</p>
+        </div>
+        <div class="header-actions">
+            <TmButton Variant="ButtonVariant.Primary"
+                      OnClick="ShowAddModal"
+                      Icon="@IconNames.Plus">
+                @L["Button.AddWord"]
+            </TmButton>
+        </div>
+    </div>
+
+    <div class="search-bar">
+        <TmFormField Label="@L["Search.Label"]">
+            <TmTextInput @bind-Value="_searchText"
+                         Placeholder="@L["Search.Placeholder"]"
+                         OnChange="OnSearchChanged" />
+        </TmFormField>
+    </div>
+
+    @if (_isLoading)
+    {
+        <TmSkeleton Variant="SkeletonVariant.Rect" Height="400px" />
+    }
+    else if (_words != null && _words.Items.Count > 0)
+    {
+        <div class="table-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>@L["Table.Word"]</th>
+                        <th>@L["Table.Difficulty"]</th>
+                        <th>@L["Table.Category"]</th>
+                        <th>@L["Table.Length"]</th>
+                        <th>@L["Table.Actions"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var word in _words.Items)
+                    {
+                        <tr>
+                            <td class="word-cell">@word.Word</td>
+                            <td>
+                                <TmBadge Variant="@GetDifficultyVariant(word.Difficulty)">
+                                    @word.Difficulty
+                                </TmBadge>
+                            </td>
+                            <td>@(word.Category ?? "-")</td>
+                            <td>@word.Length</td>
+                            <td>
+                                <TmButton Variant="ButtonVariant.Danger"
+                                          Size="ButtonSize.Sm"
+                                          OnClick="() => ShowDeleteConfirm(word)">
+                                    @L["Button.Delete"]
+                                </TmButton>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="pagination">
+            <TmButton Variant="ButtonVariant.Outline"
+                      Size="ButtonSize.Sm"
+                      Disabled="_currentPage <= 1"
+                      OnClick="PreviousPage">
+                @L["Pagination.Previous"]
+            </TmButton>
+            <span class="page-info">@string.Format(L["Pagination.Info"], _currentPage, TotalPages)</span>
+            <TmButton Variant="ButtonVariant.Outline"
+                      Size="ButtonSize.Sm"
+                      Disabled="_currentPage >= TotalPages"
+                      OnClick="NextPage">
+                @L["Pagination.Next"]
+            </TmButton>
+        </div>
+    }
+    else
+    {
+        <TmEmptyState Icon="@IconNames.FileText"
+                      Title="@L["Empty.Title"]"
+                      Description="@L["Empty.Description"]"
+                      ActionText="@L["Button.AddWord"]"
+                      OnAction="ShowAddModal" />
+    }
+</div>
+
+@* Add Word Modal *@
+<TmModal @bind-IsOpen="_showAddModal" Title="@L["Modal.Add.Title"]">
+    <div class="modal-form">
+        <TmFormField Label="@L["Form.Word"]">
+            <TmTextInput @bind-Value="_newWord" Placeholder="@L["Form.Word.Placeholder"]" />
+        </TmFormField>
+        <TmFormField Label="@L["Form.Difficulty"]">
+            <TmSelect @bind-Value="_newDifficulty" Options="_difficultyOptions" />
+        </TmFormField>
+        <TmFormField Label="@L["Form.Category"]">
+            <TmSelect @bind-Value="_newCategory" Options="_categoryOptions" />
+        </TmFormField>
+        <div class="modal-actions">
+            <TmButton Variant="ButtonVariant.Outline" OnClick="CloseAddModal">
+                @L["Button.Cancel"]
+            </TmButton>
+            <TmButton Variant="ButtonVariant.Primary" OnClick="AddWord" Disabled="_isSaving">
+                @L["Button.Save"]
+            </TmButton>
+        </div>
+    </div>
+</TmModal>
+
+@* Delete Confirmation Modal *@
+<TmModal @bind-IsOpen="_showDeleteModal" Title="@L["Modal.Delete.Title"]">
+    <div class="modal-form">
+        <p>@string.Format(L["Modal.Delete.Message"], _wordToDelete?.Word)</p>
+        <div class="modal-actions">
+            <TmButton Variant="ButtonVariant.Outline" OnClick="CloseDeleteModal">
+                @L["Button.Cancel"]
+            </TmButton>
+            <TmButton Variant="ButtonVariant.Danger" OnClick="ConfirmDelete" Disabled="_isDeleting">
+                @L["Button.ConfirmDelete"]
+            </TmButton>
+        </div>
+    </div>
+</TmModal>
+
+@code {
+    private PaginatedResult<AdminWordDto>? _words;
+    private bool _isLoading = true;
+    private bool _isSaving;
+    private bool _isDeleting;
+    private string _searchText = string.Empty;
+    private int _currentPage = 1;
+    private const int PageSize = 25;
+
+    // Add modal
+    private bool _showAddModal;
+    private string _newWord = string.Empty;
+    private string _newDifficulty = string.Empty;
+    private string _newCategory = string.Empty;
+
+    // Delete modal
+    private bool _showDeleteModal;
+    private AdminWordDto? _wordToDelete;
+
+    private int TotalPages => _words == null || _words.TotalCount == 0
+        ? 1
+        : (int)Math.Ceiling((double)_words.TotalCount / PageSize);
+
+    private List<SelectOption<string>> _difficultyOptions = new()
+    {
+        new SelectOption<string>("Easy", "Easy"),
+        new SelectOption<string>("Medium", "Medium"),
+        new SelectOption<string>("Hard", "Hard"),
+        new SelectOption<string>("Expert", "Expert")
+    };
+
+    private List<SelectOption<string>> _categoryOptions = new()
+    {
+        new SelectOption<string>("", "-"),
+        new SelectOption<string>("Animals", "Animals"),
+        new SelectOption<string>("Food", "Food"),
+        new SelectOption<string>("Technology", "Technology"),
+        new SelectOption<string>("Nature", "Nature"),
+        new SelectOption<string>("Science", "Science")
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        var isAdmin = await AdminService.IsCurrentUserAdminAsync();
+        if (!isAdmin)
+        {
+            NavigationManager.NavigateTo("/");
+            return;
+        }
+
+        await LoadWordsAsync();
+    }
+
+    private async Task LoadWordsAsync()
+    {
+        _isLoading = true;
+        StateHasChanged();
+
+        try
+        {
+            var request = new AdminWordListRequest(
+                Search: string.IsNullOrWhiteSpace(_searchText) ? null : _searchText,
+                Difficulty: null,
+                Category: null,
+                MinLength: null,
+                MaxLength: null,
+                Page: _currentPage,
+                PageSize: PageSize);
+            _words = await AdminService.GetWordsAsync(request);
+        }
+        catch
+        {
+            ToastService.ShowError(L["Error.LoadFailed"]);
+        }
+        finally
+        {
+            _isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task OnSearchChanged()
+    {
+        _currentPage = 1;
+        await LoadWordsAsync();
+    }
+
+    private async Task PreviousPage()
+    {
+        if (_currentPage > 1)
+        {
+            _currentPage--;
+            await LoadWordsAsync();
+        }
+    }
+
+    private async Task NextPage()
+    {
+        if (_currentPage < TotalPages)
+        {
+            _currentPage++;
+            await LoadWordsAsync();
+        }
+    }
+
+    private void ShowAddModal()
+    {
+        _newWord = string.Empty;
+        _newDifficulty = string.Empty;
+        _newCategory = string.Empty;
+        _showAddModal = true;
+    }
+
+    private void CloseAddModal()
+    {
+        _showAddModal = false;
+    }
+
+    private async Task AddWord()
+    {
+        if (string.IsNullOrWhiteSpace(_newWord) || string.IsNullOrWhiteSpace(_newDifficulty))
+        {
+            return;
+        }
+
+        _isSaving = true;
+        StateHasChanged();
+
+        try
+        {
+            var request = new AdminWordCreateRequest(
+                Word: _newWord.Trim(),
+                Difficulty: _newDifficulty,
+                Category: string.IsNullOrWhiteSpace(_newCategory) ? null : _newCategory);
+            var result = await AdminService.CreateWordAsync(request);
+            if (result != null)
+            {
+                ToastService.ShowSuccess(L["Success.WordAdded"]);
+                _showAddModal = false;
+                await LoadWordsAsync();
+            }
+            else
+            {
+                ToastService.ShowError(L["Error.AddFailed"]);
+            }
+        }
+        catch
+        {
+            ToastService.ShowError(L["Error.AddFailed"]);
+        }
+        finally
+        {
+            _isSaving = false;
+            StateHasChanged();
+        }
+    }
+
+    private void ShowDeleteConfirm(AdminWordDto word)
+    {
+        _wordToDelete = word;
+        _showDeleteModal = true;
+    }
+
+    private void CloseDeleteModal()
+    {
+        _showDeleteModal = false;
+        _wordToDelete = null;
+    }
+
+    private async Task ConfirmDelete()
+    {
+        if (_wordToDelete == null) return;
+
+        _isDeleting = true;
+        StateHasChanged();
+
+        try
+        {
+            var success = await AdminService.DeleteWordAsync(_wordToDelete.Id);
+            if (success)
+            {
+                ToastService.ShowSuccess(L["Success.WordDeleted"]);
+                _showDeleteModal = false;
+                _wordToDelete = null;
+                await LoadWordsAsync();
+            }
+            else
+            {
+                ToastService.ShowError(L["Error.DeleteFailed"]);
+            }
+        }
+        catch
+        {
+            ToastService.ShowError(L["Error.DeleteFailed"]);
+        }
+        finally
+        {
+            _isDeleting = false;
+            StateHasChanged();
+        }
+    }
+
+    private static BadgeVariant GetDifficultyVariant(string difficulty) => difficulty switch
+    {
+        "Easy" => BadgeVariant.Success,
+        "Medium" => BadgeVariant.Warning,
+        "Hard" => BadgeVariant.Danger,
+        "Expert" => BadgeVariant.Danger,
+        _ => BadgeVariant.Default
+    };
+}

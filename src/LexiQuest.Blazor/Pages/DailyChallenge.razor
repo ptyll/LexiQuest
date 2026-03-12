@@ -1,0 +1,148 @@
+@page "/daily-challenge"
+@using LexiQuest.Blazor.Services
+@using LexiQuest.Shared.DTOs.Game
+@using LexiQuest.Shared.Enums
+@inject IDailyChallengeService DailyChallengeService
+@inject IStringLocalizer<DailyChallenge> L
+
+<div class="daily-challenge-page">
+    @if (isLoading)
+    {
+        <div class="loading-state">
+            <TmSkeleton Type="Rectangle" Height="200px" />
+            <TmSkeleton Type="Rectangle" Height="300px" />
+        </div>
+    }
+    else if (challenge == null)
+    {
+        <div class="empty-state">
+            <TmEmptyState 
+                Icon="calendar"
+                Title="@L["EmptyState.Title"]"
+                Description="@L["EmptyState.Description"]" />
+        </div>
+    }
+    else if (isCompleted)
+    {
+        <div class="completed-state">
+            <TmCard>
+                <div class="completed-content">
+                    <TmIcon Name="check-circle" Class="completed-icon" />
+                    <h2>@L["Completed.Title"]</h2>
+                    <p>@L["Completed.Message"]</p>
+                    
+                    @if (result != null)
+                    {
+                        <div class="result-stats">
+                            <div class="stat">
+                                <span class="stat-label">@L["Result.Time"]</span>
+                                <span class="stat-value">@FormatTime(result.TimeTaken)</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-label">@L["Result.XP"]</span>
+                                <span class="stat-value">+@result.XPEarned</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-label">@L["Result.Rank"]</span>
+                                <span class="stat-value">#@result.Rank</span>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </TmCard>
+        </div>
+    }
+    else
+    {
+        <div class="challenge-header">
+            <TmCard>
+                <div class="header-content">
+                    <div class="modifier-badge @GetModifierClass(challenge.Modifier)">
+                        <TmIcon Name="@GetModifierIcon(challenge.Modifier)" />
+                        <span>@GetModifierName(challenge.Modifier)</span>
+                    </div>
+                    <h1>@L["Challenge.Title"]</h1>
+                    <p class="modifier-desc">@challenge.ModifierDescription</p>
+                    <div class="xp-multiplier">
+                        <TmIcon Name="star" />
+                        <span>@L["XPBonus", challenge.XPMultiplier]</span>
+                    </div>
+                </div>
+            </TmCard>
+        </div>
+
+        <div class="challenge-actions">
+            <TmButton Variant="ButtonVariant.Primary" OnClick="StartChallenge">
+                @L["Button.Play"]
+            </TmButton>
+        </div>
+    }
+
+    @if (challenge != null)
+    {
+        <div class="leaderboard-section">
+            <h2>@L["Leaderboard.Title"]</h2>
+            <div class="leaderboard">
+                @foreach (var entry in leaderboard)
+                {
+                    <div class="leaderboard-row @(entry.IsCurrentUser ? "is-current-user" : "")">
+                        <span class="rank">#@entry.Rank</span>
+                        <span class="username">@entry.Username</span>
+                        <span class="time">@FormatTime(entry.TimeTaken)</span>
+                        <span class="xp">@entry.XPEarned XP</span>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private DailyChallengeDto? challenge;
+    private List<DailyLeaderboardEntryDto> leaderboard = new();
+    private ChallengeResultDto? result;
+    private bool isLoading = true;
+    private bool isCompleted = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDataAsync();
+    }
+
+    private async Task LoadDataAsync()
+    {
+        isLoading = true;
+        challenge = await DailyChallengeService.GetTodayAsync();
+        leaderboard = await DailyChallengeService.GetLeaderboardAsync();
+        isCompleted = await DailyChallengeService.HasCompletedTodayAsync();
+        isLoading = false;
+    }
+
+    private async Task StartChallenge()
+    {
+        // Navigate to game with daily challenge mode
+        // This would integrate with GameService
+    }
+
+    private string GetModifierClass(DailyModifier modifier) => $"modifier-{modifier.ToString().ToLower()}";
+
+    private string GetModifierIcon(DailyModifier modifier) => modifier switch
+    {
+        DailyModifier.Speed => "zap",
+        DailyModifier.Hard => "shield",
+        DailyModifier.NoHints => "eye-off",
+        DailyModifier.DoubleLetters => "type",
+        DailyModifier.Team => "users",
+        DailyModifier.Category => "tag",
+        _ => "star"
+    };
+
+    private string GetModifierName(DailyModifier modifier) => L[$"Modifier.{modifier}"].Value;
+
+    private static string FormatTime(TimeSpan time)
+    {
+        if (time.TotalSeconds < 60)
+            return $"{time.Seconds}s";
+        return $"{time.Minutes}:{time.Seconds:D2}";
+    }
+}

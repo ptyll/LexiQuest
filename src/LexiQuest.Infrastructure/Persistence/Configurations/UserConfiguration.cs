@@ -9,62 +9,25 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
 {
     public void Configure(EntityTypeBuilder<User> builder)
     {
-        builder.ToTable("Users");
         builder.HasKey(u => u.Id);
-
-        builder.Property(u => u.Email)
-            .IsRequired()
-            .HasMaxLength(256);
-
-        builder.Property(u => u.Username)
-            .IsRequired()
-            .HasMaxLength(30);
-
+        
+        builder.Property(u => u.Email).IsRequired().HasMaxLength(256);
+        builder.Property(u => u.Username).IsRequired().HasMaxLength(50);
+        builder.Property(u => u.PasswordHash).IsRequired();
+        builder.Property(u => u.AvatarUrl).HasMaxLength(500);
+        
+        // Owned entities
+        builder.OwnsOne(u => u.Stats);
+        builder.OwnsOne(u => u.Preferences);
+        builder.OwnsOne(u => u.Streak);
+        builder.OwnsOne(u => u.Premium);
+        builder.OwnsOne(u => u.Privacy, privacy =>
+        {
+            privacy.Property(p => p.ProfileVisibility).HasConversion<string>();
+        });
+        
+        // Indexes
         builder.HasIndex(u => u.Email).IsUnique();
         builder.HasIndex(u => u.Username).IsUnique();
-
-        builder.Property(u => u.PasswordHash)
-            .IsRequired()
-            .HasMaxLength(256);
-
-        builder.Property(u => u.LastLoginAt);
-
-        builder.Property(u => u.FailedLoginAttempts)
-            .HasDefaultValue(0);
-
-        builder.Property(u => u.LockoutEnd);
-
-        builder.HasIndex(u => u.LockoutEnd);
-
-        builder.OwnsOne(u => u.Stats, stats =>
-        {
-            stats.Property(s => s.TotalXP).HasColumnName("TotalXP");
-            stats.Property(s => s.Level).HasColumnName("Level");
-            stats.Property(s => s.Accuracy).HasColumnName("Accuracy");
-            stats.Property(s => s.TotalWordsSolved).HasColumnName("TotalWordsSolved");
-            stats.Property(s => s.AverageResponseTime).HasColumnName("AverageResponseTime");
-        });
-
-        builder.OwnsOne(u => u.Preferences, prefs =>
-        {
-            prefs.Property(p => p.Theme).HasColumnName("Theme").HasMaxLength(20);
-            prefs.Property(p => p.Language).HasColumnName("Language").HasMaxLength(10);
-            prefs.Property(p => p.AnimationsEnabled).HasColumnName("AnimationsEnabled");
-            prefs.Property(p => p.SoundsEnabled).HasColumnName("SoundsEnabled");
-        });
-
-        builder.OwnsOne(u => u.Streak, streak =>
-        {
-            streak.Property(s => s.CurrentDays).HasColumnName("StreakCurrentDays");
-            streak.Property(s => s.LongestDays).HasColumnName("StreakLongestDays");
-            streak.Property(s => s.LastActivityDate).HasColumnName("StreakLastActivityDate");
-        });
-
-        builder.OwnsOne(u => u.Premium, premium =>
-        {
-            premium.Property(p => p.IsPremium).HasColumnName("IsPremium");
-            premium.Property(p => p.ExpiresAt).HasColumnName("PremiumExpiresAt");
-            premium.Property(p => p.Plan).HasColumnName("PremiumPlan").HasMaxLength(50);
-        });
     }
 }

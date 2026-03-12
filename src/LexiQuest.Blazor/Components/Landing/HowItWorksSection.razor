@@ -1,0 +1,41 @@
+@inject IStringLocalizer<HowItWorksSection> L
+
+<section class="how-it-works-section" data-testid="how-it-works-section">
+    <div class="container">
+        <h2 class="section-title" data-testid="how-it-works-title">
+            @L["HowItWorks.Title"]
+        </h2>
+
+        <div class="steps-grid">
+            <!-- Step 1 -->
+            <div class="step-card" data-testid="step-1">
+                <div class="step-number" data-testid="step-number">1</div>
+                <div class="step-icon">
+                    <TmIcon Name="puzzle" Size="IconSize.Lg" />
+                </div>
+                <h3 class="step-title">@L["HowItWorks.Step1.Title"]</h3>
+                <p class="step-description">@L["HowItWorks.Step1.Description"]</p>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="step-card" data-testid="step-2">
+                <div class="step-number" data-testid="step-number">2</div>
+                <div class="step-icon">
+                    <TmIcon Name="shuffle" Size="IconSize.Lg" />
+                </div>
+                <h3 class="step-title">@L["HowItWorks.Step2.Title"]</h3>
+                <p class="step-description">@L["HowItWorks.Step2.Description"]</p>
+            </div>
+
+            <!-- Step 3 -->
+            <div class="step-card" data-testid="step-3">
+                <div class="step-number" data-testid="step-number">3</div>
+                <div class="step-icon">
+                    <TmIcon Name="star" Size="IconSize.Lg" />
+                </div>
+                <h3 class="step-title">@L["HowItWorks.Step3.Title"]</h3>
+                <p class="step-description">@L["HowItWorks.Step3.Description"]</p>
+            </div>
+        </div>
+    </div>
+</section>

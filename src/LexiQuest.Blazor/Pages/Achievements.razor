@@ -1,0 +1,137 @@
+@page "/achievements"
+@using LexiQuest.Blazor.Services
+@using LexiQuest.Shared.DTOs.Achievements
+@using LexiQuest.Shared.Enums
+@inject IAchievementService AchievementService
+@inject IStringLocalizer<Achievements> L
+
+<div class="achievements-page">
+    @if (isLoading)
+    {
+        <div class="loading-state">
+            <TmSkeleton Type="Rectangle" Height="100px" />
+            <TmSkeleton Type="Rectangle" Height="400px" />
+        </div>
+    }
+    else
+    {
+        @* Progress Header *@
+        <div class="progress-header">
+            <TmCard>
+                <div class="progress-content">
+                    <h2>@L["Progress.Title"]</h2>
+                    <div class="progress-stats">
+                        <span class="unlocked-count">@unlockedCount / @totalCount</span>
+                        <TmProgressBar 
+                            Value="@unlockedCount" 
+                            Max="@totalCount"
+                            Class="total-progress" />
+                    </div>
+                </div>
+            </TmCard>
+        </div>
+
+        @* Category Tabs *@
+        <div class="category-tabs">
+            <button 
+                class="tab-item @(selectedCategory == null ? "active" : "")"
+                @onclick="() => SelectCategory(null)">
+                @L["Category.All"]
+            </button>
+            @foreach (var category in Enum.GetValues<AchievementCategory>())
+            {
+                <button 
+                    class="tab-item @(selectedCategory == category ? "active" : "")"
+                    @onclick="() => SelectCategory(category)">
+                    @GetCategoryName(category)
+                </button>
+            }
+        </div>
+
+        @* Achievement Grid *@
+        <div class="achievement-grid">
+            @foreach (var achievement in FilteredAchievements)
+            {
+                <div class="achievement-card @GetCardClass(achievement)">
+                    <div class="achievement-icon">
+                        @if (achievement.IsUnlocked)
+                        {
+                            <TmIcon Name="trophy" Class="unlocked-icon" />
+                        }
+                        else if (achievement.ProgressPercentage > 0)
+                        {
+                            <TmIcon Name="loader" Class="progress-icon" />
+                        }
+                        else
+                        {
+                            <TmIcon Name="lock" Class="lock-icon" />
+                        }
+                    </div>
+                    <div class="achievement-info">
+                        <h3>@achievement.Name</h3>
+                        <p>@achievement.Description</p>
+                        @if (!achievement.IsUnlocked && achievement.ProgressPercentage > 0)
+                        {
+                            <div class="progress-section">
+                                <TmProgressBar 
+                                    Value="@achievement.ProgressPercentage" 
+                                    Max="100" />
+                                <span>@achievement.CurrentProgress / @achievement.RequiredValue</span>
+                            </div>
+                        }
+                        @if (achievement.IsUnlocked && achievement.UnlockedAt.HasValue)
+                        {
+                            <span class="unlocked-date">
+                                @L["UnlockedOn", achievement.UnlockedAt.Value.ToString("dd.MM.yyyy")]
+                            </span>
+                        }
+                    </div>
+                    <div class="achievement-xp">
+                        <TmBadge Variant="BadgeVariant.Primary">
+                            +@achievement.XPReward XP
+                        </TmBadge>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private List<AchievementDto> achievements = new();
+    private AchievementCategory? selectedCategory;
+    private bool isLoading = true;
+    private int unlockedCount => achievements.Count(a => a.IsUnlocked);
+    private int totalCount => achievements.Count;
+
+    private IEnumerable<AchievementDto> FilteredAchievements =>
+        selectedCategory == null
+            ? achievements
+            : achievements.Where(a => a.Category == selectedCategory);
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDataAsync();
+    }
+
+    private async Task LoadDataAsync()
+    {
+        isLoading = true;
+        achievements = await AchievementService.GetAchievementsAsync();
+        isLoading = false;
+    }
+
+    private void SelectCategory(AchievementCategory? category)
+    {
+        selectedCategory = category;
+    }
+
+    private string GetCategoryName(AchievementCategory category) => L[$"Category.{category}"].Value;
+
+    private string GetCardClass(AchievementDto achievement)
+    {
+        if (achievement.IsUnlocked) return "unlocked";
+        if (achievement.ProgressPercentage > 0) return "in-progress";
+        return "locked";
+    }
+}

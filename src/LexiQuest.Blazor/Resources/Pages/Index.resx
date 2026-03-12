@@ -1,0 +1,340 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <!-- Hero Section -->
+  <data name="Hero.Tagline" xml:space="preserve">
+    <value>Rozlušti slova, získej moc</value>
+  </data>
+  <data name="Hero.Subtitle" xml:space="preserve">
+    <value>LexiQuest je interaktivní slovní hra, kde rozkládáním písmen získáváš XP, odemykáš úrovně a soutěžíš v ligách. Procvič si češtinu zábavnou formou!</value>
+  </data>
+  <data name="Hero.CTA.Register" xml:space="preserve">
+    <value>Zaregistrovat se zdarma</value>
+  </data>
+  <data name="Hero.CTA.TryFree" xml:space="preserve">
+    <value>Zahrát si bez registrace</value>
+  </data>
+  <data name="Hero.SocialProof" xml:space="preserve">
+    <value>10 000+ hráčů</value>
+  </data>
+
+  <!-- How It Works Section -->
+  <data name="HowItWorks.Title" xml:space="preserve">
+    <value>Jak to funguje?</value>
+  </data>
+  <data name="HowItWorks.Step1.Title" xml:space="preserve">
+    <value>Dostaneš zamíchaná písmena</value>
+  </data>
+  <data name="HowItWorks.Step1.Description" xml:space="preserve">
+    <value>Na obrazovce se objeví písmena v náhodném pořadí. Tvým úkolem je přijít na to, jaké slovo se v nich skrývá.</value>
+  </data>
+  <data name="HowItWorks.Step2.Title" xml:space="preserve">
+    <value>Rozlušti slovo</value>
+  </data>
+  <data name="HowItWorks.Step2.Description" xml:space="preserve">
+    <value>Použij svou představivost a znalosti češtiny. Čím rychleji slovo uhodneš, tím více XP získáš!</value>
+  </data>
+  <data name="HowItWorks.Step3.Title" xml:space="preserve">
+    <value>Postupuj a soutěž</value>
+  </data>
+  <data name="HowItWorks.Step3.Description" xml:space="preserve">
+    <value>Za každé slovo získáváš body. Postupuj na vyšší úrovně, odemykej achievementy a soutěž v ligách s ostatními hráči.</value>
+  </data>
+
+  <!-- Features Section (Tabs) -->
+  <data name="Features.Title" xml:space="preserve">
+    <value>Proč hrát LexiQuest?</value>
+  </data>
+  <data name="Features.Tab1.Title" xml:space="preserve">
+    <value>RPG Progress</value>
+  </data>
+  <data name="Features.Tab1.Item1" xml:space="preserve">
+    <value>✨ Systém XP a levelů - postupuj od začátečníka po mistra</value>
+  </data>
+  <data name="Features.Tab1.Item2" xml:space="preserve">
+    <value>🎯 Odemykej nová témata a obtížnosti</value>
+  </data>
+  <data name="Features.Tab1.Item3" xml:space="preserve">
+    <value>🏆 Sbírej achievementy za své úspěchy</value>
+  </data>
+  <data name="Features.Tab2.Title" xml:space="preserve">
+    <value>Souboje</value>
+  </data>
+  <data name="Features.Tab2.Item1" xml:space="preserve">
+    <value>⚔️ Boss levely s unikátními pravidly</value>
+  </data>
+  <data name="Features.Tab2.Item2" xml:space="preserve">
+    <value>⏱️ Maraton - kolik slov zvládneš za 2 minuty?</value>
+  </data>
+  <data name="Features.Tab2.Item3" xml:space="preserve">
+    <value>🎲 Twist - každé kolo jiná výzva</value>
+  </data>
+  <data name="Features.Tab3.Title" xml:space="preserve">
+    <value>Soutěže</value>
+  </data>
+  <data name="Features.Tab3.Item1" xml:space="preserve">
+    <value>🏅 Týdenní ligy - bronzová až diamantová</value>
+  </data>
+  <data name="Features.Tab3.Item2" xml:space="preserve">
+    <value>📊 Žebříčky nejlepších hráčů</value>
+  </data>
+  <data name="Features.Tab3.Item3" xml:space="preserve">
+    <value>🎁 Odměny za umístění v lize</value>
+  </data>
+
+  <!-- Legacy Features Section -->
+  <data name="Features.Streak.Title" xml:space="preserve">
+    <value>Denní streak</value>
+  </data>
+  <data name="Features.Streak.Description" xml:space="preserve">
+    <value>Hraj každý den a udržuj si streak. Čím delší streak, tím větší bonusy!</value>
+  </data>
+  <data name="Features.Leagues.Title" xml:space="preserve">
+    <value>Ligy a žebříčky</value>
+  </data>
+  <data name="Features.Leagues.Description" xml:space="preserve">
+    <value>Soutěž s ostatními hráči v týdenních ligách. Postupuj z bronzové do diamantové ligy!</value>
+  </data>
+  <data name="Features.Achievements.Title" xml:space="preserve">
+    <value>Achievementy</value>
+  </data>
+  <data name="Features.Achievements.Description" xml:space="preserve">
+    <value>Odemykej odznaky za různé úspěchy. Máme jich přes 50!</value>
+  </data>
+  <data name="Features.Paths.Title" xml:space="preserve">
+    <value>Učební cesty</value>
+  </data>
+  <data name="Features.Paths.Description" xml:space="preserve">
+    <value>Postupuj strukturovanými cestami od začátečníka po experta. Každá cesta má 50 úrovní.</value>
+  </data>
+
+  <!-- Learning Paths Preview -->
+  <data name="Paths.Title" xml:space="preserve">
+    <value>Vyber si svou cestu</value>
+  </data>
+  <data name="Path1.Name" xml:space="preserve">
+    <value>Začátečník</value>
+  </data>
+  <data name="Path1.Description" xml:space="preserve">
+    <value>Jednoduchá slova pro rychlý start</value>
+  </data>
+  <data name="Path1.Letters" xml:space="preserve">
+    <value>3-5 písmen</value>
+  </data>
+  <data name="Path2.Name" xml:space="preserve">
+    <value>Pokročilý</value>
+  </data>
+  <data name="Path2.Description" xml:space="preserve">
+    <value>Středně těžká slova pro procvičení</value>
+  </data>
+  <data name="Path2.Letters" xml:space="preserve">
+    <value>5-7 písmen</value>
+  </data>
+  <data name="Path3.Name" xml:space="preserve">
+    <value>Expert</value>
+  </data>
+  <data name="Path3.Description" xml:space="preserve">
+    <value>Těžká slova pro zkušené hráče</value>
+  </data>
+  <data name="Path3.Letters" xml:space="preserve">
+    <value>7-10 písmen</value>
+  </data>
+  <data name="Path4.Name" xml:space="preserve">
+    <value>Mistr</value>
+  </data>
+  <data name="Path4.Description" xml:space="preserve">
+    <value>Nejtěžší výzvy pro pravé mistry</value>
+  </data>
+  <data name="Path4.Letters" xml:space="preserve">
+    <value>10+ písmen</value>
+  </data>
+
+  <!-- Testimonials Section -->
+  <data name="Testimonials.Title" xml:space="preserve">
+    <value>Co říkají hráči?</value>
+  </data>
+  <data name="Testimonial1.Quote" xml:space="preserve">
+    <value>LexiQuest mě naučil spoustu nových českých slov. Hraju každý den v tramvaji cestou do práce!</value>
+  </data>
+  <data name="Testimonial1.Author" xml:space="preserve">
+    <value>Petra Nováková</value>
+  </data>
+  <data name="Testimonial1.Role" xml:space="preserve">
+    <value>Studentka, 23 let</value>
+  </data>
+  <data name="Testimonial2.Quote" xml:space="preserve">
+    <value>Soutěžení v ligách mě strašně chytlo. Snažím se každý týden postoupit do vyšší ligy!</value>
+  </data>
+  <data name="Testimonial2.Author" xml:space="preserve">
+    <value>Jan Svoboda</value>
+  </data>
+  <data name="Testimonial2.Role" xml:space="preserve">
+    <value>Programátor, 31 let</value>
+  </data>
+  <data name="Testimonial3.Quote" xml:space="preserve">
+    <value>Moje děti hrají LexiQuest místo toho, aby koukaly do mobilu. A ještě se při tom učí!</value>
+  </data>
+  <data name="Testimonial3.Author" xml:space="preserve">
+    <value>Marie Dvořáková</value>
+  </data>
+  <data name="Testimonial3.Role" xml:space="preserve">
+    <value>Maminka na rodičovské</value>
+  </data>
+
+  <!-- Final CTA Section -->
+  <data name="CTA.Title" xml:space="preserve">
+    <value>Připraven začít?</value>
+  </data>
+  <data name="CTA.Subtitle" xml:space="preserve">
+    <value>Zaregistruj se zdarma a získej:</value>
+  </data>
+  <data name="CTA.Benefit1" xml:space="preserve">
+    <value>Neomezený počet her</value>
+  </data>
+  <data name="CTA.Benefit2" xml:space="preserve">
+    <value>Ukládání XP a progressu</value>
+  </data>
+  <data name="CTA.Benefit3" xml:space="preserve">
+    <value>Účast v ligách a žebříčcích</value>
+  </data>
+  <data name="CTA.Benefit4" xml:space="preserve">
+    <value>Denní streak a achievementy</value>
+  </data>
+  <data name="CTA.Benefit5" xml:space="preserve">
+    <value>Přístup ke všem učebním cestám</value>
+  </data>
+  <data name="CTA.Button" xml:space="preserve">
+    <value>Vytvořit účet zdarma</value>
+  </data>
+
+  <!-- Footer -->
+  <data name="Footer.About" xml:space="preserve">
+    <value>O nás</value>
+  </data>
+  <data name="Footer.Terms" xml:space="preserve">
+    <value>Podmínky použití</value>
+  </data>
+  <data name="Footer.Privacy" xml:space="preserve">
+    <value>Ochrana soukromí</value>
+  </data>
+  <data name="Footer.Contact" xml:space="preserve">
+    <value>Kontakt</value>
+  </data>
+  <data name="Footer.Copyright" xml:space="preserve">
+    <value>© 2026 LexiQuest. Všechna práva vyhrazena.</value>
+  </data>
+
+  <!-- Guest Mode -->
+  <data name="Guest.Label" xml:space="preserve">
+    <value>Host</value>
+  </data>
+  <data name="Guest.RemainingGames" xml:space="preserve">
+    <value>Zbývá {0} her</value>
+  </data>
+  <data name="Guest.LimitReached.Title" xml:space="preserve">
+    <value>Denní limit her dosažen</value>
+  </data>
+  <data name="Guest.LimitReached.Description" xml:space="preserve">
+    <value>Zaregistruj se pro neomezený přístup ke všem hrám a funkciím.</value>
+  </data>
+  <data name="Guest.LimitReached.ResetIn" xml:space="preserve">
+    <value>Limit se resetuje za {0} hodin</value>
+  </data>
+  <data name="Guest.CTA.Title" xml:space="preserve">
+    <value>Dobrá práce!</value>
+  </data>
+  <data name="Guest.CTA.Subtitle" xml:space="preserve">
+    <value>Zaregistruj se a získej:</value>
+  </data>
+  <data name="Guest.CTA.Benefit1" xml:space="preserve">
+    <value>Neomezený počet her</value>
+  </data>
+  <data name="Guest.CTA.Benefit2" xml:space="preserve">
+    <value>Ukládání XP a progressu</value>
+  </data>
+  <data name="Guest.CTA.Benefit3" xml:space="preserve">
+    <value>Ligy a žebříčky</value>
+  </data>
+  <data name="Guest.CTA.Benefit4" xml:space="preserve">
+    <value>Streak a achievementy</value>
+  </data>
+  <data name="Guest.CTA.Benefit5" xml:space="preserve">
+    <value>Multiplayer souboje</value>
+  </data>
+  <data name="Guest.CTA.RegisterButton" xml:space="preserve">
+    <value>Zaregistrovat se</value>
+  </data>
+  <data name="Guest.CTA.PlayAgainButton" xml:space="preserve">
+    <value>Hrát další hru</value>
+  </data>
+  <data name="Guest.Conversion.Title" xml:space="preserve">
+    <value>Převést tvůj host progres?</value>
+  </data>
+  <data name="Guest.Conversion.Description" xml:space="preserve">
+    <value>Máš nasbíráno {0} XP a vyřešeno {1} slov. Převeď je do nového účtu!</value>
+  </data>
+  <data name="Guest.Conversion.TransferButton" xml:space="preserve">
+    <value>Převést a registrovat</value>
+  </data>
+  <data name="Guest.Conversion.SkipButton" xml:space="preserve">
+    <value>Registrovat bez převodu</value>
+  </data>
+</root>

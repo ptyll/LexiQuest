@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Page_Title" xml:space="preserve">
+    <value>Tým</value>
+  </data>
+  <data name="NoTeam_Title" xml:space="preserve">
+    <value>Nemáš tým</value>
+  </data>
+  <data name="NoTeam_Description" xml:space="preserve">
+    <value>Vytvoř si tým nebo se připoj k existujícímu</value>
+  </data>
+  <data name="Button_CreateTeam" xml:space="preserve">
+    <value>Vytvořit tým</value>
+  </data>
+  <data name="Button_SearchTeam" xml:space="preserve">
+    <value>Hledat tým</value>
+  </data>
+  <data name="Create_Title" xml:space="preserve">
+    <value>Vytvořit nový tým</value>
+  </data>
+  <data name="Create_Name" xml:space="preserve">
+    <value>Název týmu</value>
+  </data>
+  <data name="Create_Name_Placeholder" xml:space="preserve">
+    <value>3-30 znaků</value>
+  </data>
+  <data name="Create_Tag" xml:space="preserve">
+    <value>Tag</value>
+  </data>
+  <data name="Create_Tag_Placeholder" xml:space="preserve">
+    <value>2-4 znaky (velká písmena)</value>
+  </data>
+  <data name="Create_Description" xml:space="preserve">
+    <value>Popis</value>
+  </data>
+  <data name="Create_Description_Placeholder" xml:space="preserve">
+    <value>Popište svůj tým...</value>
+  </data>
+  <data name="Create_Cost_Premium" xml:space="preserve">
+    <value>Zdarma pro Premium</value>
+  </data>
+  <data name="Create_Cost_Coins" xml:space="preserve">
+    <value>1000 mincí</value>
+  </data>
+  <data name="Dashboard_Members" xml:space="preserve">
+    <value>Členové</value>
+  </data>
+  <data name="Dashboard_Stats" xml:space="preserve">
+    <value>Statistiky týmu</value>
+  </data>
+  <data name="Dashboard_Ranking" xml:space="preserve">
+    <value>Týmový žebříček</value>
+  </data>
+  <data name="Stats_WeeklyXP" xml:space="preserve">
+    <value>Týdenní XP</value>
+  </data>
+  <data name="Stats_AllTimeXP" xml:space="preserve">
+    <value>Celkové XP</value>
+  </data>
+  <data name="Stats_Rank" xml:space="preserve">
+    <value>Pozice</value>
+  </data>
+  <data name="Stats_Wins" xml:space="preserve">
+    <value>Výhry</value>
+  </data>
+  <data name="Members_Username" xml:space="preserve">
+    <value>Hráč</value>
+  </data>
+  <data name="Members_Role" xml:space="preserve">
+    <value>Role</value>
+  </data>
+  <data name="Members_WeeklyXP" xml:space="preserve">
+    <value>Týdenní XP</value>
+  </data>
+  <data name="Members_Joined" xml:space="preserve">
+    <value>Připojil se</value>
+  </data>
+  <data name="Role_Leader" xml:space="preserve">
+    <value>Vůdce</value>
+  </data>
+  <data name="Role_Officer" xml:space="preserve">
+    <value>Důstojník</value>
+  </data>
+  <data name="Role_Member" xml:space="preserve">
+    <value>Člen</value>
+  </data>
+  <data name="Button_Invite" xml:space="preserve">
+    <value>Pozvat</value>
+  </data>
+  <data name="Button_Kick" xml:space="preserve">
+    <value>Vyhodit</value>
+  </data>
+  <data name="Button_TransferLeadership" xml:space="preserve">
+    <value>Předat vedení</value>
+  </data>
+  <data name="Button_LeaveTeam" xml:space="preserve">
+    <value>Opustit tým</value>
+  </data>
+  <data name="Button_DisbandTeam" xml:space="preserve">
+    <value>Rozpustit tým</value>
+  </data>
+  <data name="Button_Cancel" xml:space="preserve">
+    <value>Zrušit</value>
+  </data>
+  <data name="Button_Create" xml:space="preserve">
+    <value>Vytvořit</value>
+  </data>
+  <data name="JoinRequests_Title" xml:space="preserve">
+    <value>Žádosti o vstup</value>
+  </data>
+  <data name="JoinRequests_Empty" xml:space="preserve">
+    <value>Žádné čekající žádosti</value>
+  </data>
+  <data name="JoinRequests_Accept" xml:space="preserve">
+    <value>Přijmout</value>
+  </data>
+  <data name="JoinRequests_Reject" xml:space="preserve">
+    <value>Zamítnout</value>
+  </data>
+  <data name="Invites_Title" xml:space="preserve">
+    <value>Moje pozvánky</value>
+  </data>
+  <data name="Invites_Empty" xml:space="preserve">
+    <value>Žádné pozvánky</value>
+  </data>
+  <data name="Invites_Accept" xml:space="preserve">
+    <value>Přijmout</value>
+  </data>
+  <data name="Invites_Reject" xml:space="preserve">
+    <value>Odmítnout</value>
+  </data>
+  <data name="Invite_Modal_Title" xml:space="preserve">
+    <value>Pozvat hráče</value>
+  </data>
+  <data name="Invite_Username" xml:space="preserve">
+    <value>Uživatelské jméno</value>
+  </data>
+  <data name="Leave_Confirm" xml:space="preserve">
+    <value>Opravdu chcete opustit tým?</value>
+  </data>
+  <data name="Disband_Confirm" xml:space="preserve">
+    <value>Opravdu chcete rozpustit tým? Tato akce je nevratná.</value>
+  </data>
+  <data name="Kick_Confirm" xml:space="preserve">
+    <value>Opravdu chcete vyhodit tohoto hráče?</value>
+  </data>
+  <data name="Transfer_Confirm" xml:space="preserve">
+    <value>Opravdu chcete předat vedení tomuto hráči?</value>
+  </data>
+  <data name="Error_AlreadyInTeam" xml:space="preserve">
+    <value>Už jste členem týmu</value>
+  </data>
+  <data name="Error_TeamFull" xml:space="preserve">
+    <value>Tým je plný (max 20 členů)</value>
+  </data>
+  <data name="Ranking_Position" xml:space="preserve">
+    <value>#</value>
+  </data>
+  <data name="Ranking_TeamName" xml:space="preserve">
+    <value>Tým</value>
+  </data>
+  <data name="Ranking_WeeklyXP" xml:space="preserve">
+    <value>Týdenní XP</value>
+  </data>
+  <data name="Ranking_Members" xml:space="preserve">
+    <value>Členů</value>
+  </data>
+  <data name="JoinRequest_Button" xml:space="preserve">
+    <value>Požádat o vstup</value>
+  </data>
+  <data name="JoinRequest_Message" xml:space="preserve">
+    <value>Zpráva (volitelná)</value>
+  </data>
+</root>

@@ -6,9 +6,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>LexiQuest</title>
     <base href="/" />
+    <meta name="theme-color" content="#FF9800" />
+    <link rel="manifest" href="manifest.json" />
+    <link rel="apple-touch-icon" sizes="192x192" href="icon-192.png" />
+    <link rel="apple-touch-icon" sizes="512x512" href="icon-512.png" />
     <link rel="preload" id="webassembly" />
     <link rel="stylesheet" href="_content/Tempo.Blazor/css/tempo-blazor.css" />
     <link rel="stylesheet" href="css/app.css" />
+    <link rel="stylesheet" href="css/animations.css" />
+    <link rel="stylesheet" href="css/responsive.css" />
     <link href="LexiQuest.Blazor.styles.css" rel="stylesheet" />
     <script type="importmap"></script>
 </head>
@@ -28,6 +34,81 @@
         <span class="dismiss">&#x1F5D9;</span>
     </div>
     <script src="_framework/blazor.webassembly#[.{fingerprint}].js"></script>
+    <script>
+        window.lexiQuestPwa = {
+            _connectivityRef: null,
+            _installRef: null,
+            _deferredPrompt: null,
+
+            getOnlineStatus: function () {
+                return navigator.onLine;
+            },
+
+            registerConnectivityHandler: function (dotNetRef) {
+                this._connectivityRef = dotNetRef;
+                this._onOnline = function () { dotNetRef.invokeMethodAsync('OnConnectivityChanged', true); };
+                this._onOffline = function () { dotNetRef.invokeMethodAsync('OnConnectivityChanged', false); };
+                window.addEventListener('online', this._onOnline);
+                window.addEventListener('offline', this._onOffline);
+            },
+
+            unregisterConnectivityHandler: function () {
+                if (this._onOnline) window.removeEventListener('online', this._onOnline);
+                if (this._onOffline) window.removeEventListener('offline', this._onOffline);
+                this._connectivityRef = null;
+            },
+
+            isStandalone: function () {
+                return window.matchMedia('(display-mode: standalone)').matches
+                    || window.navigator.standalone === true;
+            },
+
+            registerInstallPromptHandler: function (dotNetRef) {
+                this._installRef = dotNetRef;
+                this._onBeforeInstall = function (e) {
+                    e.preventDefault();
+                    window.lexiQuestPwa._deferredPrompt = e;
+                    dotNetRef.invokeMethodAsync('OnBeforeInstallPrompt');
+                };
+                window.addEventListener('beforeinstallprompt', this._onBeforeInstall);
+            },
+
+            unregisterInstallPromptHandler: function () {
+                if (this._onBeforeInstall) window.removeEventListener('beforeinstallprompt', this._onBeforeInstall);
+                this._installRef = null;
+            },
+
+            promptInstall: async function () {
+                if (!this._deferredPrompt) return false;
+                this._deferredPrompt.prompt();
+                var result = await this._deferredPrompt.userChoice;
+                this._deferredPrompt = null;
+                return result.outcome === 'accepted';
+            }
+        };
+
+        // Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('service-worker.js')
+                .then(function (registration) {
+                    console.log('SW registered:', registration.scope);
+                    registration.addEventListener('updatefound', function () {
+                        var newWorker = registration.installing;
+                        if (newWorker) {
+                            newWorker.addEventListener('statechange', function () {
+                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                    // New version available - auto-activate
+                                    newWorker.postMessage({ type: 'SKIP_WAITING' });
+                                }
+                            });
+                        }
+                    });
+                })
+                .catch(function (err) {
+                    console.warn('SW registration failed:', err);
+                });
+        }
+    </script>
 </body>
 
 </html>

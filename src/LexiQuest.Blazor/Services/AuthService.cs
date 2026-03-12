@@ -112,12 +112,10 @@ public class AuthService : IAuthService
                 return new AuthResult { Success = false, ErrorMessage = _localizer["Error.Refresh.NoToken"] };
             }
 
-            // Call refresh token endpoint
             var response = await _httpClient.PostAsJsonAsync("api/v1/users/refresh", new { RefreshToken = refreshToken });
 
             if (!response.IsSuccessStatusCode)
             {
-                // Clear tokens on refresh failure
                 await LogoutAsync();
                 return new AuthResult { Success = false, ErrorMessage = _localizer["Error.Refresh.Failed"] };
             }
@@ -155,9 +153,66 @@ public class AuthService : IAuthService
         return await _jsRuntime.InvokeAsync<string?>("localStorage.getItem", TokenKey);
     }
 
+    public async Task<PasswordResetRequestResult> RequestPasswordResetAsync(string email)
+    {
+        try
+        {
+            var request = new RequestPasswordResetDto { Email = email };
+            var response = await _httpClient.PostAsJsonAsync("api/v1/users/password-reset/request", request);
+
+            if (response.StatusCode == System.Net.HttpStatusCode.BadRequest)
+            {
+                var error = await response.Content.ReadFromJsonAsync<ErrorResponse>();
+                return new PasswordResetRequestResult { Success = false, ErrorMessage = error?.Message ?? _localizer["Error.PasswordReset.InvalidRequest"] };
+            }
+
+            if (!response.IsSuccessStatusCode)
+            {
+                return new PasswordResetRequestResult { Success = false, ErrorMessage = _localizer["Error.PasswordReset.Failed"] };
+            }
+
+            return new PasswordResetRequestResult { Success = true };
+        }
+        catch (Exception ex)
+        {
+            return new PasswordResetRequestResult { Success = false, ErrorMessage = string.Format(_localizer["Error.PasswordReset.Exception"], ex.Message) };
+        }
+    }
+
+    public async Task<PasswordResetResult> ResetPasswordAsync(string token, string newPassword, string confirmPassword)
+    {
+        try
+        {
+            var request = new ResetPasswordDto { Token = token, NewPassword = newPassword, ConfirmPassword = confirmPassword };
+            var response = await _httpClient.PostAsJsonAsync("api/v1/users/password-reset/confirm", request);
+
+            if (response.StatusCode == System.Net.HttpStatusCode.BadRequest)
+            {
+                var error = await response.Content.ReadFromJsonAsync<ErrorResponse>();
+                return new PasswordResetResult { Success = false, ErrorMessage = error?.Message ?? _localizer["Error.PasswordReset.InvalidToken"] };
+            }
+
+            if (!response.IsSuccessStatusCode)
+            {
+                return new PasswordResetResult { Success = false, ErrorMessage = _localizer["Error.PasswordReset.Failed"] };
+            }
+
+            return new PasswordResetResult { Success = true };
+        }
+        catch (Exception ex)
+        {
+            return new PasswordResetResult { Success = false, ErrorMessage = string.Format(_localizer["Error.PasswordReset.Exception"], ex.Message) };
+        }
+    }
+
     private async Task StoreTokensAsync(string accessToken, string refreshToken)
     {
         await _jsRuntime.InvokeVoidAsync("localStorage.setItem", TokenKey, accessToken);
         await _jsRuntime.InvokeVoidAsync("localStorage.setItem", RefreshTokenKey, refreshToken);
+    }
+
+    private class ErrorResponse
+    {
+        public string? Message { get; set; }
     }
 }

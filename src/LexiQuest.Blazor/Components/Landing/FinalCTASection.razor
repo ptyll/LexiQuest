@@ -1,0 +1,47 @@
+@inject IStringLocalizer<FinalCTASection> L
+@inject NavigationManager Navigation
+
+<section class="cta-section" data-testid="cta-section">
+    <div class="container">
+        <div class="cta-card">
+            <h2 class="cta-title" data-testid="cta-title">@L["CTA.Title"]</h2>
+            <p class="cta-subtitle" data-testid="cta-subtitle">@L["CTA.Subtitle"]</p>
+            
+            <ul class="benefits-list">
+                <li data-testid="cta-benefit">
+                    <span class="benefit-check"><TmIcon Name="check" Size="IconSize.Sm" /></span>
+                    <span>@L["CTA.Benefit1"]</span>
+                </li>
+                <li data-testid="cta-benefit">
+                    <span class="benefit-check"><TmIcon Name="check" Size="IconSize.Sm" /></span>
+                    <span>@L["CTA.Benefit2"]</span>
+                </li>
+                <li data-testid="cta-benefit">
+                    <span class="benefit-check"><TmIcon Name="check" Size="IconSize.Sm" /></span>
+                    <span>@L["CTA.Benefit3"]</span>
+                </li>
+                <li data-testid="cta-benefit">
+                    <span class="benefit-check"><TmIcon Name="check" Size="IconSize.Sm" /></span>
+                    <span>@L["CTA.Benefit4"]</span>
+                </li>
+                <li data-testid="cta-benefit">
+                    <span class="benefit-check"><TmIcon Name="check" Size="IconSize.Sm" /></span>
+                    <span>@L["CTA.Benefit5"]</span>
+                </li>
+            </ul>
+
+            <div data-testid="cta-button">
+                <TmButton Variant="ButtonVariant.Primary" Size="ButtonSize.Lg" OnClick="NavigateToRegister">
+                    @L["CTA.Button"]
+                </TmButton>
+            </div>
+        </div>
+    </div>
+</section>
+
+@code {
+    private void NavigateToRegister()
+    {
+        Navigation.NavigateTo("/register");
+    }
+}

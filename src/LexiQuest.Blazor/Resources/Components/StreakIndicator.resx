@@ -1,22 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
   <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
     <xsd:element name="root" msdata:IsDataSet="true">
       <xsd:complexType>
         <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
           <xsd:element name="data">
             <xsd:complexType>
               <xsd:sequence>
-                <xsd:element name="value" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
               </xsd:sequence>
-              <xsd:attribute name="name" type="xsd:string" msdata:Ordinal="0" />
-              <xsd:attribute name="xml:space" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
             </xsd:complexType>
           </xsd:element>
           <xsd:element name="resheader">
             <xsd:complexType>
               <xsd:sequence>
-                <xsd:element name="value" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
               </xsd:sequence>
               <xsd:attribute name="name" type="xsd:string" use="required" />
             </xsd:complexType>
@@ -25,35 +46,61 @@
       </xsd:complexType>
     </xsd:element>
   </xsd:schema>
-  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
-  <resheader name="version"><value>2.0</value></resheader>
-  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
-  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
-  <data name="Days.Singular" xml:space="preserve">
-    <value>{0} den</value>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="AtRisk" xml:space="preserve">
+    <value>Ve hrozbě</value>
   </data>
-  <data name="Days.Plural2to4" xml:space="preserve">
-    <value>{0} dny</value>
+  <data name="TimeRemaining" xml:space="preserve">
+    <value>Zbývá</value>
   </data>
-  <data name="Days.Plural5Plus" xml:space="preserve">
-    <value>{0} dní</value>
+  <data name="ShieldActive" xml:space="preserve">
+    <value>Štít aktivní</value>
   </data>
-  <data name="Status.OnFire" xml:space="preserve">
-    <value>Držíš oheň!</value>
+  <data name="ShieldExpired" xml:space="preserve">
+    <value>Štít expiroval</value>
   </data>
-  <data name="Status.AtRisk" xml:space="preserve">
-    <value>Streak končí za {0}h</value>
+  <data name="FreezeAvailable" xml:space="preserve">
+    <value>Freeze dostupný</value>
   </data>
-  <data name="Status.Frozen" xml:space="preserve">
-    <value>Zamrzlé</value>
+  <data name="ActivateShield" xml:space="preserve">
+    <value>Aktivovat štít</value>
   </data>
-  <data name="Tooltip.Description" xml:space="preserve">
-    <value>Splň alespoň 1 level denně pro udržení streaku!</value>
+  <data name="BuyShields" xml:space="preserve">
+    <value>Koupit štíty</value>
   </data>
-  <data name="Shield.Available" xml:space="preserve">
-    <value>Streak Shield k dispozici</value>
+  <data name="FreeShieldAvailable" xml:space="preserve">
+    <value>Dostupný zdarma</value>
   </data>
-  <data name="Shield.Used" xml:space="preserve">
-    <value>Shield použit tento týden</value>
+  <data name="PremiumShieldAvailable" xml:space="preserve">
+    <value>Dostupný (Premium)</value>
+  </data>
+  <data name="NextShieldAvailable" xml:space="preserve">
+    <value>Další za</value>
+  </data>
+  <data name="Days" xml:space="preserve">
+    <value>dní</value>
+  </data>
+  <data name="StreakDays" xml:space="preserve">
+    <value>dní v řadě</value>
+  </data>
+  <data name="ShieldsRemaining" xml:space="preserve">
+    <value>Štítů k dispozici</value>
+  </data>
+  <data name="PremiumFeature" xml:space="preserve">
+    <value>Premium funkce</value>
+  </data>
+  <data name="UpgradeToPremium" xml:space="preserve">
+    <value>Upgraduj na Premium</value>
   </data>
 </root>

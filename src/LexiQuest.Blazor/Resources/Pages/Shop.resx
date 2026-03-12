@@ -1,22 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
   <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
     <xsd:element name="root" msdata:IsDataSet="true">
       <xsd:complexType>
         <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
           <xsd:element name="data">
             <xsd:complexType>
               <xsd:sequence>
-                <xsd:element name="value" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
               </xsd:sequence>
-              <xsd:attribute name="name" type="xsd:string" msdata:Ordinal="0" />
-              <xsd:attribute name="xml:space" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
             </xsd:complexType>
           </xsd:element>
           <xsd:element name="resheader">
             <xsd:complexType>
               <xsd:sequence>
-                <xsd:element name="value" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
               </xsd:sequence>
               <xsd:attribute name="name" type="xsd:string" use="required" />
             </xsd:complexType>
@@ -25,29 +46,67 @@
       </xsd:complexType>
     </xsd:element>
   </xsd:schema>
-  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
-  <resheader name="version"><value>2.0</value></resheader>
-  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
-  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
   <data name="Title" xml:space="preserve">
     <value>Obchod</value>
   </data>
-  <data name="Coins" xml:space="preserve">
-    <value>Mince: {0}</value>
+  <data name="Subtitle" xml:space="preserve">
+    <value>Vylepši svůj herní zážitek exkluzivními předměty</value>
   </data>
-  <data name="Category.Boosters" xml:space="preserve">
-    <value>Posily</value>
+  <data name="Tab_All" xml:space="preserve">
+    <value>Vše</value>
   </data>
-  <data name="Category.Cosmetics" xml:space="preserve">
-    <value>Kosmetika</value>
+  <data name="Tab_Avatars" xml:space="preserve">
+    <value>Avatary</value>
   </data>
-  <data name="Buy" xml:space="preserve">
-    <value>Koupit</value>
+  <data name="Tab_Frames" xml:space="preserve">
+    <value>Rámečky</value>
   </data>
-  <data name="Owned" xml:space="preserve">
-    <value>Vlastněno</value>
+  <data name="Tab_Themes" xml:space="preserve">
+    <value>Témata</value>
   </data>
-  <data name="NotEnough" xml:space="preserve">
-    <value>Nedostatek mincí</value>
+  <data name="Tab_Shields" xml:space="preserve">
+    <value>Štíty</value>
+  </data>
+  <data name="Coins_Balance" xml:space="preserve">
+    <value>Mince:</value>
+  </data>
+  <data name="Premium_Required" xml:space="preserve">
+    <value>Tento předmět vyžaduje Premium účet</value>
+  </data>
+  <data name="Purchase_Success" xml:space="preserve">
+    <value>Předmět úspěšně zakoupen!</value>
+  </data>
+  <data name="Purchase_Error" xml:space="preserve">
+    <value>Nákup se nezdařil</value>
+  </data>
+  <data name="Equip_Success" xml:space="preserve">
+    <value>Předmět byl nasazen</value>
+  </data>
+  <data name="Equip_Error" xml:space="preserve">
+    <value>Nepodařilo se nasadit předmět</value>
+  </data>
+  <data name="Load_Error" xml:space="preserve">
+    <value>Chyba při načítání obchodu</value>
+  </data>
+  <data name="Empty_Category" xml:space="preserve">
+    <value>V této kategorii zatím nejsou žádné předměty</value>
+  </data>
+  <data name="Button_Upgrade" xml:space="preserve">
+    <value>Upgradovat na Premium</value>
+  </data>
+  <data name="Label_Limited" xml:space="preserve">
+    <value>Limited</value>
   </data>
 </root>

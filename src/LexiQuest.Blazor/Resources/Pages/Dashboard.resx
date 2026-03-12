@@ -68,4 +68,34 @@
   <data name="QuickAction.Shop" xml:space="preserve">
     <value>Obchod</value>
   </data>
+  <data name="Welcome" xml:space="preserve">
+    <value>Vítejte zpět!</value>
+  </data>
+  <data name="WelcomeUser" xml:space="preserve">
+    <value>Vítejte, {0}!</value>
+  </data>
+  <data name="DailyChallenge.Play" xml:space="preserve">
+    <value>Hrát</value>
+  </data>
+  <data name="QuickActions.Title" xml:space="preserve">
+    <value>Rychlé akce</value>
+  </data>
+  <data name="Action.Training" xml:space="preserve">
+    <value>Trénink</value>
+  </data>
+  <data name="Action.Paths" xml:space="preserve">
+    <value>Cesty</value>
+  </data>
+  <data name="Stat.Level" xml:space="preserve">
+    <value>Úroveň</value>
+  </data>
+  <data name="Error.LoadTitle" xml:space="preserve">
+    <value>Nepodařilo se načíst data</value>
+  </data>
+  <data name="Error.LoadDescription" xml:space="preserve">
+    <value>Zkuste to prosím znovu později.</value>
+  </data>
+  <data name="Button.Retry" xml:space="preserve">
+    <value>Zkusit znovu</value>
+  </data>
 </root>

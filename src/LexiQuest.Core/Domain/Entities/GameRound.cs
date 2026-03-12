@@ -17,6 +17,11 @@ public class GameRound
     public int XPEarned { get; private set; }
     public int TimeSpentMs { get; private set; }
 
+    // Boss Level properties
+    public string? ForbiddenLetters { get; private set; }
+    public int RevealedLettersCount { get; private set; }
+    public string? RevealedPositions { get; private set; }
+
     private GameRound() { }
 
     public static GameRound Create(
@@ -83,5 +88,30 @@ public class GameRound
     public void SetXPEarned(int xp)
     {
         XPEarned = xp;
+    }
+
+    public void SetForbiddenLetters(string letters)
+    {
+        ForbiddenLetters = letters;
+    }
+
+    public void SetRevealedPositions(int[] positions)
+    {
+        RevealedPositions = string.Join(",", positions);
+        RevealedLettersCount = positions.Length;
+    }
+
+    public bool ContainsForbiddenLetter(string answer)
+    {
+        if (string.IsNullOrEmpty(ForbiddenLetters) || string.IsNullOrEmpty(answer))
+            return false;
+
+        return ForbiddenLetters.Any(forbidden => 
+            answer.Contains(forbidden, StringComparison.OrdinalIgnoreCase));
+    }
+
+    public void RevealLetter()
+    {
+        RevealedLettersCount++;
     }
 }

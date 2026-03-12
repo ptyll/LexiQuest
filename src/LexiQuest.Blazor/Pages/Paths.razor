@@ -15,8 +15,10 @@
     @if (isLoading)
     {
         <div class="paths-loading">
-            <div class="spinner"></div>
-            <p>Loading...</p>
+            <TmSkeleton Type="Rectangle" Height="150px" />
+            <TmSkeleton Type="Rectangle" Height="150px" />
+            <TmSkeleton Type="Rectangle" Height="150px" />
+            <TmSkeleton Type="Rectangle" Height="150px" />
         </div>
     }
     else if (paths != null)

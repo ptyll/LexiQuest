@@ -4,8 +4,10 @@
 @using LexiQuest.Shared.DTOs.Game
 @inject IStringLocalizer<Dashboard> L
 @inject NavigationManager NavigationManager
+@inject IUserService UserService
+@inject IStatsService StatsService
 
-<div class="dashboard-container">
+<div class="dashboard-page">
     <div class="dashboard-header">
         <h1>@L["Title"]</h1>
         <p>@L["Welcome"]</p>
@@ -13,75 +15,86 @@
 
     @if (isLoading)
     {
-        <div class="dashboard-loading">
-            <div class="skeleton-card"></div>
-            <div class="skeleton-card"></div>
-            <div class="skeleton-card"></div>
-            <div class="skeleton-card"></div>
+        <div class="dashboard-skeleton">
+            <TmSkeleton Variant="SkeletonVariant.Rect" Height="120px" />
+            <TmSkeleton Variant="SkeletonVariant.Rect" Height="120px" />
+            <TmSkeleton Variant="SkeletonVariant.Rect" Height="120px" />
+            <TmSkeleton Variant="SkeletonVariant.Rect" Height="120px" />
         </div>
     }
     else if (stats != null)
     {
         <div class="stats-grid">
-            <div class="stat-card stat-xp">
-                <span class="stat-icon">⭐</span>
-                <div class="stat-info">
-                    <span class="stat-value">@stats.TotalXP</span>
-                    <span class="stat-label">@L["Stat.XP"]</span>
-                </div>
-            </div>
+            <TmStatCard Title="@L["Stat.XP"]"
+                        Value="@stats.TotalXP.ToString()"
+                        Icon="@IconNames.Star"
+                        SubValue="@($"{L["Stat.Level"]} {stats.CurrentLevel}")"
+                        SubValueColor="var(--tm-color-primary)" />
 
-            <div class="stat-card stat-streak">
-                <span class="stat-icon">🔥</span>
-                <div class="stat-info">
-                    <span class="stat-value">@stats.CurrentStreak</span>
-                    <span class="stat-label">@L["Stat.Streak"]</span>
-                </div>
-            </div>
+            <TmStatCard Title="@L["Stat.Streak"]"
+                        Value="@stats.CurrentStreak.ToString()"
+                        Icon="@IconNames.TrendingUp"
+                        SubValue="@($"Nejdelší: {stats.LongestStreak}")"
+                        SubValueColor="var(--tm-color-warning)" />
 
-            <div class="stat-card stat-accuracy">
-                <span class="stat-icon">🎯</span>
-                <div class="stat-info">
-                    <span class="stat-value">@stats.Accuracy%</span>
-                    <span class="stat-label">@L["Stat.Accuracy"]</span>
-                </div>
-            </div>
+            <TmStatCard Title="@L["Stat.Accuracy"]"
+                        Value="@($"{stats.Accuracy}%")"
+                        Icon="@IconNames.Target"
+                        SubValue="@($"{stats.TotalWordsSolved} {GetWordsLabel(stats.TotalWordsSolved)}")"
+                        SubValueColor="var(--tm-color-success)" />
 
-            <div class="stat-card stat-time">
-                <span class="stat-icon">⏱️</span>
-                <div class="stat-info">
-                    <span class="stat-value">@stats.AverageTime</span>
-                    <span class="stat-label">@L["Stat.AvgTime"]</span>
-                </div>
-            </div>
+            <TmStatCard Title="@L["Stat.AvgTime"]"
+                        Value="@stats.AverageTime"
+                        Icon="@IconNames.Clock"
+                        SubValue="na slovo"
+                        SubValueColor="var(--tm-color-text-secondary)" />
         </div>
 
         <div class="dashboard-sections">
-            <div class="section daily-challenge">
-                <h3>@L["DailyChallenge.Title"]</h3>
-                <button class="btn btn-primary" @onclick="StartDailyChallenge">
+            <TmCard Variant="CardVariant.Default"
+                    Header="@L["DailyChallenge.Title"]"
+                    HeaderIcon="@IconNames.Calendar"
+                    Class="daily-challenge-card">
+                <TmButton Variant="ButtonVariant.Primary"
+                          OnClick="StartDailyChallenge"
+                          Icon="@IconNames.Play">
                     @L["DailyChallenge.Play"]
-                </button>
-            </div>
+                </TmButton>
+            </TmCard>
 
-            <div class="section quick-actions">
-                <h3>@L["QuickActions.Title"]</h3>
+            <TmCard Variant="CardVariant.Default"
+                    Header="@L["QuickActions.Title"]"
+                    HeaderIcon="@IconNames.Zap"
+                    Class="quick-actions-card">
                 <div class="action-buttons">
-                    <button class="btn btn-secondary" @onclick='() => NavigateTo("/game")'>
+                    <TmButton Variant="ButtonVariant.Secondary"
+                              OnClick='() => NavigateTo("/game")'
+                              Icon="@IconNames.Play">
                         @L["Action.Training"]
-                    </button>
-                    <button class="btn btn-secondary" @onclick='() => NavigateTo("/paths")'>
+                    </TmButton>
+                    <TmButton Variant="ButtonVariant.Secondary"
+                              OnClick='() => NavigateTo("/paths")'
+                              Icon="@IconNames.Map">
                         @L["Action.Paths"]
-                    </button>
+                    </TmButton>
                 </div>
-            </div>
+            </TmCard>
         </div>
+    }
+    else if (loadError)
+    {
+        <TmEmptyState Icon="@IconNames.AlertCircle"
+                      Title="@L["Error.LoadTitle"]"
+                      Description="@L["Error.LoadDescription"]"
+                      ActionText="@L["Button.Retry"]"
+                      OnAction="LoadStatsAsync" />
     }
 </div>
 
 @code {
-    private UserStatsSummary? stats;
+    private UserStatsDto? stats;
     private bool isLoading = true;
+    private bool loadError;
 
     protected override async Task OnInitializedAsync()
     {
@@ -91,29 +104,27 @@
     private async Task LoadStatsAsync()
     {
         isLoading = true;
+        loadError = false;
+        StateHasChanged();
+
         try
         {
-            // Load stats from API
-            await Task.Delay(100); // Placeholder
-            stats = new UserStatsSummary(
-                TotalXP: 1250,
-                CurrentLevel: 5,
-                CurrentStreak: 7,
-                LongestStreak: 14,
-                Accuracy: 85,
-                AverageTime: "12s",
-                TotalWordsSolved: 45
-            );
+            stats = await StatsService.GetUserStatsAsync();
+        }
+        catch
+        {
+            loadError = true;
         }
         finally
         {
             isLoading = false;
+            StateHasChanged();
         }
     }
 
     private void StartDailyChallenge()
     {
-        NavigationManager.NavigateTo("/game/daily");
+        NavigationManager.NavigateTo("/daily-challenge");
     }
 
     private void NavigateTo(string url)
@@ -121,13 +132,10 @@
         NavigationManager.NavigateTo(url);
     }
 
-    public record UserStatsSummary(
-        int TotalXP,
-        int CurrentLevel,
-        int CurrentStreak,
-        int LongestStreak,
-        double Accuracy,
-        string AverageTime,
-        int TotalWordsSolved
-    );
+    private string GetWordsLabel(int count)
+    {
+        if (count == 1) return "slovo";
+        if (count >= 2 && count <= 4) return "slova";
+        return "slov";
+    }
 }

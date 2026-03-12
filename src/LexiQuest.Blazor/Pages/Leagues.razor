@@ -1,0 +1,107 @@
+@page "/leagues"
+@using LexiQuest.Blazor.Services
+@using LexiQuest.Shared.DTOs.Leagues
+@using LexiQuest.Shared.Enums
+@inject ILeagueService LeagueService
+@inject IStringLocalizer<Leagues> L
+
+<div class="leagues-page">
+    @if (isLoading)
+    {
+        <div class="loading-state">
+            <TmSkeleton Type="Rectangle" Height="200px" />
+            <TmSkeleton Type="Rectangle" Height="100px" />
+            <TmSkeleton Type="Rectangle" Height="400px" />
+        </div>
+    }
+    else if (leagueInfo == null)
+    {
+        <div class="empty-state">
+            <TmEmptyState 
+                Icon="trophy"
+                Title="@L["EmptyState.Title"]"
+                Description="@L["EmptyState.Description"]" />
+        </div>
+    }
+    else
+    {
+        <div class="league-header">
+            <TmCard Variant="CardVariant.Elevated">
+                <div class="tier-header-content">
+                    <TmIcon Name="@GetTierIcon(leagueInfo.Tier)"   />
+                    <div class="tier-info">
+                        <h1>@GetTierName(leagueInfo.Tier)</h1>
+                        <p>@L["WeekInfo", leagueInfo.WeekStart.ToString("dd.MM"), leagueInfo.WeekEnd.ToString("dd.MM")]</p>
+                    </div>
+                </div>
+            </TmCard>
+        </div>
+
+        <div class="user-position-card">
+            <TmCard Variant="CardVariant.Elevated">
+                <div class="rank-display">#@leagueInfo.CurrentRank / @leagueInfo.TotalParticipants</div>
+                <div class="xp-display">@leagueInfo.UserXP XP</div>
+            </TmCard>
+        </div>
+
+        <div class="leaderboard-section">
+            <h2>@L["LeaderboardTitle"]</h2>
+            <div class="leaderboard">
+                @foreach (var p in leaderboard)
+                {
+                    <div class="leaderboard-row @GetRowClass(p)">
+                        <span class="rank">#@p.Rank</span>
+                        <span class="avatar">@GetInitials(p.Username)</span>
+                        <span>@p.Username</span>
+                        <span>@p.WeeklyXP XP</span>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private LeagueInfoDto? leagueInfo;
+    private List<LeagueParticipantDto> leaderboard = new();
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDataAsync();
+    }
+
+    private async Task LoadDataAsync()
+    {
+        isLoading = true;
+        leagueInfo = await LeagueService.GetCurrentLeagueAsync();
+        leaderboard = await LeagueService.GetLeaderboardAsync();
+        isLoading = false;
+    }
+
+    private string GetTierIcon(LeagueTier tier) => tier switch
+    {
+        LeagueTier.Bronze => "medal",
+        LeagueTier.Silver => "award",
+        LeagueTier.Gold => "trophy",
+        LeagueTier.Diamond => "gem",
+        LeagueTier.Legend => "crown",
+        _ => "trophy"
+    };
+
+    private string GetTierName(LeagueTier tier) => L[$"Tier.{tier}"].Value;
+
+    private string GetRowClass(LeagueParticipantDto p)
+    {
+        if (p.IsCurrentUser) return "is-current-user";
+        if (p.IsPromoted) return "promotion-zone";
+        if (p.IsDemoted) return "demotion-zone";
+        return "";
+    }
+
+    private static string GetInitials(string username)
+    {
+        if (string.IsNullOrEmpty(username)) return "?";
+        return username[..1].ToUpper();
+    }
+}

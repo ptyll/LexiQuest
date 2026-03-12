@@ -1,0 +1,68 @@
+@inject IStringLocalizer<FeaturesSection> L
+
+<section class="features-section" data-testid="features-section">
+    <div class="container">
+        <h2 class="section-title" data-testid="features-title">
+            @L["Features.Title"]
+        </h2>
+
+        <div class="tabs-wrapper">
+            <TmTabs @bind-ActiveTabId="_activeTab" Variant="TabVariant.Line">
+                <!-- RPG Progress Tab -->
+                <TmTabPanel Id="rpg" Title="@L["Features.Tab1.Title"]">
+                    <div class="tab-content" data-testid="tab-panel-rpg">
+                        <div class="feature-image">
+                            <div class="screenshot-placeholder">
+                                <TmIcon Name="sparkles" Size="IconSize.Xl" />
+                                <span>RPG Progress</span>
+                            </div>
+                        </div>
+                        <ul class="feature-list">
+                            <li>@L["Features.Tab1.Item1"]</li>
+                            <li>@L["Features.Tab1.Item2"]</li>
+                            <li>@L["Features.Tab1.Item3"]</li>
+                        </ul>
+                    </div>
+                </TmTabPanel>
+
+                <!-- Battles Tab -->
+                <TmTabPanel Id="battles" Title="@L["Features.Tab2.Title"]">
+                    <div class="tab-content" data-testid="tab-panel-battles">
+                        <div class="feature-image">
+                            <div class="screenshot-placeholder">
+                                <TmIcon Name="sword" Size="IconSize.Xl" />
+                                <span>Boss Battles</span>
+                            </div>
+                        </div>
+                        <ul class="feature-list">
+                            <li>@L["Features.Tab2.Item1"]</li>
+                            <li>@L["Features.Tab2.Item2"]</li>
+                            <li>@L["Features.Tab2.Item3"]</li>
+                        </ul>
+                    </div>
+                </TmTabPanel>
+
+                <!-- Competitions Tab -->
+                <TmTabPanel Id="competitions" Title="@L["Features.Tab3.Title"]">
+                    <div class="tab-content" data-testid="tab-panel-competitions">
+                        <div class="feature-image">
+                            <div class="screenshot-placeholder">
+                                <TmIcon Name="trophy" Size="IconSize.Xl" />
+                                <span>Competitions</span>
+                            </div>
+                        </div>
+                        <ul class="feature-list">
+                            <li>@L["Features.Tab3.Item1"]</li>
+                            <li>@L["Features.Tab3.Item2"]</li>
+                            <li>@L["Features.Tab3.Item3"]</li>
+                        </ul>
+                    </div>
+                </TmTabPanel>
+            </TmTabs>
+        </div>
+    </div>
+</section>
+
+@code {
+    private string _activeTab = "rpg";
+}

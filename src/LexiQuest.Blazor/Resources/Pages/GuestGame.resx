@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Title" xml:space="preserve">
+    <value>Hraj jako host</value>
+  </data>
+  <data name="Welcome" xml:space="preserve">
+    <value>Vítejte v LexiQuest</value>
+  </data>
+  <data name="GuestDescription" xml:space="preserve">
+    <value>Hrajte bez registrace a vyzkoušejte si zábavu s českými slovy. Vaše pokrok se neukládá, ale můžete se kdykoliv zaregistrovat a pokračovat.</value>
+  </data>
+  <data name="StartGame" xml:space="preserve">
+    <value>Začít hrát</value>
+  </data>
+  <data name="BackToHome" xml:space="preserve">
+    <value>Zpět na úvodní stránku</value>
+  </data>
+  <data name="Loading" xml:space="preserve">
+    <value>Načítání...</value>
+  </data>
+  <data name="RemainingGames" xml:space="preserve">
+    <value>Zbývá her: {0}</value>
+  </data>
+  <data name="DailyLimit" xml:space="preserve">
+    <value>Denní limit</value>
+  </data>
+  <data name="Error_RateLimit" xml:space="preserve">
+    <value>Dosáhli jste denního limitu her. Zaregistrujte se pro neomezený přístup.</value>
+  </data>
+  <data name="Error_Generic" xml:space="preserve">
+    <value>Něco se pokazilo. Zkuste to prosím znovu.</value>
+  </data>
+  <data name="WordProgress" xml:space="preserve">
+    <value>Slovo {0} z {1}</value>
+  </data>
+  <data name="SessionXp" xml:space="preserve">
+    <value>XP v této hře: {0}</value>
+  </data>
+  <data name="EnterAnswer" xml:space="preserve">
+    <value>Zadejte odpověď...</value>
+  </data>
+  <data name="Submit" xml:space="preserve">
+    <value>Odeslat</value>
+  </data>
+  <data name="Correct" xml:space="preserve">
+    <value>Správně!</value>
+  </data>
+  <data name="Wrong" xml:space="preserve">
+    <value>Špatně</value>
+  </data>
+  <data name="ContinuePlaying" xml:space="preserve">
+    <value>Pokračovat ve hře</value>
+  </data>
+  <data name="RegisterNow" xml:space="preserve">
+    <value>Zaregistrovat se</value>
+  </data>
+  <data name="AlreadyHaveAccount" xml:space="preserve">
+    <value>Už máte účet?</value>
+  </data>
+  <data name="Login" xml:space="preserve">
+    <value>Přihlásit se</value>
+  </data>
+  <data name="GameComplete" xml:space="preserve">
+    <value>Hra dokončena!</value>
+  </data>
+  <data name="YourResults" xml:space="preserve">
+    <value>Vaše výsledky</value>
+  </data>
+  <data name="WordsSolved" xml:space="preserve">
+    <value>Vyřešená slova: {0}</value>
+  </data>
+  <data name="TotalXp" xml:space="preserve">
+    <value>Celkem XP: {0}</value>
+  </data>
+  <data name="SaveProgress" xml:space="preserve">
+    <value>Uložit pokrok</value>
+  </data>
+  <data name="SaveProgressDescription" xml:space="preserve">
+    <value>Zaregistrujte se a získejte svých {0} XP do svého účtu!</value>
+  </data>
+  <data name="PlayAgain" xml:space="preserve">
+    <value>Hrát znovu</value>
+  </data>
+  <data name="CTA_Title" xml:space="preserve">
+    <value>Skvělé!</value>
+  </data>
+  <data name="CTA_Description" xml:space="preserve">
+    <value>Zaregistrujte se a získejte: ukládání pokroku, achievementy, ligy, statistiky a mnoho dalšího!</value>
+  </data>
+  <data name="MaybeLater" xml:space="preserve">
+    <value>Možná později</value>
+  </data>
+</root>

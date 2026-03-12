@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Page_Title" xml:space="preserve">
+    <value>Mé slovníky</value>
+  </data>
+  <data name="Page_Description" xml:space="preserve">
+    <value>Vytvářejte a spravujte vlastní slovníky slov pro hru</value>
+  </data>
+  <data name="Button_CreateDictionary" xml:space="preserve">
+    <value>Vytvořit slovník</value>
+  </data>
+  <data name="Button_ImportWords" xml:space="preserve">
+    <value>Importovat slova</value>
+  </data>
+  <data name="Button_AddWord" xml:space="preserve">
+    <value>Přidat slovo</value>
+  </data>
+  <data name="Button_Save" xml:space="preserve">
+    <value>Uložit</value>
+  </data>
+  <data name="Button_Cancel" xml:space="preserve">
+    <value>Zrušit</value>
+  </data>
+  <data name="Button_Delete" xml:space="preserve">
+    <value>Smazat</value>
+  </data>
+  <data name="Button_Edit" xml:space="preserve">
+    <value>Upravit</value>
+  </data>
+  <data name="Label_Name" xml:space="preserve">
+    <value>Název</value>
+  </data>
+  <data name="Label_Description" xml:space="preserve">
+    <value>Popis</value>
+  </data>
+  <data name="Label_IsPublic" xml:space="preserve">
+    <value>Veřejný slovník</value>
+  </data>
+  <data name="Label_Word" xml:space="preserve">
+    <value>Slovo</value>
+  </data>
+  <data name="Label_Difficulty" xml:space="preserve">
+    <value>Obtížnost</value>
+  </data>
+  <data name="Label_WordCount" xml:space="preserve">
+    <value>Počet slov</value>
+  </data>
+  <data name="Label_CreatedAt" xml:space="preserve">
+    <value>Vytvořeno</value>
+  </data>
+  <data name="Tab_MyDictionaries" xml:space="preserve">
+    <value>Mé slovníky</value>
+  </data>
+  <data name="Tab_PublicDictionaries" xml:space="preserve">
+    <value>Veřejné slovníky</value>
+  </data>
+  <data name="Dialog_CreateDictionary_Title" xml:space="preserve">
+    <value>Vytvořit nový slovník</value>
+  </data>
+  <data name="Dialog_AddWord_Title" xml:space="preserve">
+    <value>Přidat slovo do slovníku</value>
+  </data>
+  <data name="Dialog_Import_Title" xml:space="preserve">
+    <value>Importovat slova</value>
+  </data>
+  <data name="Import_Format_CSV" xml:space="preserve">
+    <value>CSV formát (slovo,obtížnost)</value>
+  </data>
+  <data name="Import_Format_TXT" xml:space="preserve">
+    <value>TXT formát (slovo na řádek)</value>
+  </data>
+  <data name="Import_DropZone_Text" xml:space="preserve">
+    <value>Přetáhněte soubor sem nebo klikněte pro výběr</value>
+  </data>
+  <data name="Import_SupportedFormats" xml:space="preserve">
+    <value>Podporované formáty: .csv, .txt</value>
+  </data>
+  <data name="Message_DictionaryCreated" xml:space="preserve">
+    <value>Slovník byl úspěšně vytvořen</value>
+  </data>
+  <data name="Message_WordAdded" xml:space="preserve">
+    <value>Slovo bylo přidáno</value>
+  </data>
+  <data name="Message_ImportSuccess" xml:space="preserve">
+    <value>Import dokončen: {0} slov importováno, {1} přeskočeno</value>
+  </data>
+  <data name="Message_DictionaryDeleted" xml:space="preserve">
+    <value>Slovník byl smazán</value>
+  </data>
+  <data name="Error_NameRequired" xml:space="preserve">
+    <value>Název je povinný</value>
+  </data>
+  <data name="Error_WordRequired" xml:space="preserve">
+    <value>Slovo je povinné</value>
+  </data>
+  <data name="Error_InvalidWord" xml:space="preserve">
+    <value>Slovo obsahuje neplatné znaky</value>
+  </data>
+  <data name="EmptyState_NoDictionaries" xml:space="preserve">
+    <value>Zatím nemáte žádné slovníky</value>
+  </data>
+  <data name="EmptyState_CreateFirst" xml:space="preserve">
+    <value>Vytvořte svůj první slovník a začněte přidávat slova</value>
+  </data>
+  <data name="Difficulty_Beginner" xml:space="preserve">
+    <value>Začátečník</value>
+  </data>
+  <data name="Difficulty_Intermediate" xml:space="preserve">
+    <value>Pokročilý</value>
+  </data>
+  <data name="Difficulty_Advanced" xml:space="preserve">
+    <value>Expert</value>
+  </data>
+  <data name="Difficulty_Expert" xml:space="preserve">
+    <value>Mistr</value>
+  </data>
+  <data name="Premium_Required" xml:space="preserve">
+    <value>Tato funkce vyžaduje Premium účet</value>
+  </data>
+</root>

@@ -1,0 +1,155 @@
+/* Mobile Responsive Styles */
+
+/* Small devices (phones) */
+@media (max-width: 640px) {
+    /* Dashboard */
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 1rem;
+    }
+
+    .stat-card {
+        padding: 1rem;
+    }
+
+    .stat-value {
+        font-size: 1.5rem;
+    }
+
+    /* Paths */
+    .paths-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    /* Leagues */
+    .leaderboard {
+        font-size: 0.875rem;
+    }
+
+    .leaderboard-avatar {
+        width: 32px;
+        height: 32px;
+    }
+
+    /* Game */
+    .scrambled-word {
+        font-size: 2rem !important;
+        letter-spacing: 0.2em;
+    }
+
+    .game-input {
+        font-size: 1.25rem;
+    }
+
+    /* Modals */
+    .tm-modal {
+        max-width: 100% !important;
+        margin: 0;
+        border-radius: 0;
+    }
+
+    .tm-modal-content {
+        max-height: 100vh;
+    }
+
+    /* Navigation */
+    .tm-sidebar {
+        position: fixed;
+        left: -100%;
+        transition: left 0.3s ease;
+        z-index: 100;
+    }
+
+    .tm-sidebar.open {
+        left: 0;
+    }
+
+    .mobile-menu-toggle {
+        display: block;
+    }
+
+    /* Settings */
+    .settings-tabs {
+        flex-direction: column;
+    }
+
+    .settings-content {
+        padding: 1rem;
+    }
+
+    /* Achievements */
+    .achievements-grid {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+/* Medium devices (tablets) */
+@media (min-width: 641px) and (max-width: 1024px) {
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+
+    .paths-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+
+    .achievements-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+}
+
+/* Large devices (desktops) */
+@media (min-width: 1025px) {
+    .stats-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+
+    .paths-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .achievements-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+/* Touch-friendly targets on mobile */
+@media (max-width: 640px) {
+    button, 
+    .tm-btn,
+    input,
+    select,
+    .tm-toggle {
+        min-height: 44px;
+        min-width: 44px;
+    }
+
+    .tm-tab {
+        padding: 0.75rem 1rem;
+    }
+}
+
+/* Landscape mode on phones */
+@media (max-width: 896px) and (orientation: landscape) {
+    .stats-grid {
+        grid-template-columns: repeat(4, 1fr) !important;
+    }
+
+    .tm-modal {
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+}
+
+/* Print styles */
+@media print {
+    .tm-sidebar,
+    .tm-topbar,
+    .tm-toast-container {
+        display: none !important;
+    }
+
+    .app-content {
+        margin-left: 0 !important;
+    }
+}

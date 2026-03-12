@@ -103,4 +103,28 @@
   <data name="Link.Login" xml:space="preserve">
     <value>Přihlásit se</value>
   </data>
+  <data name="Alert.ErrorTitle" xml:space="preserve">
+    <value>Registrace selhala</value>
+  </data>
+  <data name="Button.Loading" xml:space="preserve">
+    <value>Vytvářím účet...</value>
+  </data>
+  <data name="Divider.Or" xml:space="preserve">
+    <value>nebo</value>
+  </data>
+  <data name="PasswordStrength.Label" xml:space="preserve">
+    <value>Síla hesla</value>
+  </data>
+  <data name="PasswordStrength.Weak" xml:space="preserve">
+    <value>Slabé</value>
+  </data>
+  <data name="PasswordStrength.Fair" xml:space="preserve">
+    <value>Střední</value>
+  </data>
+  <data name="PasswordStrength.Good" xml:space="preserve">
+    <value>Dobré</value>
+  </data>
+  <data name="PasswordStrength.Strong" xml:space="preserve">
+    <value>Silné</value>
+  </data>
 </root>

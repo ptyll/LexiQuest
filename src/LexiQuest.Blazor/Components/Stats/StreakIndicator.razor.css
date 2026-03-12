@@ -1,0 +1,206 @@
+.streak-indicator {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1rem;
+    border-radius: var(--tm-radius-lg);
+    background: linear-gradient(135deg, var(--tm-surface-elevated) 0%, var(--tm-surface-default) 100%);
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.streak-main {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.streak-flames {
+    display: flex;
+    align-items: center;
+}
+
+.flame {
+    font-size: 1.5rem;
+    animation: flicker 1.5s ease-in-out infinite;
+}
+
+.flame:nth-child(2) { animation-delay: 0.2s; }
+.flame:nth-child(3) { animation-delay: 0.4s; }
+.flame:nth-child(4) { animation-delay: 0.6s; }
+.flame:nth-child(5) { animation-delay: 0.8s; }
+
+@keyframes flicker {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.1); opacity: 0.8; }
+}
+
+.streak-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.streak-days {
+    font-size: var(--tm-font-size-lg);
+    font-weight: var(--tm-font-weight-bold);
+    color: var(--tm-text-primary);
+}
+
+.streak-risk {
+    font-size: var(--tm-font-size-sm);
+    color: var(--tm-error);
+    font-weight: var(--tm-font-weight-medium);
+}
+
+.streak-timer {
+    font-size: var(--tm-font-size-sm);
+    color: var(--tm-text-secondary);
+    margin-top: 0.5rem;
+}
+
+/* Fire Levels */
+.streak-cold {
+    border-color: var(--tm-border-default);
+}
+
+.streak-small {
+    border-color: #f97316;
+    background: linear-gradient(135deg, rgba(249, 115, 22, 0.1) 0%, var(--tm-surface-default) 100%);
+}
+
+.streak-medium {
+    border-color: #ea580c;
+    background: linear-gradient(135deg, rgba(234, 88, 12, 0.15) 0%, var(--tm-surface-default) 100%);
+}
+
+.streak-large {
+    border-color: #dc2626;
+    background: linear-gradient(135deg, rgba(220, 38, 38, 0.2) 0%, var(--tm-surface-default) 100%);
+}
+
+.streak-legendary {
+    border-color: #7c3aed;
+    background: linear-gradient(135deg, rgba(124, 58, 237, 0.25) 0%, rgba(220, 38, 38, 0.15) 50%, var(--tm-surface-default) 100%);
+    animation: legendary-glow 2s ease-in-out infinite;
+}
+
+@keyframes legendary-glow {
+    0%, 100% { box-shadow: 0 0 10px rgba(124, 58, 237, 0.3); }
+    50% { box-shadow: 0 0 20px rgba(220, 38, 38, 0.4); }
+}
+
+/* Shield Management */
+.shield-management {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--tm-border-default);
+    justify-content: center;
+}
+
+.shield-active {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.375rem 0.75rem;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    border-radius: var(--tm-radius-full);
+    font-size: var(--tm-font-size-sm);
+    font-weight: var(--tm-font-weight-medium);
+}
+
+.shield-icon {
+    font-size: 1rem;
+}
+
+.shield-text {
+    white-space: nowrap;
+}
+
+.shield-available {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.375rem 0.75rem;
+    background: var(--tm-surface-elevated);
+    border: 1px solid var(--tm-border-default);
+    border-radius: var(--tm-radius-full);
+    font-size: var(--tm-font-size-sm);
+    color: var(--tm-text-primary);
+}
+
+.shield-count {
+    font-weight: var(--tm-font-weight-medium);
+}
+
+.shield-activate-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+}
+
+.shield-badge {
+    font-size: var(--tm-font-size-xs);
+    padding: 0.125rem 0.375rem;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: var(--tm-radius-sm);
+}
+
+.shield-badge.premium {
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+    color: #1f2937;
+}
+
+.shield-countdown {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.375rem 0.75rem;
+    background: var(--tm-surface-subtle);
+    border-radius: var(--tm-radius-full);
+    font-size: var(--tm-font-size-sm);
+    color: var(--tm-text-secondary);
+}
+
+.buy-shields-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+}
+
+/* Freeze Badge */
+.freeze-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.375rem 0.75rem;
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+    border-radius: var(--tm-radius-full);
+    font-size: var(--tm-font-size-xs);
+    font-weight: var(--tm-font-weight-medium);
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+    .streak-indicator {
+        padding: 0.75rem;
+    }
+
+    .flame {
+        font-size: 1.25rem;
+    }
+
+    .streak-days {
+        font-size: var(--tm-font-size-base);
+    }
+
+    .shield-management {
+        flex-direction: column;
+        align-items: stretch;
+    }
+}

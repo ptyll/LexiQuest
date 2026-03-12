@@ -1,0 +1,298 @@
+/* Realtime Game Styles */
+
+.realtime-game {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    padding: 1rem;
+    background: linear-gradient(135deg, var(--tm-color-gray-50) 0%, var(--tm-color-gray-100) 100%);
+    gap: 1.5rem;
+}
+
+/* Header */
+.game-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem;
+    background: white;
+    border-radius: var(--tm-radius-lg);
+    box-shadow: var(--tm-shadow-sm);
+}
+
+.timer-section {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 1;
+}
+
+.timer-display {
+    font-size: var(--tm-font-size-xl);
+    font-weight: var(--tm-font-weight-bold);
+    font-family: monospace;
+    color: var(--tm-color-gray-700);
+    min-width: 80px;
+}
+
+.timer-bar {
+    max-width: 200px;
+    flex: 1;
+}
+
+.word-progress {
+    font-size: var(--tm-font-size-lg);
+    font-weight: var(--tm-font-weight-semibold);
+    color: var(--tm-color-gray-800);
+    text-align: center;
+}
+
+/* Players Container */
+.players-container {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 1rem;
+    align-items: stretch;
+}
+
+.player-card {
+    transition: all 0.3s ease;
+}
+
+.player-card :deep(.tm-card__body) {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.player-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.player-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.player-name {
+    font-size: var(--tm-font-size-lg);
+    font-weight: var(--tm-font-weight-semibold);
+    color: var(--tm-color-gray-800);
+}
+
+.player-score {
+    font-size: var(--tm-font-size-sm);
+    color: var(--tm-color-gray-500);
+}
+
+.combo-badge {
+    align-self: flex-start;
+    animation: pulse 1s ease-in-out infinite;
+}
+
+.vs-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--tm-font-size-2xl);
+    font-weight: var(--tm-font-weight-bold);
+    color: var(--tm-color-primary);
+    background: var(--tm-color-primary-100);
+    width: 60px;
+    height: 60px;
+    border-radius: var(--tm-radius-full);
+    align-self: center;
+}
+
+/* Flash Animation for Correct Answer */
+.flash-success {
+    animation: flashGreen 0.5s ease-out;
+}
+
+@keyframes flashGreen {
+    0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
+    50% { box-shadow: 0 0 20px 10px rgba(34, 197, 94, 0.4); }
+    100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+}
+
+/* Game Board */
+.game-board {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+    padding: 2rem;
+    background: white;
+    border-radius: var(--tm-radius-xl);
+    box-shadow: var(--tm-shadow-md);
+}
+
+.scrambled-word {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.letter-box {
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--tm-font-size-2xl);
+    font-weight: var(--tm-font-weight-bold);
+    color: var(--tm-color-gray-800);
+    background: linear-gradient(135deg, var(--tm-color-primary-100) 0%, var(--tm-color-primary-200) 100%);
+    border-radius: var(--tm-radius-lg);
+    border: 2px solid var(--tm-color-primary-300);
+    box-shadow: var(--tm-shadow-sm);
+}
+
+/* Answer Section */
+.answer-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    width: 100%;
+    max-width: 400px;
+}
+
+.answer-section :deep(.tm-input) {
+    text-align: center;
+    text-transform: uppercase;
+    font-size: var(--tm-font-size-xl);
+    font-weight: var(--tm-font-weight-semibold);
+}
+
+/* Shake Animation for Wrong Answer */
+.shake {
+    animation: shake 0.5s ease-out;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+    20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+/* Feedback */
+.feedback {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 2rem;
+    border-radius: var(--tm-radius-lg);
+    font-size: var(--tm-font-size-lg);
+    font-weight: var(--tm-font-weight-semibold);
+    animation: fadeInUp 0.3s ease-out;
+}
+
+.feedback.success {
+    background: var(--tm-color-success-100);
+    color: var(--tm-color-success);
+}
+
+.feedback.error {
+    background: var(--tm-color-danger-100);
+    color: var(--tm-color-danger);
+}
+
+.feedback.warning {
+    background: var(--tm-color-warning-100);
+    color: var(--tm-color-warning);
+}
+
+.xp-float {
+    background: var(--tm-color-warning);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: var(--tm-radius-full);
+    font-size: var(--tm-font-size-sm);
+    animation: floatUp 1s ease-out forwards;
+}
+
+@keyframes floatUp {
+    0% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-30px); }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+/* Connection Status */
+.connection-status {
+    position: fixed;
+    bottom: 1rem;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background: var(--tm-color-warning-100);
+    color: var(--tm-color-warning);
+    border-radius: var(--tm-radius-full);
+    font-size: var(--tm-font-size-sm);
+    box-shadow: var(--tm-shadow-lg);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .players-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .vs-badge {
+        order: -1;
+    }
+    
+    .letter-box {
+        width: 45px;
+        height: 45px;
+        font-size: var(--tm-font-size-lg);
+    }
+    
+    .game-header {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .timer-bar {
+        max-width: none;
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .realtime-game {
+        padding: 0.5rem;
+    }
+    
+    .game-board {
+        padding: 1rem;
+    }
+    
+    .letter-box {
+        width: 35px;
+        height: 35px;
+        font-size: var(--tm-font-size-md);
+    }
+}

@@ -11,6 +11,20 @@ public interface IAuthService
     Task LogoutAsync();
     Task<bool> IsAuthenticatedAsync();
     Task<string?> GetTokenAsync();
+    Task<PasswordResetRequestResult> RequestPasswordResetAsync(string email);
+    Task<PasswordResetResult> ResetPasswordAsync(string token, string newPassword, string confirmPassword);
+}
+
+public class PasswordResetRequestResult
+{
+    public bool Success { get; set; }
+    public string? ErrorMessage { get; set; }
+}
+
+public class PasswordResetResult
+{
+    public bool Success { get; set; }
+    public string? ErrorMessage { get; set; }
 }
 
 public class AuthResult

@@ -58,6 +58,16 @@ public class UserRepository : IUserRepository
         await _context.Users.AddAsync(user, cancellationToken);
     }
 
+    public async Task<User?> FindByStripeCustomerIdAsync(string stripeCustomerId, CancellationToken cancellationToken = default)
+    {
+        return await _context.Users
+            .Include(u => u.Stats)
+            .Include(u => u.Streak)
+            .Include(u => u.Preferences)
+            .Include(u => u.Premium)
+            .FirstOrDefaultAsync(u => u.StripeCustomerId == stripeCustomerId, cancellationToken);
+    }
+
     public void Update(User user)
     {
         _context.Users.Update(user);
@@ -66,5 +76,35 @@ public class UserRepository : IUserRepository
     public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         return await _context.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task<List<User>> GetUsersWithStreakNotPlayedTodayAsync(CancellationToken cancellationToken = default)
+    {
+        var today = DateTime.UtcNow.Date;
+        return await _context.Users
+            .Include(u => u.Streak)
+            .Where(u => u.Streak != null && u.Streak.CurrentDays > 0 && u.Streak.LastActivityDate < today)
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<List<User>> GetActiveUsersAsync(CancellationToken cancellationToken = default)
+    {
+        var sevenDaysAgo = DateTime.UtcNow.AddDays(-7);
+        return await _context.Users
+            .Where(u => u.LastLoginAt != null && u.LastLoginAt >= sevenDaysAgo)
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<List<User>> GetInactiveUsersAsync(int daysInactive, CancellationToken cancellationToken = default)
+    {
+        var cutoffDate = DateTime.UtcNow.AddDays(-daysInactive);
+        var cutoffStart = cutoffDate.Date;
+        var cutoffEnd = cutoffStart.AddDays(1);
+        return await _context.Users
+            .Where(u => u.LastLoginAt != null && u.LastLoginAt >= cutoffStart && u.LastLoginAt < cutoffEnd)
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
     }
 }

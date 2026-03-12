@@ -1,0 +1,35 @@
+.create-room-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+}
+
+.form-section {
+    margin-bottom: var(--spacing-md);
+}
+
+.radio-group {
+    display: flex;
+    gap: var(--spacing-sm);
+    flex-wrap: wrap;
+}
+
+.radio-group ::deep button {
+    min-width: 80px;
+}
+
+.no-league-info {
+    margin-top: var(--spacing-md);
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+    .radio-group {
+        justify-content: stretch;
+    }
+
+    .radio-group ::deep button {
+        flex: 1;
+        min-width: 60px;
+    }
+}

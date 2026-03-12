@@ -1,0 +1,126 @@
+/* Register Page - Layout only, using Tempo.Blazor design tokens */
+
+.register-page {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: var(--tm-spacing-4);
+    background: var(--tm-color-bg-secondary);
+}
+
+.register-card {
+    width: 100%;
+    max-width: 460px;
+    padding: var(--tm-spacing-8);
+}
+
+.register-header {
+    text-align: center;
+    margin-bottom: var(--tm-spacing-6);
+}
+
+.register-brand {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--tm-color-primary);
+    margin: 0 0 var(--tm-spacing-4);
+}
+
+.register-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--tm-color-text-primary);
+    margin: 0 0 var(--tm-spacing-2);
+}
+
+.register-subtitle {
+    font-size: 0.875rem;
+    color: var(--tm-color-text-secondary);
+    margin: 0;
+}
+
+.register-alert {
+    margin-bottom: var(--tm-spacing-4);
+}
+
+.register-form-fields {
+    display: flex;
+    flex-direction: column;
+    gap: var(--tm-spacing-4);
+    margin-bottom: var(--tm-spacing-6);
+}
+
+.password-field-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--tm-spacing-2);
+}
+
+.password-strength {
+    margin-top: var(--tm-spacing-1);
+}
+
+.register-submit-btn {
+    margin-bottom: var(--tm-spacing-4);
+}
+
+.register-divider {
+    display: flex;
+    align-items: center;
+    margin: var(--tm-spacing-4) 0;
+    color: var(--tm-color-text-muted);
+    font-size: 0.875rem;
+}
+
+.register-divider::before,
+.register-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--tm-color-border);
+}
+
+.register-divider span {
+    padding: 0 var(--tm-spacing-3);
+}
+
+.register-google-btn {
+    margin-bottom: var(--tm-spacing-6);
+}
+
+.google-icon {
+    margin-right: var(--tm-spacing-2);
+}
+
+.register-login-prompt {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: var(--tm-spacing-2);
+    font-size: 0.875rem;
+    color: var(--tm-color-text-secondary);
+}
+
+.register-login-link {
+    font-weight: 500;
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+    .register-page {
+        padding: var(--tm-spacing-2);
+    }
+
+    .register-card {
+        padding: var(--tm-spacing-6);
+    }
+
+    .register-brand {
+        font-size: 1.75rem;
+    }
+
+    .register-title {
+        font-size: 1.25rem;
+    }
+}

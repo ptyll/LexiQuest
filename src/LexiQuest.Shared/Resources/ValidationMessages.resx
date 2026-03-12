@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Validation.Email.Required" xml:space="preserve">
+    <value>Email je povinný</value>
+  </data>
+  <data name="Validation.Email.Invalid" xml:space="preserve">
+    <value>Neplatný email</value>
+  </data>
+  <data name="Validation.Password.Required" xml:space="preserve">
+    <value>Heslo je povinné</value>
+  </data>
+  <data name="Validation.Password.Length" xml:space="preserve">
+    <value>Heslo musí mít alespoň 8 znaků</value>
+  </data>
+  <data name="Validation.Username.Required" xml:space="preserve">
+    <value>Uživatelské jméno je povinné</value>
+  </data>
+  <data name="Validation.Username.Length" xml:space="preserve">
+    <value>Uživatelské jméno musí mít 3-20 znaků</value>
+  </data>
+  <data name="Validation.Team.Name.Required" xml:space="preserve">
+    <value>Název týmu je povinný</value>
+  </data>
+  <data name="Validation.Team.Name.Length" xml:space="preserve">
+    <value>Název týmu musí mít 3-30 znaků</value>
+  </data>
+  <data name="Validation.Team.Tag.Required" xml:space="preserve">
+    <value>Tag týmu je povinný</value>
+  </data>
+  <data name="Validation.Team.Tag.Length" xml:space="preserve">
+    <value>Tag týmu musí mít 2-4 znaky</value>
+  </data>
+  <data name="Validation.Team.Tag.Format" xml:space="preserve">
+    <value>Tag musí obsahovat pouze velká písmena a číslice</value>
+  </data>
+  <data name="Validation.Team.Description.MaxLength" xml:space="preserve">
+    <value>Popis může mít maximálně 500 znaků</value>
+  </data>
+</root>

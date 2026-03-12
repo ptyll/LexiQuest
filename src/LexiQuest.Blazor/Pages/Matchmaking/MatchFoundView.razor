@@ -1,0 +1,59 @@
+@using Tempo.Blazor.Components.Avatars
+@using Microsoft.Extensions.Localization
+
+<div class="match-found-view">
+    <h1 class="match-found-title">@Localizer["Matchmaking_MatchFound_Title"]</h1>
+    
+    <div class="players-showcase">
+        <div class="player-card">
+            <TmAvatar Name="@Username" Src="@UserAvatar" Size="AvatarSize.Xxl" Color="AvatarColor.Blue" />
+            <span class="player-name">@Username</span>
+            <span class="player-level">Level @UserLevel</span>
+        </div>
+        
+        <div class="vs-container">
+            <span class="vs-text large">@Localizer["Matchmaking_Vs"]</span>
+        </div>
+        
+        <div class="player-card">
+            <TmAvatar Name="@OpponentUsername" Src="@OpponentAvatar" Size="AvatarSize.Xxl" Color="AvatarColor.Red" />
+            <span class="player-name">@OpponentUsername</span>
+            <span class="player-level">Level @OpponentLevel</span>
+        </div>
+    </div>
+    
+    <div class="countdown-container">
+        <p class="countdown-text">@string.Format(Localizer["Matchmaking_Countdown"], CountdownSeconds)</p>
+        <div class="countdown-number @GetPulseClass()">@CountdownSeconds</div>
+    </div>
+    
+    <p class="get-ready-text">@Localizer["Matchmaking_GetReady"]</p>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public required IStringLocalizer<QuickMatch> Localizer { get; set; }
+    
+    [Parameter, EditorRequired]
+    public string OpponentUsername { get; set; } = string.Empty;
+    
+    [Parameter, EditorRequired]
+    public int OpponentLevel { get; set; }
+    
+    [Parameter]
+    public string? OpponentAvatar { get; set; }
+    
+    [Parameter, EditorRequired]
+    public int CountdownSeconds { get; set; }
+    
+    [Parameter]
+    public string? UserAvatar { get; set; }
+    
+    [Parameter, EditorRequired]
+    public string Username { get; set; } = string.Empty;
+    
+    [Parameter, EditorRequired]
+    public int UserLevel { get; set; }
+    
+    private string GetPulseClass() => CountdownSeconds <= 1 ? "pulse-fast" : "pulse";
+}

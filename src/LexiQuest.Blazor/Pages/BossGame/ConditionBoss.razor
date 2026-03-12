@@ -1,0 +1,244 @@
+@page "/boss/condition/{SessionId:guid}"
+@inject IStringLocalizer<ConditionBoss> L
+@inject IBossService BossService
+@inject IGameService GameService
+@inject NavigationManager NavigationManager
+
+<div class="min-h-screen bg-gray-50 dark:bg-gray-900">
+    @if (_session == null)
+    {
+        <TmSkeleton Type="Rectangle" Class="h-32 mb-4" />
+        <TmSkeleton Type="Rectangle" Class="h-64" />
+    }
+    else
+    {
+        <!-- Condition Header -->
+        <div class="bg-gradient-to-r from-purple-900 to-indigo-800 text-white p-6 shadow-lg">
+            <div class="max-w-4xl mx-auto">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-3">
+                        <TmIcon Name="ShieldAlert" Class="text-purple-300" />
+                        <div>
+                            <h1 class="text-2xl font-bold">@L["ConditionBoss_Title"]</h1>
+                            <p class="text-purple-200 text-sm">@L["ConditionBoss_Subtitle"]</p>
+                        </div>
+                    </div>
+                    <TmBadge Variant="BadgeVariant.Warning">
+                        @L["ConditionBoss_Level"]
+                    </TmBadge>
+                </div>
+
+                <!-- Progress Bar -->
+                <div class="mb-4">
+                    <div class="flex justify-between text-sm text-purple-200 mb-1">
+                        <span>@L["ConditionBoss_Progress"]</span>
+                        <span>@_session.CurrentRound/@_session.TotalRounds</span>
+                    </div>
+                    <TmProgressBar 
+                        Value="@CalculateProgress()" 
+                        Max="100" />
+                </div>
+
+                <!-- Stats Row -->
+                <div class="flex items-center gap-6">
+                    <div class="flex items-center gap-2 bg-purple-950/50 px-4 py-2 rounded-lg">
+                        <TmIcon Name="Star" Class="text-yellow-400" />
+                        <span class="font-bold text-lg">@_session.TotalXP</span>
+                        <span class="text-purple-300 text-sm">XP</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Arena -->
+        <div class="max-w-4xl mx-auto p-6">
+            @if (!_session.IsGameOver && !_session.IsCompleted)
+            {
+                <div class="space-y-4">
+                    <!-- Forbidden Letter Warning Box -->
+                    <div data-testid="forbidden-warning-box" 
+                         class="border-2 border-red-500 border-dashed rounded-xl p-6 bg-red-50 animate-pulse">
+                        <div data-testid="forbidden-warning" class="flex items-center gap-4">
+                            <span class="text-4xl">🚫</span>
+                            <div>
+                                <div class="font-bold text-lg text-red-800">
+                                    @L["ConditionBoss_ForbiddenTitle"]
+                                </div>
+                                <div class="text-3xl font-black text-red-600 tracking-widest mt-2">
+                                    @_session.ForbiddenLetters
+                                </div>
+                                <div class="text-sm text-red-700 mt-2">
+                                    @L["ConditionBoss_PenaltyWarning"]
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Penalty Warning (if applied) -->
+                    @if (LastResult?.ForbiddenLetterPenalty != null)
+                    {
+                        <TmAlert 
+                            data-testid="penalty-warning"
+                            Severity="AlertSeverity.Error"
+                            Variant="AlertVariant.Filled"
+                            Class="animate-bounce">
+                            <div class="flex items-center gap-2">
+                                <TmIcon Name="AlertTriangle" />
+                                <span>@string.Format(L["ConditionBoss_PenaltyApplied"], LastResult.ForbiddenLetterPenalty)</span>
+                                <span class="font-bold text-red-200">-5 XP</span>
+                            </div>
+                        </TmAlert>
+                    }
+
+                    <TmCard Variant="CardVariant.Elevated" Class="p-8">
+                        <!-- Scrambled Word Display -->
+                        <div class="text-center mb-8">
+                            <div class="text-5xl font-bold tracking-widest text-gray-800 dark:text-gray-100 mb-4">
+                                @_currentScrambledWord
+                            </div>
+                            <p class="text-gray-500">@L["ConditionBoss_UnscrambleHint"]</p>
+                        </div>
+
+                        <!-- Answer Input -->
+                        <TmFormField Label="@L["ConditionBoss_AnswerLabel"]" Class="mb-6">
+                            <TmTextInput 
+                                @bind-Value="_currentAnswer"
+                                Placeholder="@L["ConditionBoss_AnswerPlaceholder"]"
+                                Size="InputSize.Large"
+                                Disabled="_isSubmitting"
+                                Class="text-center text-xl tracking-wide" />
+                        </TmFormField>
+
+                        <!-- Submit Button -->
+                        <TmButton 
+                            Variant="ButtonVariant.Primary"
+                            OnClick="SubmitAnswer"
+                            Class="w-full"
+                            Disabled="_isSubmitting || string.IsNullOrWhiteSpace(_currentAnswer)">
+                            @if (_isSubmitting)
+                            {
+                                <TmIcon Name="Spinner" Class="animate-spin mr-2" />
+                            }
+                            @L["ConditionBoss_Submit"]
+                        </TmButton>
+                    </TmCard>
+                </div>
+            }
+        </div>
+
+        <!-- Victory Modal -->
+        @if (_session.IsCompleted)
+        {
+            <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                <TmCard Variant="CardVariant.Elevated" Class="max-w-md w-full mx-4">
+                    <div class="p-6">
+                        <div class="flex items-center gap-3 text-green-600 mb-4">
+                            <TmIcon Name="Trophy" />
+                            <span class="text-2xl font-bold">@L["ConditionBoss_Victory"]</span>
+                        </div>
+                        
+                        <div class="text-center py-4">
+                            <div class="text-6xl mb-4">🛡️</div>
+                            <h3 class="text-xl font-bold mb-2">@L["ConditionBoss_Congratulations"]</h3>
+                            <p class="text-gray-600 mb-6">@L["ConditionBoss_VictoryMessage"]</p>
+                            
+                            <TmCard Variant="CardVariant.Elevated" Class="p-4 mb-6 bg-green-50">
+                                <div class="text-3xl font-bold text-green-600">@_session.TotalXP XP</div>
+                                <div class="text-gray-600">@L["ConditionBoss_TotalEarned"]</div>
+                            </TmCard>
+
+                            <TmButton Variant="ButtonVariant.Primary" OnClick="ReturnToDashboard" Class="w-full">
+                                @L["ConditionBoss_BackToDashboard"]
+                            </TmButton>
+                        </div>
+                    </div>
+                </TmCard>
+            </div>
+        }
+
+        <!-- Defeat Modal -->
+        @if (_session.IsGameOver && !_session.IsCompleted)
+        {
+            <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                <TmCard Variant="CardVariant.Elevated" Class="max-w-md w-full mx-4">
+                    <div class="p-6">
+                        <div class="flex items-center gap-3 text-red-600 mb-4">
+                            <TmIcon Name="XCircle" />
+                            <span class="text-2xl font-bold">@L["ConditionBoss_Defeat"]</span>
+                        </div>
+                        
+                        <div class="text-center py-4">
+                            <div class="text-6xl mb-4">💀</div>
+                            <h3 class="text-xl font-bold mb-2">@L["ConditionBoss_GameOver"]</h3>
+                            <p class="text-gray-600 mb-6">@L["ConditionBoss_DefeatMessage"]</p>
+
+                            <TmButton Variant="ButtonVariant.Primary" OnClick="TryAgain" Class="w-full">
+                                @L["ConditionBoss_TryAgain"]
+                            </TmButton>
+                        </div>
+                    </div>
+                </TmCard>
+            </div>
+        }
+    }
+</div>
+
+@code {
+    [Parameter] public Guid SessionId { get; set; }
+    [Parameter] public BossSessionDto? Session { get; set; }
+    [Parameter] public BossRoundResultDto? LastResult { get; set; }
+
+    private BossSessionDto? _session;
+    private string _currentScrambledWord = "ANAGRAM";
+    private string _currentAnswer = "";
+    private bool _isSubmitting;
+
+    protected override void OnInitialized()
+    {
+        _session = Session;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (_session == null)
+        {
+            _session = await BossService.GetBossStateAsync(SessionId);
+        }
+    }
+
+    private int CalculateProgress() => (_session?.CurrentRound ?? 1) * 100 / (_session?.TotalRounds ?? 15);
+
+    private async Task SubmitAnswer()
+    {
+        if (string.IsNullOrWhiteSpace(_currentAnswer) || _isSubmitting) return;
+
+        _isSubmitting = true;
+        try
+        {
+            var result = await BossService.SubmitAnswerAsync(SessionId, _currentAnswer.Trim());
+            LastResult = result;
+            
+            _session!.IsGameOver = result.IsGameOver;
+            _session.IsCompleted = result.IsCompleted;
+            _session.TotalXP += result.XPGained;
+            
+            if (result.IsCorrect && !result.IsCompleted)
+            {
+                _session.CurrentRound++;
+                _currentScrambledWord = result.NextScrambledWord ?? "NEXTWORD";
+                _currentAnswer = "";
+            }
+            else if (!result.IsGameOver)
+            {
+                _currentAnswer = "";
+            }
+        }
+        finally
+        {
+            _isSubmitting = false;
+        }
+    }
+
+    private void ReturnToDashboard() => NavigationManager.NavigateTo("/dashboard");
+    private void TryAgain() => NavigationManager.NavigateTo("/game/boss", forceLoad: true);
+}

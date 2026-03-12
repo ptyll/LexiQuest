@@ -1,0 +1,239 @@
+@inject IStringLocalizer<Pages.Multiplayer> Localizer
+@inject IJSRuntime JSRuntime
+
+<div class="room-lobby">
+    @if (IsExpired)
+    {
+        <div class="expired-state">
+            <TmAlert Severity="AlertSeverity.Warning" Class="expired-message">
+                @Localizer["Room_Expired"]
+            </TmAlert>
+            <TmButton Variant="ButtonVariant.Primary" OnClick="OnLeave">
+                @Localizer["Button_Cancel"]
+            </TmButton>
+        </div>
+    }
+    else if (RoomStatus != null)
+    {
+        <div class="lobby-header">
+            <h2 class="lobby-title">@Localizer["Room_Lobby_Title"]</h2>
+            
+            @if (IsHost && !HasOpponent)
+            {
+                <div class="room-code-section">
+                    <span class="code-label">@Localizer["Room_Code_Label"]</span>
+                    <div class="room-code-display">
+                        <code class="room-code">@RoomStatus.RoomCode</code>
+                        <TmCopyButton 
+                            Text="@RoomStatus.RoomCode"
+                            OnCopy="OnCopyCode"
+                            Class="copy-code-button" />
+                    </div>
+                    <p class="share-text">@string.Format(Localizer["Room_Code_ShareText"], RoomStatus.RoomCode)</p>
+                    <TmProgressBar 
+                        Value="@GetExpiryProgress()" 
+                        Max="100"
+                        Color="ProgressColor.Warning"
+                        Class="expiry-progress" />
+                </div>
+            }
+        </div>
+
+        <div class="players-section">
+            @foreach (var player in RoomStatus.Players)
+            {
+                <div class="player-card @(player.IsReady ? "ready" : "")">
+                    <TmAvatar 
+                        Name="@player.Username" 
+                        Src="@player.Avatar" 
+                        Size="AvatarSize.Xl" />
+                    <div class="player-info">
+                        <span class="player-name">@player.Username</span>
+                        @if (player.IsHost)
+                        {
+                            <TmBadge Variant="BadgeVariant.Primary" Size="BadgeSize.Sm">Host</TmBadge>
+                        }
+                    </div>
+                    <div class="ready-status">
+                        @if (player.IsReady)
+                        {
+                            <TmBadge Variant="BadgeVariant.Success" Size="BadgeSize.Md">
+                                @Localizer["Room_Lobby_Ready"]
+                            </TmBadge>
+                        }
+                        else
+                        {
+                            <TmBadge Variant="BadgeVariant.Warning" Size="BadgeSize.Md">
+                                @Localizer["Room_Lobby_NotReady"]
+                            </TmBadge>
+                        }
+                    </div>
+                </div>
+            }
+
+            @if (!HasOpponent)
+            {
+                <div class="player-card placeholder">
+                    <TmSpinner Size="SpinnerSize.Lg" />
+                    <span class="waiting-message">@Localizer["Room_Lobby_WaitingForOpponent"]</span>
+                </div>
+            }
+        </div>
+
+        <div class="settings-summary">
+            <h4>@Localizer["Room_Settings_Title"]</h4>
+            <div class="settings-grid">
+                <div class="setting">
+                    <span class="setting-label">@Localizer["Room_Settings_WordCount"]</span>
+                    <span class="setting-value">@RoomStatus.Settings.WordCount</span>
+                </div>
+                <div class="setting">
+                    <span class="setting-label">@Localizer["Room_Settings_TimeLimit"]</span>
+                    <span class="setting-value">@RoomStatus.Settings.TimeLimitMinutes min</span>
+                </div>
+                <div class="setting">
+                    <span class="setting-label">@Localizer["Room_Settings_Difficulty"]</span>
+                    <span class="setting-value">@RoomStatus.Settings.Difficulty</span>
+                </div>
+                <div class="setting">
+                    <span class="setting-label">@Localizer["Room_Settings_BestOf"]</span>
+                    <span class="setting-value">@(RoomStatus.Settings.BestOf == 1 ? "1 hra" : $"Best of {RoomStatus.Settings.BestOf}")</span>
+                </div>
+            </div>
+        </div>
+
+        @if (RoomStatus.BothReady)
+        {
+            <div class="countdown-section">
+                <p class="countdown-text">@Localizer["Room_Lobby_BothReady"]</p>
+                <div class="countdown">@CountdownSeconds</div>
+            </div>
+        }
+        else if (HasOpponent)
+        {
+            <div class="ready-section">
+                @if (IsReady)
+                {
+                    <TmButton 
+                        Variant="ButtonVariant.Outline" 
+                        Size="ButtonSize.Lg"
+                        Class="ready-button"
+                        OnClick="OnCancelReady">
+                        @Localizer["Room_Lobby_CancelReadyButton"]
+                    </TmButton>
+                }
+                else
+                {
+                    <TmButton 
+                        Variant="ButtonVariant.Primary" 
+                        Size="ButtonSize.Lg"
+                        Class="ready-button"
+                        OnClick="OnSetReady">
+                        @Localizer["Room_Lobby_ReadyButton"]
+                    </TmButton>
+                }
+            </div>
+        }
+
+        @if (HasOpponent)
+        {
+            <div class="chat-section">
+                <div class="chat-messages" @ref="_chatMessagesRef">
+                    @foreach (var message in ChatMessages)
+                    {
+                        <div class="chat-message">
+                            <TmAvatar Name="@message.SenderUsername" Size="AvatarSize.Xs" />
+                            <div class="message-content">
+                                <span class="message-sender">@message.SenderUsername</span>
+                                <span class="message-text">@message.Message</span>
+                                <span class="message-time">@message.SentAt.ToString("HH:mm")</span>
+                            </div>
+                        </div>
+                    }
+                </div>
+                <div class="chat-input-section">
+                    <TmTextInput 
+                        @bind-Value="_currentMessage"
+                        Placeholder="@Localizer["Room_Lobby_Chat_Placeholder"]"
+                        MaxLength="200"
+                        Class="chat-input"
+                        @onkeyup="HandleChatKeyUp" />
+                    <TmButton 
+                        Variant="ButtonVariant.Primary" 
+                        Size="ButtonSize.Sm"
+                        Class="chat-send-button"
+                        OnClick="SendMessage"
+                        Disabled="string.IsNullOrWhiteSpace(_currentMessage)">
+                        @Localizer["Room_Lobby_Chat_Send"]
+                    </TmButton>
+                </div>
+            </div>
+        }
+
+        <div class="lobby-footer">
+            <TmButton 
+                Variant="ButtonVariant.Ghost" 
+                OnClick="OnLeave">
+                @Localizer["Button_Cancel"]
+            </TmButton>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public RoomStatusDto? RoomStatus { get; set; }
+    [Parameter] public bool IsHost { get; set; }
+    [Parameter] public bool IsReady { get; set; }
+    [Parameter] public bool IsExpired { get; set; }
+    [Parameter] public int CountdownSeconds { get; set; }
+    [Parameter] public List<LobbyMessageDto> ChatMessages { get; set; } = new();
+    [Parameter] public EventCallback OnSetReady { get; set; }
+    [Parameter] public EventCallback OnCancelReady { get; set; }
+    [Parameter] public EventCallback OnLeave { get; set; }
+    [Parameter] public EventCallback<string> OnSendMessage { get; set; }
+    [Parameter] public EventCallback OnCopyCode { get; set; }
+
+    private ElementReference _chatMessagesRef;
+    private string _currentMessage = "";
+
+    private bool HasOpponent => RoomStatus?.Players.Count > 1;
+
+    private int GetExpiryProgress()
+    {
+        if (RoomStatus == null) return 0;
+        var totalMinutes = 5;
+        var remaining = (RoomStatus.ExpiresAt - DateTime.UtcNow).TotalMinutes;
+        var progress = (int)((remaining / totalMinutes) * 100);
+        return Math.Clamp(progress, 0, 100);
+    }
+
+    private async Task SendMessage()
+    {
+        if (string.IsNullOrWhiteSpace(_currentMessage)) return;
+        
+        await OnSendMessage.InvokeAsync(_currentMessage);
+        _currentMessage = "";
+        await ScrollToBottom();
+    }
+
+    private async Task HandleChatKeyUp(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" && !string.IsNullOrWhiteSpace(_currentMessage))
+        {
+            await SendMessage();
+        }
+    }
+
+    private async Task ScrollToBottom()
+    {
+        await JSRuntime.InvokeVoidAsync("scrollToBottom", _chatMessagesRef);
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (ChatMessages.Count > 0)
+        {
+            await ScrollToBottom();
+        }
+    }
+}

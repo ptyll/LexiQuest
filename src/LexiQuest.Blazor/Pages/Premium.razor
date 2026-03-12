@@ -1,0 +1,243 @@
+@page "/premium"
+@using LexiQuest.Shared.DTOs.Premium
+@using LexiQuest.Shared.Enums
+@inject IStringLocalizer<Premium> L
+@inject IPremiumService PremiumService
+@inject NavigationManager NavigationManager
+@inject IToastService ToastService
+
+<PageTitle>@L["Title"] - LexiQuest</PageTitle>
+
+<div class="premium-page">
+    <!-- Hero Section -->
+    <div class="hero-section">
+        <div class="hero-content">
+            <TmIcon Name="@IconNames.Star" Class="hero-icon" />
+            <h1 class="hero-title">@L["Title"]</h1>
+            <p class="hero-subtitle">@L["Subtitle"]</p>
+            
+            @if (_status?.IsActive == true)
+            {
+                <TmBadge Variant="BadgeVariant.Success" Class="premium-active-badge">
+                    @L["Status_Active"] - @L[$"Plan_{_status.Plan}"]
+                </TmBadge>
+            }
+        </div>
+    </div>
+
+    <!-- Feature Groups -->
+    <div class="features-section">
+        <div class="features-grid">
+            <!-- Game Features -->
+            <TmCard Class="feature-group">
+                <div class="feature-header">
+                    <TmIcon Name="@IconNames.Play" />
+                    <h3>@L["Section_GameFeatures"]</h3>
+                </div>
+                <ul class="feature-list">
+                    <li><TmIcon Name="@IconNames.Check" /> @L["Feature_NoAds"]</li>
+                    <li><TmIcon Name="@IconNames.Check" /> @L["Feature_StreakFreeze"]</li>
+                    <li><TmIcon Name="@IconNames.Check" /> @L["Feature_StreakShield"]</li>
+                    <li><TmIcon Name="@IconNames.Check" /> @L["Feature_DoubleXP"]</li>
+                    <li><TmIcon Name="@IconNames.Check" /> @L["Feature_ExclusivePaths"]</li>
+                    <li><TmIcon Name="@IconNames.Check" /> @L["Feature_CustomDictionaries"]</li>
+                </ul>
+            </TmCard>
+
+            <!-- Analytics -->
+            <TmCard Class="feature-group">
+                <div class="feature-header">
+                    <TmIcon Name="@IconNames.TrendingUp" />
+                    <h3>@L["Section_Analytics"]</h3>
+                </div>
+                <ul class="feature-list">
+                    <li><TmIcon Name="@IconNames.Check" /> @L["Feature_DetailedStats"]</li>
+                    <li><TmIcon Name="@IconNames.Check" /> @L["Feature_ExportData"]</li>
+                    <li><TmIcon Name="@IconNames.Check" /> @L["Feature_History"]</li>
+                    <li><TmIcon Name="@IconNames.Check" /> @L["Feature_Comparison"]</li>
+                </ul>
+            </TmCard>
+
+            <!-- Personalization -->
+            <TmCard Class="feature-group">
+                <div class="feature-header">
+                    <TmIcon Name="@IconNames.User" />
+                    <h3>@L["Section_Personalization"]</h3>
+                </div>
+                <ul class="feature-list">
+                    <li><TmIcon Name="@IconNames.Check" /> @L["Feature_CustomAvatar"]</li>
+                    <li><TmIcon Name="@IconNames.Check" /> @L["Feature_ExclusiveAvatars"]</li>
+                    <li><TmIcon Name="@IconNames.Check" /> @L["Feature_Themes"]</li>
+                    <li><TmIcon Name="@IconNames.Check" /> @L["Feature_Frames"]</li>
+                </ul>
+            </TmCard>
+
+            <!-- Multiplayer -->
+            <TmCard Class="feature-group">
+                <div class="feature-header">
+                    <TmIcon Name="@IconNames.Users" />
+                    <h3>@L["Section_Multiplayer"]</h3>
+                </div>
+                <ul class="feature-list">
+                    <li><TmIcon Name="@IconNames.Check" /> @L["Feature_DiamondLeague"]</li>
+                    <li><TmIcon Name="@IconNames.Check" /> @L["Feature_Tournaments"]</li>
+                    <li><TmIcon Name="@IconNames.Check" /> @L["Feature_TeamCreation"]</li>
+                </ul>
+            </TmCard>
+        </div>
+    </div>
+
+    <!-- Pricing Cards -->
+    <div class="pricing-section">
+        <h2 class="pricing-title">@L["ChoosePlan"]</h2>
+        <div class="pricing-grid">
+            <!-- Monthly -->
+            <TmCard Class="pricing-card">
+                <div class="pricing-header">
+                    <h3>@L["Tab_Monthly"]</h3>
+                    <div class="price">
+                        <span class="amount">99</span>
+                        <span class="currency">Kč</span>
+                        <span class="period">/@L["Period_Month"]</span>
+                    </div>
+                </div>
+                <ul class="pricing-features">
+                    <li>@L["Feature_AllPremium"]</li>
+                    <li>@L["Feature_MonthlyBilling"]</li>
+                    <li>@L["Feature_CancelAnytime"]</li>
+                </ul>
+                <TmButton Variant="ButtonVariant.Secondary" 
+                          OnClick="() => Subscribe(SubscriptionPlan.Monthly)"
+                          IsLoading="_isLoadingMonthly"
+                          Disabled="_status?.IsActive == true">
+                    @(_status?.Plan == SubscriptionPlan.Monthly ? L["Button_Current"] : L["Button_Subscribe"])
+                </TmButton>
+            </TmCard>
+
+            <!-- Yearly (Best Value) -->
+            <TmCard Class="pricing-card featured">
+                <TmBadge Variant="BadgeVariant.Warning" Class="best-value-badge">
+                    ⭐ @L["BestValue"]
+                </TmBadge>
+                <div class="pricing-header">
+                    <h3>@L["Tab_Yearly"]</h3>
+                    <div class="price">
+                        <span class="amount">899</span>
+                        <span class="currency">Kč</span>
+                        <span class="period">/@L["Period_Year"]</span>
+                    </div>
+                    <div class="savings">
+                        <span class="original-price">1 188 Kč</span>
+                        <span class="save-badge">@L["Save25Percent"]</span>
+                    </div>
+                </div>
+                <ul class="pricing-features">
+                    <li>@L["Feature_AllPremium"]</li>
+                    <li>@L["Feature_SaveMoney"]</li>
+                    <li>@L["Feature_PrioritySupport"]</li>
+                </ul>
+                <TmButton Variant="ButtonVariant.Primary" 
+                          OnClick="() => Subscribe(SubscriptionPlan.Yearly)"
+                          IsLoading="_isLoadingYearly"
+                          Disabled="_status?.IsActive == true">
+                    @(_status?.Plan == SubscriptionPlan.Yearly ? L["Button_Current"] : L["Button_Subscribe"])
+                </TmButton>
+            </TmCard>
+
+            <!-- Lifetime -->
+            <TmCard Class="pricing-card">
+                <div class="pricing-header">
+                    <h3>@L["Tab_Lifetime"]</h3>
+                    <div class="price">
+                        <span class="amount">2 499</span>
+                        <span class="currency">Kč</span>
+                        <span class="period">@L["Period_Onetime"]</span>
+                    </div>
+                </div>
+                <ul class="pricing-features">
+                    <li>@L["Feature_AllPremium"]</li>
+                    <li>@L["Feature_Forever"]</li>
+                    <li>@L["Feature_FutureUpdates"]</li>
+                </ul>
+                <TmButton Variant="ButtonVariant.Secondary" 
+                          OnClick="() => Subscribe(SubscriptionPlan.Lifetime)"
+                          IsLoading="_isLoadingLifetime"
+                          Disabled="_status?.IsActive == true">
+                    @(_status?.Plan == SubscriptionPlan.Lifetime ? L["Button_Current"] : L["Button_Buy"])
+                </TmButton>
+            </TmCard>
+        </div>
+    </div>
+
+    <!-- Payment Info -->
+    <div class="payment-info">
+        <div class="payment-methods">
+            <TmIcon Name="@IconNames.Lock" />
+            <span>@L["SecurePayment"]</span>
+        </div>
+        <div class="cancel-notice">
+            <TmIcon Name="@IconNames.Info" />
+            <span>@L["CancelAnytime"]</span>
+        </div>
+    </div>
+</div>
+
+@code {
+    private PremiumStatusDto? _status;
+    private bool _isLoadingMonthly;
+    private bool _isLoadingYearly;
+    private bool _isLoadingLifetime;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _status = await PremiumService.GetStatusAsync();
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"Chyba při načítání statusu: {ex.Message}");
+        }
+    }
+
+    private async Task Subscribe(SubscriptionPlan plan)
+    {
+        if (_status?.IsActive == true)
+            return;
+
+        SetLoading(plan, true);
+
+        try
+        {
+            var response = await PremiumService.CreateCheckoutAsync(plan);
+            if (!string.IsNullOrEmpty(response.StripeCheckoutUrl))
+            {
+                NavigationManager.NavigateTo(response.StripeCheckoutUrl);
+            }
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"Chyba při vytváření checkoutu: {ex.Message}");
+        }
+        finally
+        {
+            SetLoading(plan, false);
+        }
+    }
+
+    private void SetLoading(SubscriptionPlan plan, bool loading)
+    {
+        switch (plan)
+        {
+            case SubscriptionPlan.Monthly:
+                _isLoadingMonthly = loading;
+                break;
+            case SubscriptionPlan.Yearly:
+                _isLoadingYearly = loading;
+                break;
+            case SubscriptionPlan.Lifetime:
+                _isLoadingLifetime = loading;
+                break;
+        }
+    }
+}

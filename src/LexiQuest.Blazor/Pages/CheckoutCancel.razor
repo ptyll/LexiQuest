@@ -1,0 +1,49 @@
+@page "/premium/cancel"
+@inject IStringLocalizer<CheckoutCancel> L
+@inject NavigationManager NavigationManager
+
+<PageTitle>@L["Title"] - LexiQuest</PageTitle>
+
+<div class="checkout-cancel-page">
+    <div class="cancel-container">
+        <TmCard Class="cancel-card" Elevated="true">
+            <div class="cancel-icon">
+                <TmIcon Name="@IconNames.XCircle" Size="IconSize.Xl" />
+            </div>
+            
+            <h1 class="cancel-title">@L["Title"]</h1>
+            <p class="cancel-message">@L["Message"]</p>
+            
+            <div class="info-section">
+                <TmAlert Severity="AlertSeverity.Info" Icon="@IconNames.Info">
+                    @L["Info_Text"]
+                </TmAlert>
+            </div>
+            
+            <div class="actions">
+                <TmButton Variant="ButtonVariant.Primary" 
+                          OnClick="GoToPremium"
+                          Icon="@IconNames.Star">
+                    @L["Button_Retry"]
+                </TmButton>
+                <TmButton Variant="ButtonVariant.Secondary" 
+                          OnClick="GoToDashboard"
+                          Icon="@IconNames.Home">
+                    @L["Button_Dashboard"]
+                </TmButton>
+            </div>
+        </TmCard>
+    </div>
+</div>
+
+@code {
+    private void GoToPremium()
+    {
+        NavigationManager.NavigateTo("/premium");
+    }
+
+    private void GoToDashboard()
+    {
+        NavigationManager.NavigateTo("/dashboard");
+    }
+}

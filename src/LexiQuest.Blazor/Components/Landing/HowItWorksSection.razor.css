@@ -1,0 +1,100 @@
+.how-it-works-section {
+    padding: var(--tm-spacing-16) var(--tm-spacing-4);
+    background: var(--tm-color-bg-primary);
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.section-title {
+    font-family: 'Poppins', sans-serif;
+    font-size: 2.5rem;
+    font-weight: 700;
+    text-align: center;
+    color: var(--tm-color-text-primary);
+    margin-bottom: var(--tm-spacing-12);
+}
+
+.steps-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--tm-spacing-8);
+}
+
+.step-card {
+    background: var(--tm-color-bg-secondary);
+    border-radius: var(--tm-radius-xl);
+    padding: var(--tm-spacing-8);
+    text-align: center;
+    position: relative;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border: 1px solid var(--tm-color-border);
+}
+
+.step-card:hover {
+    transform: scale(1.02);
+    box-shadow: var(--tm-shadow-lg);
+}
+
+.step-number {
+    position: absolute;
+    top: calc(-1 * var(--tm-spacing-4));
+    left: 50%;
+    transform: translateX(-50%);
+    width: var(--tm-spacing-10);
+    height: var(--tm-spacing-10);
+    background: var(--tm-color-primary);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Poppins', sans-serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+    box-shadow: var(--tm-shadow-md);
+}
+
+.step-icon {
+    color: var(--tm-color-primary);
+    margin-bottom: var(--tm-spacing-4);
+    margin-top: var(--tm-spacing-2);
+}
+
+.step-title {
+    font-family: 'Poppins', sans-serif;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--tm-color-text-primary);
+    margin-bottom: var(--tm-spacing-2);
+}
+
+.step-description {
+    color: var(--tm-color-text-secondary);
+    line-height: 1.6;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .steps-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: var(--tm-spacing-6);
+    }
+}
+
+@media (max-width: 768px) {
+    .steps-grid {
+        grid-template-columns: 1fr;
+        gap: var(--tm-spacing-8);
+    }
+
+    .section-title {
+        font-size: 2rem;
+    }
+
+    .step-card {
+        padding: var(--tm-spacing-6);
+    }
+}

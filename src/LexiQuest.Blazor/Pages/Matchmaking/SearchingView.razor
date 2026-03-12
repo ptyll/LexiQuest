@@ -1,0 +1,70 @@
+@using Tempo.Blazor.Components.Feedback
+@using Tempo.Blazor.Components.Avatars
+@using Tempo.Blazor.Components.Buttons
+@using Tempo.Blazor.Components.Layout
+@using Microsoft.Extensions.Localization
+
+<div class="searching-view">
+    <h1 class="matchmaking-title">@Localizer["Matchmaking_Title"]</h1>
+    
+    <div class="matchmaking-status">
+        <TmSpinner Size="SpinnerSize.Lg" Color="SpinnerColor.Primary" />
+        <p class="status-text">@Localizer["Matchmaking_Searching"]</p>
+    </div>
+    
+    <div class="players-preview">
+        <div class="player-avatar">
+            <TmAvatar Name="@Localizer["Matchmaking_You"]" Size="AvatarSize.Xl" Color="AvatarColor.Blue" />
+            <span class="player-label">@Localizer["Matchmaking_You"]</span>
+        </div>
+        
+        <div class="vs-container">
+            <span class="vs-text">@Localizer["Matchmaking_Vs"]</span>
+        </div>
+        
+        <div class="player-avatar opponent">
+            <TmAvatar Name="@Localizer["Matchmaking_QuestionMark"]" Size="AvatarSize.Xl" Color="AvatarColor.Gray" />
+            <span class="player-label">@Localizer["Matchmaking_Opponent"]</span>
+        </div>
+    </div>
+    
+    <div class="matchmaking-timer">
+        <span class="timer-text">@FormatTime(ElapsedSeconds)</span>
+        <TmProgressBar Indeterminate="true" Size="ProgressBarSize.Md" />
+    </div>
+    
+    <TmButton Variant="ButtonVariant.Ghost" OnClick="OnCancel">
+        @Localizer["Matchmaking_Cancel"]
+    </TmButton>
+    
+    <TmCard Class="rules-card">
+        <CardHeader>
+            <h3>@Localizer["Matchmaking_Rules_Title"]</h3>
+        </CardHeader>
+        <CardBody>
+            <ul class="rules-list">
+                <li>@Localizer["Matchmaking_Rules_1"]</li>
+                <li>@Localizer["Matchmaking_Rules_2"]</li>
+                <li>@Localizer["Matchmaking_Rules_3"]</li>
+            </ul>
+        </CardBody>
+    </TmCard>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public required IStringLocalizer<QuickMatch> Localizer { get; set; }
+    
+    [Parameter, EditorRequired]
+    public int ElapsedSeconds { get; set; }
+    
+    [Parameter, EditorRequired]
+    public EventCallback OnCancel { get; set; }
+    
+    private string FormatTime(int seconds)
+    {
+        var minutes = seconds / 60;
+        var secs = seconds % 60;
+        return $"{minutes:D2}:{secs:D2}";
+    }
+}

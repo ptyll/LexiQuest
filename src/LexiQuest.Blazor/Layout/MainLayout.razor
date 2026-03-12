@@ -3,6 +3,8 @@
 @inject NavigationManager Navigation
 
 <div class="@(ThemeService.IsDark ? "dark" : "")" data-theme="@ThemeService.ThemeName">
+    <OfflineBanner />
+
     <TmTopBar BrandTitle="LexiQuest"
               OnLogout="HandleLogout">
         <ActionsContent>
@@ -24,12 +26,15 @@
                    Collapsed="_sidebarCollapsed"
                    OnToggle="HandleSidebarToggle" />
 
-        <main class="app-content">
-            @Body
+        <main class="app-content page-transition">
+            <Microsoft.AspNetCore.Components.Web.ErrorBoundary @key="Navigation.Uri">
+                @Body
+            </Microsoft.AspNetCore.Components.Web.ErrorBoundary>
         </main>
     </div>
 
     <TmToastContainer Position="ToastPosition.TopRight" MaxVisible="5" />
+    <InstallPrompt />
 </div>
 
 @code {

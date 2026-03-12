@@ -1,0 +1,127 @@
+@using LexiQuest.Shared.DTOs.Shop
+@inject IStringLocalizer<ShopItemCard> L
+
+<TmCard Variant="CardVariant.Default" Class="@GetCardClass()">
+    <div class="shop-item-card">
+        @* Rarity border indicator *@
+        <div class="rarity-border" style="border-color: @Item.RarityColor"></div>
+        
+        @* Premium lock overlay *@
+        @if (Item.IsPremiumOnly && !IsOwned)
+        {
+            <div class="premium-overlay">
+                <TmBadge Variant="BadgeVariant.Warning" Icon="@IconNames.Lock">
+                    @L["Item_PremiumOnly"]
+                </TmBadge>
+            </div>
+        }
+        
+        @* Item image *@
+        <div class="item-image-container">
+            <img src="@Item.ImageUrl" alt="@Item.Name" class="item-image" />
+            @if (IsOwned)
+            {
+                <div class="owned-badge">
+                    <TmBadge Variant="BadgeVariant.Success" Icon="@IconNames.Check">
+                        @L["Item_Owned"]
+                    </TmBadge>
+                </div>
+            }
+        </div>
+        
+        @* Item details *@
+        <div class="item-details">
+            <h4 class="item-name">@Item.Name</h4>
+            <p class="item-description">@Item.Description</p>
+            
+            <div class="item-meta">
+                <TmBadge Variant="GetRarityBadgeVariant()">
+                    @Item.Rarity
+                </TmBadge>
+                
+                @if (Item.IsLimited)
+                {
+                    <TmBadge Variant="BadgeVariant.Warning" Icon="@IconNames.Clock">
+                        @L["Label_Limited"]
+                    </TmBadge>
+                }
+            </div>
+        </div>
+        
+        @* Action button *@
+        <div class="item-actions">
+            @if (IsOwned)
+            {
+                @if (IsEquipped)
+                {
+                    <TmButton Variant="ButtonVariant.Secondary" 
+                              Icon="@IconNames.Check"
+                              Disabled="true"
+                              Block="true">
+                        @L["Button_Equipped"]
+                    </TmButton>
+                }
+                else
+                {
+                    <TmButton Variant="ButtonVariant.Primary" 
+                              Icon="@IconNames.Star"
+                              OnClick="OnEquip"
+                              Block="true">
+                        @L["Button_Equip"]
+                    </TmButton>
+                }
+            }
+            else
+            {
+                <TmButton Variant="ButtonVariant.Primary" 
+                          Icon="@IconNames.Plus"
+                          OnClick="OnPurchase"
+                          Disabled="!Item.IsAvailable || (Item.IsPremiumOnly && !IsPremium)"
+                          Block="true">
+                        @Item.Price 🪙
+                </TmButton>
+            }
+        </div>
+    </div>
+</TmCard>
+
+@code {
+    [Parameter]
+    public ShopItemDto Item { get; set; } = default!;
+    
+    [Parameter]
+    public bool IsOwned { get; set; }
+    
+    [Parameter]
+    public bool IsEquipped { get; set; }
+    
+    [Parameter]
+    public bool IsPremium { get; set; }
+    
+    [Parameter]
+    public EventCallback OnPurchase { get; set; }
+    
+    [Parameter]
+    public EventCallback OnEquip { get; set; }
+
+    private string GetCardClass()
+    {
+        var classes = "shop-item-card-wrapper";
+        if (Item.IsPremiumOnly && !IsOwned)
+            classes += " premium-locked";
+        if (IsEquipped)
+            classes += " equipped";
+        return classes;
+    }
+
+    private BadgeVariant GetRarityBadgeVariant()
+    {
+        return Item.Rarity switch
+        {
+            "Legendary" => BadgeVariant.Warning,
+            "Epic" => BadgeVariant.Info,
+            "Rare" => BadgeVariant.Primary,
+            _ => BadgeVariant.Default
+        };
+    }
+}

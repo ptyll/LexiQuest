@@ -11,11 +11,13 @@ public class UsersController : ControllerBase
 {
     private readonly IUserService _userService;
     private readonly ILoginService _loginService;
+    private readonly IPasswordResetService _passwordResetService;
 
-    public UsersController(IUserService userService, ILoginService loginService)
+    public UsersController(IUserService userService, ILoginService loginService, IPasswordResetService passwordResetService)
     {
         _userService = userService;
         _loginService = loginService;
+        _passwordResetService = passwordResetService;
     }
 
     [HttpPost("register")]
@@ -83,5 +85,36 @@ public class UsersController : ControllerBase
         }
 
         return Ok(result.Value);
+    }
+
+    [HttpPost("password-reset/request")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> RequestPasswordReset(RequestPasswordResetDto request, CancellationToken cancellationToken)
+    {
+        var result = await _passwordResetService.RequestResetAsync(request, cancellationToken);
+        
+        // Vždy vracíme 200 OK, abychom neodhalili existenci emailu
+        return Ok();
+    }
+
+    [HttpPost("password-reset/confirm")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> ResetPassword(ResetPasswordDto request, CancellationToken cancellationToken)
+    {
+        var result = await _passwordResetService.ResetPasswordAsync(request, cancellationToken);
+
+        if (result.IsFailure)
+        {
+            return BadRequest(new ProblemDetails
+            {
+                Title = "Bad Request",
+                Detail = result.Error.Message,
+                Status = StatusCodes.Status400BadRequest
+            });
+        }
+
+        return Ok();
     }
 }

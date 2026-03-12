@@ -1,0 +1,240 @@
+/* AI Challenge Page */
+
+.ai-challenge-page {
+    padding: var(--tm-spacing-6);
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.page-header {
+    margin-bottom: var(--tm-spacing-6);
+}
+
+.page-header h1 {
+    font-size: 1.875rem;
+    font-weight: 700;
+    color: var(--tm-color-text-primary);
+    margin: 0 0 var(--tm-spacing-2);
+}
+
+.page-header p {
+    font-size: 1rem;
+    color: var(--tm-color-text-secondary);
+    margin: 0;
+}
+
+/* Loading State */
+
+.loading-state {
+    display: flex;
+    flex-direction: column;
+    gap: var(--tm-spacing-4);
+}
+
+/* Analysis Section */
+
+.analysis-section {
+    margin-bottom: var(--tm-spacing-8);
+}
+
+.analysis-section h2 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--tm-color-text-primary);
+    margin: 0 0 var(--tm-spacing-4);
+}
+
+.analysis-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: var(--tm-spacing-4);
+    margin-bottom: var(--tm-spacing-4);
+}
+
+.analysis-card-content {
+    padding: var(--tm-spacing-4);
+}
+
+.analysis-card-content h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--tm-color-text-primary);
+    margin: 0 0 var(--tm-spacing-3);
+}
+
+.empty-hint {
+    font-size: 0.875rem;
+    color: var(--tm-color-text-secondary);
+    margin: 0;
+}
+
+/* Weak Letters */
+
+.weak-letters-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--tm-spacing-3);
+}
+
+.weak-letter-item {
+    display: grid;
+    grid-template-columns: 2rem 1fr auto;
+    align-items: center;
+    gap: var(--tm-spacing-3);
+}
+
+.letter {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: var(--tm-radius-md);
+    background: var(--tm-color-primary-100);
+    color: var(--tm-color-primary-700);
+    font-weight: 700;
+    font-size: 0.875rem;
+}
+
+.error-rate {
+    font-size: 0.75rem;
+    color: var(--tm-color-text-secondary);
+    white-space: nowrap;
+}
+
+/* Category Performance */
+
+.category-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--tm-spacing-3);
+}
+
+.category-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.category-name {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--tm-color-text-primary);
+}
+
+.category-stats {
+    display: flex;
+    align-items: center;
+    gap: var(--tm-spacing-2);
+}
+
+.avg-time {
+    font-size: 0.75rem;
+    color: var(--tm-color-text-secondary);
+}
+
+/* Tips */
+
+.tips-card-content {
+    padding: var(--tm-spacing-4);
+}
+
+.tips-card-content h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--tm-color-text-primary);
+    margin: 0 0 var(--tm-spacing-3);
+}
+
+.tips-list {
+    margin: 0;
+    padding-left: var(--tm-spacing-4);
+    display: flex;
+    flex-direction: column;
+    gap: var(--tm-spacing-2);
+}
+
+.tips-list li {
+    font-size: 0.875rem;
+    color: var(--tm-color-text-secondary);
+    line-height: 1.5;
+}
+
+/* Challenges Section */
+
+.challenges-section {
+    margin-bottom: var(--tm-spacing-6);
+}
+
+.challenges-section h2 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--tm-color-text-primary);
+    margin: 0 0 var(--tm-spacing-4);
+}
+
+.challenges-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: var(--tm-spacing-4);
+}
+
+.challenge-card-content {
+    padding: var(--tm-spacing-4);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--tm-spacing-3);
+}
+
+.challenge-card-content h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--tm-color-text-primary);
+    margin: 0;
+}
+
+.challenge-card-content p {
+    font-size: 0.875rem;
+    color: var(--tm-color-text-secondary);
+    margin: 0;
+    flex-grow: 1;
+}
+
+/* Responsive */
+
+@media (max-width: 768px) {
+    .ai-challenge-page {
+        padding: var(--tm-spacing-4);
+    }
+
+    .analysis-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .challenges-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .ai-challenge-page {
+        padding: var(--tm-spacing-3);
+    }
+
+    .page-header h1 {
+        font-size: 1.5rem;
+    }
+
+    .challenges-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .weak-letter-item {
+        grid-template-columns: 2rem 1fr;
+    }
+
+    .error-rate {
+        grid-column: 2 / -1;
+    }
+}

@@ -4,6 +4,7 @@ using FluentAssertions;
 using LexiQuest.Api;
 using LexiQuest.Infrastructure.Persistence;
 using LexiQuest.Shared.DTOs.Auth;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -18,6 +19,13 @@ public class UsersControllerTests : IDisposable
     {
         _factory = new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
         {
+            builder.UseEnvironment("Test");
+            
+            // Set environment variables for JWT
+            Environment.SetEnvironmentVariable("JwtSettings__SecretKey", "Test-Secret-Key-That-Is-Long-Enough-For-HS256-Algorithm-!!", EnvironmentVariableTarget.Process);
+            Environment.SetEnvironmentVariable("JwtSettings__Issuer", "TestIssuer", EnvironmentVariableTarget.Process);
+            Environment.SetEnvironmentVariable("JwtSettings__Audience", "TestAudience", EnvironmentVariableTarget.Process);
+            
             builder.ConfigureServices((context, services) =>
             {
                 // Remove all EF Core related services
@@ -111,6 +119,13 @@ public class UsersControllerTests : IDisposable
         var dbName = $"TestDb_{Guid.NewGuid()}";
         var isolatedFactory = new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
         {
+            builder.UseEnvironment("Test");
+            
+            // Set environment variables for JWT
+            Environment.SetEnvironmentVariable("JwtSettings__SecretKey", "Test-Secret-Key-That-Is-Long-Enough-For-HS256-Algorithm-!!", EnvironmentVariableTarget.Process);
+            Environment.SetEnvironmentVariable("JwtSettings__Issuer", "TestIssuer", EnvironmentVariableTarget.Process);
+            Environment.SetEnvironmentVariable("JwtSettings__Audience", "TestAudience", EnvironmentVariableTarget.Process);
+            
             builder.ConfigureServices((context, services) =>
             {
                 // Remove all EF Core related services

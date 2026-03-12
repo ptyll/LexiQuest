@@ -1,68 +1,255 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
-  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
-    <xsd:element name="root" msdata:IsDataSet="true">
-      <xsd:complexType>
-        <xsd:choice maxOccurs="unbounded">
-          <xsd:element name="data">
-            <xsd:complexType>
-              <xsd:sequence>
-                <xsd:element name="value" minOccurs="0" msdata:Ordinal="1" />
-              </xsd:sequence>
-              <xsd:attribute name="name" type="xsd:string" msdata:Ordinal="0" />
-              <xsd:attribute name="xml:space" type="xsd:string" />
-            </xsd:complexType>
-          </xsd:element>
-          <xsd:element name="resheader">
-            <xsd:complexType>
-              <xsd:sequence>
-                <xsd:element name="value" minOccurs="0" msdata:Ordinal="1" />
-              </xsd:sequence>
-              <xsd:attribute name="name" type="xsd:string" use="required" />
-            </xsd:complexType>
-          </xsd:element>
-        </xsd:choice>
-      </xsd:complexType>
-    </xsd:element>
-  </xsd:schema>
-  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
-  <resheader name="version"><value>2.0</value></resheader>
-  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
-  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
-  <data name="Title" xml:space="preserve">
+  <data name="Page_Title" xml:space="preserve">
     <value>Multiplayer</value>
   </data>
-  <data name="Mode.Duel" xml:space="preserve">
-    <value>1v1 Duel</value>
+  <data name="QuickMatch_Title" xml:space="preserve">
+    <value>⚔️ 1v1 Souboj</value>
   </data>
-  <data name="Mode.Team" xml:space="preserve">
-    <value>Týmová hra</value>
+  <data name="QuickMatch_Description" xml:space="preserve">
+    <value>Náhodný soupeř, plné XP + liga body</value>
   </data>
-  <data name="Mode.Room" xml:space="preserve">
-    <value>Soukromá místnost</value>
+  <data name="QuickMatch_Button" xml:space="preserve">
+    <value>Rychlý zápas</value>
   </data>
-  <data name="Matchmaking" xml:space="preserve">
-    <value>Hledám soupeře...</value>
+  <data name="QuickMatch_LeagueXP" xml:space="preserve">
+    <value>Liga XP ✓</value>
   </data>
-  <data name="Opponent" xml:space="preserve">
-    <value>Soupeř</value>
+  <data name="PrivateRoom_Title" xml:space="preserve">
+    <value>🏠 Soukromá místnost</value>
   </data>
-  <data name="Result.Win" xml:space="preserve">
-    <value>Výhra!</value>
+  <data name="PrivateRoom_Description" xml:space="preserve">
+    <value>Pozvi kamaráda, vlastní pravidla</value>
   </data>
-  <data name="Result.Loss" xml:space="preserve">
-    <value>Prohra</value>
-  </data>
-  <data name="Result.Draw" xml:space="preserve">
-    <value>Remíza</value>
-  </data>
-  <data name="Room.Create" xml:space="preserve">
+  <data name="PrivateRoom_CreateButton" xml:space="preserve">
     <value>Vytvořit místnost</value>
   </data>
-  <data name="Room.Join" xml:space="preserve">
+  <data name="PrivateRoom_JoinButton" xml:space="preserve">
     <value>Připojit se</value>
   </data>
-  <data name="Room.Code" xml:space="preserve">
+  <data name="PrivateRoom_NoLeagueXP" xml:space="preserve">
+    <value>Bez liga XP</value>
+  </data>
+  <data name="MatchHistory_Link" xml:space="preserve">
+    <value>Historie zápasů</value>
+  </data>
+  <data name="Room_Create_Title" xml:space="preserve">
+    <value>Vytvořit soukromou místnost</value>
+  </data>
+  <data name="Room_Settings_Title" xml:space="preserve">
+    <value>Nastavení hry</value>
+  </data>
+  <data name="Room_Settings_WordCount" xml:space="preserve">
+    <value>Počet slov</value>
+  </data>
+  <data name="Room_Settings_TimeLimit" xml:space="preserve">
+    <value>Časový limit</value>
+  </data>
+  <data name="Room_Settings_Difficulty" xml:space="preserve">
+    <value>Obtížnost</value>
+  </data>
+  <data name="Room_Settings_BestOf" xml:space="preserve">
+    <value>Best of</value>
+  </data>
+  <data name="Room_Code_Label" xml:space="preserve">
     <value>Kód místnosti</value>
+  </data>
+  <data name="Room_Code_CopySuccess" xml:space="preserve">
+    <value>Kód zkopírován!</value>
+  </data>
+  <data name="Room_Code_ShareText" xml:space="preserve">
+    <value>Připoj se do mé místnosti: {0}</value>
+  </data>
+  <data name="Room_Lobby_Title" xml:space="preserve">
+    <value>Lobby</value>
+  </data>
+  <data name="Room_Lobby_WaitingForOpponent" xml:space="preserve">
+    <value>Čekání na soupeře...</value>
+  </data>
+  <data name="Room_Lobby_OpponentJoined" xml:space="preserve">
+    <value>Soupeř se připojil!</value>
+  </data>
+  <data name="Room_Lobby_Ready" xml:space="preserve">
+    <value>Připraven ✓</value>
+  </data>
+  <data name="Room_Lobby_NotReady" xml:space="preserve">
+    <value>Čeká...</value>
+  </data>
+  <data name="Room_Lobby_BothReady" xml:space="preserve">
+    <value>Obě hráči připraveni!</value>
+  </data>
+  <data name="Room_Lobby_ReadyButton" xml:space="preserve">
+    <value>Jsem připraven!</value>
+  </data>
+  <data name="Room_Lobby_CancelReadyButton" xml:space="preserve">
+    <value>Zrušit připravení</value>
+  </data>
+  <data name="Room_Lobby_Chat_Placeholder" xml:space="preserve">
+    <value>Napište zprávu...</value>
+  </data>
+  <data name="Room_Lobby_Chat_Send" xml:space="preserve">
+    <value>Odeslat</value>
+  </data>
+  <data name="Room_Expired" xml:space="preserve">
+    <value>Místnost vypršela</value>
+  </data>
+  <data name="Room_Full" xml:space="preserve">
+    <value>Místnost je plná</value>
+  </data>
+  <data name="Room_NotFound" xml:space="preserve">
+    <value>Místnost nenalezena</value>
+  </data>
+  <data name="Room_InvalidCode" xml:space="preserve">
+    <value>Neplatný kód místnosti</value>
+  </data>
+  <data name="Room_Series_Score" xml:space="preserve">
+    <value>Série: {0}:{1}</value>
+  </data>
+  <data name="Room_Series_GameOf" xml:space="preserve">
+    <value>Hra {0} z {1}</value>
+  </data>
+  <data name="Room_Rematch_Request" xml:space="preserve">
+    <value>Chci odvetu!</value>
+  </data>
+  <data name="Room_Rematch_Accept" xml:space="preserve">
+    <value>Přijmout</value>
+  </data>
+  <data name="Room_Rematch_Decline" xml:space="preserve">
+    <value>Odmítnout</value>
+  </data>
+  <data name="Room_Leave_Confirm" xml:space="preserve">
+    <value>Opravdu chcete opustit místnost?</value>
+  </data>
+  <data name="Room_NoLeagueXP_Info" xml:space="preserve">
+    <value>Soukromé místnosti nedávají liga XP (prevence farmení)</value>
+  </data>
+  <data name="Matchmaking_Searching" xml:space="preserve">
+    <value>Hledání soupeře...</value>
+  </data>
+  <data name="Matchmaking_Cancel" xml:space="preserve">
+    <value>Zrušit hledání</value>
+  </data>
+  <data name="Matchmaking_MatchFound" xml:space="preserve">
+    <value>Soupeř nalezen!</value>
+  </data>
+  <data name="Matchmaking_StartingIn" xml:space="preserve">
+    <value>Začínáme za...</value>
+  </data>
+  <data name="Matchmaking_Timeout" xml:space="preserve">
+    <value>Soupeř nenalezen</value>
+  </data>
+  <data name="Matchmaking_Retry" xml:space="preserve">
+    <value>Zkusit znovu</value>
+  </data>
+  <data name="Validation_RoomCode_Required" xml:space="preserve">
+    <value>Kód místnosti je povinný</value>
+  </data>
+  <data name="Validation_RoomCode_InvalidFormat" xml:space="preserve">
+    <value>Kód musí být ve formátu LEXIQ-XXXX</value>
+  </data>
+  <data name="MatchHistory_Title" xml:space="preserve">
+    <value>Historie zápasů</value>
+  </data>
+  <data name="MatchHistory_Empty" xml:space="preserve">
+    <value>Zatím žádné zápasy</value>
+  </data>
+  <data name="MatchHistory_Empty_Description" xml:space="preserve">
+    <value>Zahraj si svůj první multiplayer zápas!</value>
+  </data>
+  <data name="MatchHistory_Tab_All" xml:space="preserve">
+    <value>Vše</value>
+  </data>
+  <data name="MatchHistory_Tab_QuickMatch" xml:space="preserve">
+    <value>⚔️ Quick Match</value>
+  </data>
+  <data name="MatchHistory_Tab_PrivateRoom" xml:space="preserve">
+    <value>🏠 Private Room</value>
+  </data>
+  <data name="MatchHistory_Stats_Played" xml:space="preserve">
+    <value>Odehráno</value>
+  </data>
+  <data name="MatchHistory_Stats_Wins" xml:space="preserve">
+    <value>Výhry</value>
+  </data>
+  <data name="MatchHistory_Stats_Losses" xml:space="preserve">
+    <value>Prohry</value>
+  </data>
+  <data name="MatchHistory_Stats_WinRate" xml:space="preserve">
+    <value>Win Rate</value>
+  </data>
+  <data name="MatchHistory_Result_Win" xml:space="preserve">
+    <value>Výhra</value>
+  </data>
+  <data name="MatchHistory_Result_Loss" xml:space="preserve">
+    <value>Prohra</value>
+  </data>
+  <data name="MatchHistory_Result_Draw" xml:space="preserve">
+    <value>Remíza</value>
+  </data>
+  <data name="MatchHistory_Today" xml:space="preserve">
+    <value>Dnes</value>
+  </data>
+  <data name="MatchHistory_Yesterday" xml:space="preserve">
+    <value>Včera</value>
+  </data>
+  <data name="MatchHistory_ThisWeek" xml:space="preserve">
+    <value>Tento týden</value>
+  </data>
+  <data name="MatchHistory_Older" xml:space="preserve">
+    <value>Starší</value>
+  </data>
+  <data name="MatchHistory_Type_Quick" xml:space="preserve">
+    <value>⚔️ Quick</value>
+  </data>
+  <data name="MatchHistory_Type_Private" xml:space="preserve">
+    <value>🏠 Private</value>
+  </data>
+  <data name="MatchHistory_Duration" xml:space="preserve">
+    <value>Délka</value>
+  </data>
+  <data name="MatchHistory_XP" xml:space="preserve">
+    <value>XP</value>
+  </data>
+  <data name="MatchHistory_Back" xml:space="preserve">
+    <value>Zpět</value>
+  </data>
+  <data name="Room_Join_Title" xml:space="preserve">
+    <value>Připojit se do místnosti</value>
+  </data>
+  <data name="Room_Code_Placeholder" xml:space="preserve">
+    <value>LEXIQ-XXXX</value>
+  </data>
+  <data name="Button_Join" xml:space="preserve">
+    <value>Připojit se</value>
+  </data>
+  <data name="Button_Create" xml:space="preserve">
+    <value>Vytvořit</value>
+  </data>
+  <data name="Button_Cancel" xml:space="preserve">
+    <value>Zrušit</value>
+  </data>
+  <data name="Difficulty_Beginner" xml:space="preserve">
+    <value>Beginner 🌱</value>
+  </data>
+  <data name="Difficulty_Intermediate" xml:space="preserve">
+    <value>Intermediate 🌿</value>
+  </data>
+  <data name="Difficulty_Advanced" xml:space="preserve">
+    <value>Advanced 🌳</value>
+  </data>
+  <data name="Difficulty_Expert" xml:space="preserve">
+    <value>Expert 🔥</value>
+  </data>
+  <data name="Difficulty_Mix" xml:space="preserve">
+    <value>Mix (všechny)</value>
+  </data>
+  <data name="Validation_WordCount_Invalid" xml:space="preserve">
+    <value>Počet slov musí být 10, 15 nebo 20</value>
+  </data>
+  <data name="Validation_TimeLimit_Invalid" xml:space="preserve">
+    <value>Časový limit musí být 2, 3 nebo 5 minut</value>
+  </data>
+  <data name="Validation_BestOf_Invalid" xml:space="preserve">
+    <value>Best of musí být 1, 3 nebo 5</value>
   </data>
 </root>

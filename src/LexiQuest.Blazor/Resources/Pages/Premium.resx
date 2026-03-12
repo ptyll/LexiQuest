@@ -1,62 +1,147 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
-  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
-    <xsd:element name="root" msdata:IsDataSet="true">
-      <xsd:complexType>
-        <xsd:choice maxOccurs="unbounded">
-          <xsd:element name="data">
-            <xsd:complexType>
-              <xsd:sequence>
-                <xsd:element name="value" minOccurs="0" msdata:Ordinal="1" />
-              </xsd:sequence>
-              <xsd:attribute name="name" type="xsd:string" msdata:Ordinal="0" />
-              <xsd:attribute name="xml:space" type="xsd:string" />
-            </xsd:complexType>
-          </xsd:element>
-          <xsd:element name="resheader">
-            <xsd:complexType>
-              <xsd:sequence>
-                <xsd:element name="value" minOccurs="0" msdata:Ordinal="1" />
-              </xsd:sequence>
-              <xsd:attribute name="name" type="xsd:string" use="required" />
-            </xsd:complexType>
-          </xsd:element>
-        </xsd:choice>
-      </xsd:complexType>
-    </xsd:element>
-  </xsd:schema>
-  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
-  <resheader name="version"><value>2.0</value></resheader>
-  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
-  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
   <data name="Title" xml:space="preserve">
-    <value>Premium</value>
+    <value>LexiQuest Premium</value>
   </data>
   <data name="Subtitle" xml:space="preserve">
-    <value>Odemkni plný potenciál!</value>
+    <value>Získejte exkluzivní výhody a podpořte vývoj hry</value>
   </data>
-  <data name="Feature.NoAds" xml:space="preserve">
-    <value>Bez reklam</value>
+  <data name="Status_Active" xml:space="preserve">
+    <value>Aktivní Premium</value>
   </data>
-  <data name="Feature.StreakShield" xml:space="preserve">
-    <value>Streak Shield</value>
-  </data>
-  <data name="Feature.StreakFreeze" xml:space="preserve">
-    <value>Streak Freeze</value>
-  </data>
-  <data name="Feature.CustomDict" xml:space="preserve">
-    <value>Vlastní slovníky</value>
-  </data>
-  <data name="Feature.ExclusivePaths" xml:space="preserve">
-    <value>Exkluzivní cesty</value>
-  </data>
-  <data name="Button.Subscribe" xml:space="preserve">
-    <value>Předplatit</value>
-  </data>
-  <data name="Price.Monthly" xml:space="preserve">
+  <data name="Plan_Monthly" xml:space="preserve">
     <value>Měsíční</value>
   </data>
-  <data name="Price.Yearly" xml:space="preserve">
+  <data name="Plan_Yearly" xml:space="preserve">
     <value>Roční</value>
+  </data>
+  <data name="Plan_Lifetime" xml:space="preserve">
+    <value>Doživotní</value>
+  </data>
+  <data name="Section_GameFeatures" xml:space="preserve">
+    <value>Herní výhody</value>
+  </data>
+  <data name="Section_Analytics" xml:space="preserve">
+    <value>Analytika</value>
+  </data>
+  <data name="Section_Personalization" xml:space="preserve">
+    <value>Personalizace</value>
+  </data>
+  <data name="Section_Multiplayer" xml:space="preserve">
+    <value>Multiplayer</value>
+  </data>
+  <data name="Feature_NoAds" xml:space="preserve">
+    <value>Žádné reklamy</value>
+  </data>
+  <data name="Feature_StreakFreeze" xml:space="preserve">
+    <value>Streak Freeze - ochrana streaku</value>
+  </data>
+  <data name="Feature_StreakShield" xml:space="preserve">
+    <value>Streak Shield - štít pro streak</value>
+  </data>
+  <data name="Feature_DoubleXP" xml:space="preserve">
+    <value>2x XP o víkendech</value>
+  </data>
+  <data name="Feature_ExclusivePaths" xml:space="preserve">
+    <value>Exkluzivní prémiové cesty</value>
+  </data>
+  <data name="Feature_CustomDictionaries" xml:space="preserve">
+    <value>Vlastní slovníky</value>
+  </data>
+  <data name="Feature_DetailedStats" xml:space="preserve">
+    <value>Detailní statistiky</value>
+  </data>
+  <data name="Feature_ExportData" xml:space="preserve">
+    <value>Export dat (CSV/JSON)</value>
+  </data>
+  <data name="Feature_History" xml:space="preserve">
+    <value>Historie pokroku</value>
+  </data>
+  <data name="Feature_Comparison" xml:space="preserve">
+    <value>Porovnání s přáteli</value>
+  </data>
+  <data name="Feature_CustomAvatar" xml:space="preserve">
+    <value>Vlastní avatar</value>
+  </data>
+  <data name="Feature_ExclusiveAvatars" xml:space="preserve">
+    <value>Exkluzivní avatary</value>
+  </data>
+  <data name="Feature_Themes" xml:space="preserve">
+    <value>Prémiová témata</value>
+  </data>
+  <data name="Feature_Frames" xml:space="preserve">
+    <value>Exkluzivní rámečky</value>
+  </data>
+  <data name="Feature_DiamondLeague" xml:space="preserve">
+    <value>Diamantová liga</value>
+  </data>
+  <data name="Feature_Tournaments" xml:space="preserve">
+    <value>Turnaje</value>
+  </data>
+  <data name="Feature_TeamCreation" xml:space="preserve">
+    <value>Vytváření týmů</value>
+  </data>
+  <data name="ChoosePlan" xml:space="preserve">
+    <value>Vyberte svůj plán</value>
+  </data>
+  <data name="Tab_Monthly" xml:space="preserve">
+    <value>Měsíční</value>
+  </data>
+  <data name="Tab_Yearly" xml:space="preserve">
+    <value>Roční</value>
+  </data>
+  <data name="Tab_Lifetime" xml:space="preserve">
+    <value>Doživotní</value>
+  </data>
+  <data name="BestValue" xml:space="preserve">
+    <value>NEJLEPŠÍ HODNOTA</value>
+  </data>
+  <data name="Period_Month" xml:space="preserve">
+    <value>měsíc</value>
+  </data>
+  <data name="Period_Year" xml:space="preserve">
+    <value>rok</value>
+  </data>
+  <data name="Period_Onetime" xml:space="preserve">
+    <value>jednorázově</value>
+  </data>
+  <data name="Save25Percent" xml:space="preserve">
+    <value>Ušetříte 25%</value>
+  </data>
+  <data name="Feature_AllPremium" xml:space="preserve">
+    <value>Všechny prémiové funkce</value>
+  </data>
+  <data name="Feature_MonthlyBilling" xml:space="preserve">
+    <value>Měsíční fakturace</value>
+  </data>
+  <data name="Feature_CancelAnytime" xml:space="preserve">
+    <value>Zrušení kdykoliv</value>
+  </data>
+  <data name="Feature_SaveMoney" xml:space="preserve">
+    <value>Ušetříte oproti měsíčnímu</value>
+  </data>
+  <data name="Feature_PrioritySupport" xml:space="preserve">
+    <value>Prioritní podpora</value>
+  </data>
+  <data name="Feature_Forever" xml:space="preserve">
+    <value>Platí navždy</value>
+  </data>
+  <data name="Feature_FutureUpdates" xml:space="preserve">
+    <value>Všechny budoucí aktualizace</value>
+  </data>
+  <data name="Button_Subscribe" xml:space="preserve">
+    <value>Předplatit</value>
+  </data>
+  <data name="Button_Buy" xml:space="preserve">
+    <value>Koupit</value>
+  </data>
+  <data name="Button_Current" xml:space="preserve">
+    <value>Aktuální plán</value>
+  </data>
+  <data name="SecurePayment" xml:space="preserve">
+    <value>Bezpečná platba přes Stripe</value>
+  </data>
+  <data name="CancelAnytime" xml:space="preserve">
+    <value>Zrušení kdykoliv, žádné závazky</value>
   </data>
 </root>

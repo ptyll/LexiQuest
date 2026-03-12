@@ -1,0 +1,36 @@
+@using Tempo.Blazor.Components.Buttons
+@using Tempo.Blazor.Components.Icons
+@using Tempo.Blazor.Components.Feedback
+@using Microsoft.Extensions.Localization
+
+<div class="error-view">
+    <TmAlert Severity="AlertSeverity.Error">
+        @ErrorMessage
+    </TmAlert>
+    
+    <div class="error-actions">
+        <TmButton Variant="ButtonVariant.Primary" OnClick="OnRetry">
+            <TmIcon Name="refresh" />
+            @Localizer["Matchmaking_Retry"]
+        </TmButton>
+        
+        <TmButton Variant="ButtonVariant.Ghost" OnClick="OnBack">
+            <TmIcon Name="arrow-back" />
+            @Localizer["Matchmaking_Back"]
+        </TmButton>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public required IStringLocalizer<QuickMatch> Localizer { get; set; }
+    
+    [Parameter, EditorRequired]
+    public string ErrorMessage { get; set; } = string.Empty;
+    
+    [Parameter, EditorRequired]
+    public EventCallback OnRetry { get; set; }
+    
+    [Parameter, EditorRequired]
+    public EventCallback OnBack { get; set; }
+}

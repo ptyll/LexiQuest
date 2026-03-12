@@ -1,0 +1,146 @@
+@page "/multiplayer"
+@inject IStringLocalizer<Multiplayer> Localizer
+@inject NavigationManager NavigationManager
+@inject IMatchHubClient MatchHubClient
+
+<div class="multiplayer-page">
+    <div class="page-header">
+        <h1 class="page-title">@Localizer["Page_Title"]</h1>
+        <p class="page-subtitle">Vyber si režim hry</p>
+    </div>
+
+    <div class="game-modes">
+        <!-- Quick Match Card -->
+        <div class="game-mode-card quick-match-card">
+            <div class="card-icon">⚔️</div>
+            <h2 class="card-title">@Localizer["QuickMatch_Title"]</h2>
+            <p class="card-description">@Localizer["QuickMatch_Description"]</p>
+            
+            <div class="card-badges">
+                <TmBadge Variant="BadgeVariant.Success" Size="BadgeSize.Md">
+                    @Localizer["QuickMatch_LeagueXP"]
+                </TmBadge>
+            </div>
+
+            <div class="card-rules">
+                <div class="rule">
+                    <TmIcon Name="check" Size="IconSize.Sm" Color="IconColor.Success" />
+                    <span>15 slov</span>
+                </div>
+                <div class="rule">
+                    <TmIcon Name="check" Size="IconSize.Sm" Color="IconColor.Success" />
+                    <span>3 minuty</span>
+                </div>
+                <div class="rule">
+                    <TmIcon Name="check" Size="IconSize.Sm" Color="IconColor.Success" />
+                    <span>Automatický matchmaking</span>
+                </div>
+            </div>
+
+            <TmButton 
+                Variant="ButtonVariant.Primary" 
+                Size="ButtonSize.Lg" 
+                Block="true"
+                Class="quick-match-button"
+                OnClick="StartQuickMatch">
+                @Localizer["QuickMatch_Button"]
+            </TmButton>
+        </div>
+
+        <!-- Private Room Card -->
+        <div class="game-mode-card private-room-card">
+            <div class="card-icon">🏠</div>
+            <h2 class="card-title">@Localizer["PrivateRoom_Title"]</h2>
+            <p class="card-description">@Localizer["PrivateRoom_Description"]</p>
+            
+            <div class="card-badges">
+                <TmBadge Variant="BadgeVariant.Warning" Size="BadgeSize.Md">
+                    @Localizer["PrivateRoom_NoLeagueXP"]
+                </TmBadge>
+            </div>
+
+            <div class="private-room-actions">
+                <TmButton 
+                    Variant="ButtonVariant.Primary" 
+                    Size="ButtonSize.Lg" 
+                    Block="true"
+                    Class="create-room-button"
+                    OnClick="ShowCreateRoomModal">
+                    @Localizer["PrivateRoom_CreateButton"]
+                </TmButton>
+                <TmButton 
+                    Variant="ButtonVariant.Outline" 
+                    Size="ButtonSize.Lg" 
+                    Block="true"
+                    Class="join-room-button"
+                    OnClick="ShowJoinRoomModal">
+                    @Localizer["PrivateRoom_JoinButton"]
+                </TmButton>
+            </div>
+        </div>
+    </div>
+
+    <!-- Match History Link -->
+    <div class="history-section">
+        <TmButton 
+            Variant="ButtonVariant.Ghost" 
+            Size="ButtonSize.Md"
+            Class="history-link"
+            OnClick="GoToHistory">
+            📊 @Localizer["MatchHistory_Link"]
+        </TmButton>
+    </div>
+</div>
+
+<!-- Create Room Modal -->
+<CreateRoomModal 
+    IsVisible="_showCreateRoomModal"
+    OnClose="() => _showCreateRoomModal = false"
+    OnCreate="CreateRoom" />
+
+<!-- Join Room Modal -->
+<JoinRoomModal 
+    IsVisible="_showJoinRoomModal"
+    OnClose="() => _showJoinRoomModal = false"
+    OnJoin="JoinRoom" />
+
+@code {
+    private bool _showCreateRoomModal = false;
+    private bool _showJoinRoomModal = false;
+
+    private void StartQuickMatch()
+    {
+        NavigationManager.NavigateTo("/multiplayer/quick-match");
+    }
+
+    private void ShowCreateRoomModal()
+    {
+        _showCreateRoomModal = true;
+    }
+
+    private void ShowJoinRoomModal()
+    {
+        _showJoinRoomModal = true;
+    }
+
+    private void GoToHistory()
+    {
+        NavigationManager.NavigateTo("/multiplayer/history");
+    }
+
+    private async Task CreateRoom(RoomSettingsDto settings)
+    {
+        _showCreateRoomModal = false;
+        await MatchHubClient.StartAsync();
+        await MatchHubClient.CreateRoomAsync(settings);
+        NavigationManager.NavigateTo("/multiplayer/room");
+    }
+
+    private async Task JoinRoom(string roomCode)
+    {
+        _showJoinRoomModal = false;
+        await MatchHubClient.StartAsync();
+        await MatchHubClient.JoinRoomAsync(roomCode);
+        NavigationManager.NavigateTo("/multiplayer/room");
+    }
+}

@@ -1,0 +1,37 @@
+@inject IStringLocalizer<MatchResult> Localizer
+
+<div class="player-card @(IsWinner ? "winner" : "")">
+    <TmAvatar 
+        Name="@Player.Username"
+        Src="@Player.Avatar"
+        Size="AvatarSize.Xxl"
+        Color="@GetAvatarColor()" />
+    
+    <div class="player-info">
+        <span class="player-name">@Player.Username</span>
+        @if (IsWinner)
+        {
+            <span class="winner-badge">🏆</span>
+        }
+    </div>
+
+    <div class="player-stats">
+        <div class="stat">
+            <span class="stat-value">@Player.CorrectCount</span>
+            <span class="stat-label">@Localizer["Score_Correct"]</span>
+        </div>
+        <div class="stat">
+            <span class="stat-value">@FormatTime(Player.TotalTime)</span>
+            <span class="stat-label">Čas</span>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public PlayerMatchResult Player { get; set; } = null!;
+    [Parameter] public bool IsWinner { get; set; }
+
+    private AvatarColor GetAvatarColor() => IsWinner ? AvatarColor.Green : AvatarColor.Gray;
+
+    private static string FormatTime(TimeSpan time) => $"{time.Minutes:D2}:{time.Seconds:D2}";
+}

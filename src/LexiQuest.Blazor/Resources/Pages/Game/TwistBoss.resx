@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="TwistBoss_Title" xml:space="preserve">
+    <value>Twist Boss</value>
+  </data>
+  <data name="TwistBoss_Subtitle" xml:space="preserve">
+    <value>12 slov, postupné odhalování, bonus za rychlost</value>
+  </data>
+  <data name="TwistBoss_Level" xml:space="preserve">
+    <value>Boss Level</value>
+  </data>
+  <data name="TwistBoss_Progress" xml:space="preserve">
+    <value>Postup</value>
+  </data>
+  <data name="TwistBoss_RevealedLetters" xml:space="preserve">
+    <value>Odhalená písmena</value>
+  </data>
+  <data name="TwistBoss_NextReveal" xml:space="preserve">
+    <value>Další odhalení</value>
+  </data>
+  <data name="TwistBoss_BonusTable" xml:space="preserve">
+    <value>Bonus za odhad před časem</value>
+  </data>
+  <data name="TwistBoss_Letters" xml:space="preserve">
+    <value>písmena</value>
+  </data>
+  <data name="TwistBoss_EarlyGuessBonus" xml:space="preserve">
+    <value>Bonus za rychlý odhad!</value>
+  </data>
+  <data name="TwistBoss_UnscrambleHint" xml:space="preserve">
+    <value>Doplň chybějící písmena</value>
+  </data>
+  <data name="TwistBoss_AnswerLabel" xml:space="preserve">
+    <value>Vaše odpověď</value>
+  </data>
+  <data name="TwistBoss_AnswerPlaceholder" xml:space="preserve">
+    <value>Zadejte celé slovo...</value>
+  </data>
+  <data name="TwistBoss_Submit" xml:space="preserve">
+    <value>Odeslat odpověď</value>
+  </data>
+  <data name="TwistBoss_Victory" xml:space="preserve">
+    <value>Vítězství!</value>
+  </data>
+  <data name="TwistBoss_Congratulations" xml:space="preserve">
+    <value>Úžasné!</value>
+  </data>
+  <data name="TwistBoss_VictoryMessage" xml:space="preserve">
+    <value>Porazil jsi Twist Bosta! Tvá rychlost a intuice jsou fenomenální.</value>
+  </data>
+  <data name="TwistBoss_TotalEarned" xml:space="preserve">
+    <value>Celkem získáno</value>
+  </data>
+  <data name="TwistBoss_Defeat" xml:space="preserve">
+    <value>Prohra</value>
+  </data>
+  <data name="TwistBoss_GameOver" xml:space="preserve">
+    <value>Konec hry</value>
+  </data>
+  <data name="TwistBoss_DefeatMessage" xml:space="preserve">
+    <value>Čas tě dostihl. Příště buď rychlejší!</value>
+  </data>
+  <data name="TwistBoss_TryAgain" xml:space="preserve">
+    <value>Zkusit znovu</value>
+  </data>
+  <data name="TwistBoss_BackToDashboard" xml:space="preserve">
+    <value>Zpět na dashboard</value>
+  </data>
+</root>

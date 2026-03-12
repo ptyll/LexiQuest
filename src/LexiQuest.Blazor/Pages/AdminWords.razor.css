@@ -1,0 +1,126 @@
+.admin-words-page {
+    padding: var(--tm-spacing-6);
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.admin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: var(--tm-spacing-6);
+}
+
+.header-left h1 {
+    font-size: 1.875rem;
+    font-weight: 700;
+    color: var(--tm-color-text-primary);
+    margin: 0 0 var(--tm-spacing-2);
+}
+
+.header-left p {
+    font-size: 1rem;
+    color: var(--tm-color-text-secondary);
+    margin: 0;
+}
+
+.search-bar {
+    margin-bottom: var(--tm-spacing-4);
+    max-width: 400px;
+}
+
+.table-container {
+    overflow-x: auto;
+    border: 1px solid var(--tm-color-border);
+    border-radius: var(--tm-radius-md);
+    background: var(--tm-color-surface);
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.data-table thead {
+    background: var(--tm-color-surface-secondary);
+}
+
+.data-table th {
+    padding: var(--tm-spacing-3) var(--tm-spacing-4);
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: var(--tm-color-text-secondary);
+    border-bottom: 1px solid var(--tm-color-border);
+}
+
+.data-table td {
+    padding: var(--tm-spacing-3) var(--tm-spacing-4);
+    font-size: 0.875rem;
+    color: var(--tm-color-text-primary);
+    border-bottom: 1px solid var(--tm-color-border);
+}
+
+.data-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.data-table tbody tr:hover {
+    background: var(--tm-color-surface-hover);
+}
+
+.word-cell {
+    font-weight: 500;
+}
+
+.pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--tm-spacing-3);
+    margin-top: var(--tm-spacing-4);
+    padding: var(--tm-spacing-3) 0;
+}
+
+.page-info {
+    font-size: 0.875rem;
+    color: var(--tm-color-text-secondary);
+}
+
+.modal-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--tm-spacing-4);
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--tm-spacing-3);
+    margin-top: var(--tm-spacing-2);
+}
+
+@media (max-width: 768px) {
+    .admin-words-page {
+        padding: var(--tm-spacing-4);
+    }
+
+    .admin-header {
+        flex-direction: column;
+        gap: var(--tm-spacing-3);
+    }
+
+    .search-bar {
+        max-width: 100%;
+    }
+
+    .header-left h1 {
+        font-size: 1.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .admin-words-page {
+        padding: var(--tm-spacing-3);
+    }
+}

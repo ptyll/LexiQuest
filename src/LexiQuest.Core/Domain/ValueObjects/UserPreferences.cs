@@ -2,10 +2,16 @@ namespace LexiQuest.Core.Domain.ValueObjects;
 
 public class UserPreferences
 {
-    public string Theme { get; private set; } = "light";
-    public string Language { get; private set; } = "cs";
-    public bool AnimationsEnabled { get; private set; } = true;
-    public bool SoundsEnabled { get; private set; } = true;
+    public string Theme { get; set; } = "light";
+    public string Language { get; set; } = "cs";
+    public bool AnimationsEnabled { get; set; } = true;
+    public bool SoundsEnabled { get; set; } = true;
+    public TimeSpan? StreakReminderTime { get; set; }
+    public bool PushNotificationsEnabled { get; set; } = true;
+    public bool EmailNotificationsEnabled { get; set; } = true;
+    public bool LeagueUpdatesEnabled { get; set; } = true;
+    public bool AchievementNotificationsEnabled { get; set; } = true;
+    public bool DailyChallengeReminderEnabled { get; set; } = true;
 
     private UserPreferences() { }
 
@@ -16,12 +22,12 @@ public class UserPreferences
             Theme = "light",
             Language = "cs",
             AnimationsEnabled = true,
-            SoundsEnabled = true
+            SoundsEnabled = true,
+            PushNotificationsEnabled = true,
+            EmailNotificationsEnabled = true,
+            LeagueUpdatesEnabled = true,
+            AchievementNotificationsEnabled = true,
+            DailyChallengeReminderEnabled = true
         };
     }
-
-    public void SetTheme(string theme) => Theme = theme;
-    public void SetLanguage(string language) => Language = language;
-    public void SetAnimationsEnabled(bool enabled) => AnimationsEnabled = enabled;
-    public void SetSoundsEnabled(bool enabled) => SoundsEnabled = enabled;
 }

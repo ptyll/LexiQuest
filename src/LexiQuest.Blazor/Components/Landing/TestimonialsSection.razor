@@ -1,0 +1,71 @@
+@inject IStringLocalizer<TestimonialsSection> L
+
+<section class="testimonials-section" data-testid="testimonials-section">
+    <div class="container">
+        <h2 class="section-title" data-testid="testimonials-title">
+            @L["Testimonials.Title"]
+        </h2>
+
+        <div class="testimonials-grid">
+            <!-- Testimonial 1 -->
+            <div class="testimonial-card" data-testid="testimonial-1">
+                <div class="stars">
+                    @for (int i = 0; i < 5; i++)
+                    {
+                        <span class="star-icon"><TmIcon Name="star" Size="IconSize.Sm" /></span>
+                    }
+                </div>
+                <p class="quote">@L["Testimonial1.Quote"]</p>
+                <div class="author">
+                    <div class="testimonial-avatar">
+                        <TmAvatar Name="Petra Nováková" Size="AvatarSize.Md" />
+                    </div>
+                    <div class="author-info">
+                        <span class="author-name">@L["Testimonial1.Author"]</span>
+                        <span class="author-role">@L["Testimonial1.Role"]</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Testimonial 2 -->
+            <div class="testimonial-card" data-testid="testimonial-2">
+                <div class="stars">
+                    @for (int i = 0; i < 5; i++)
+                    {
+                        <span class="star-icon"><TmIcon Name="star" Size="IconSize.Sm" /></span>
+                    }
+                </div>
+                <p class="quote">@L["Testimonial2.Quote"]</p>
+                <div class="author">
+                    <div class="testimonial-avatar">
+                        <TmAvatar Name="Jan Svoboda" Size="AvatarSize.Md" />
+                    </div>
+                    <div class="author-info">
+                        <span class="author-name">@L["Testimonial2.Author"]</span>
+                        <span class="author-role">@L["Testimonial2.Role"]</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Testimonial 3 -->
+            <div class="testimonial-card" data-testid="testimonial-3">
+                <div class="stars">
+                    @for (int i = 0; i < 5; i++)
+                    {
+                        <span class="star-icon"><TmIcon Name="star" Size="IconSize.Sm" /></span>
+                    }
+                </div>
+                <p class="quote">@L["Testimonial3.Quote"]</p>
+                <div class="author">
+                    <div class="testimonial-avatar">
+                        <TmAvatar Name="Marie Dvořáková" Size="AvatarSize.Md" />
+                    </div>
+                    <div class="author-info">
+                        <span class="author-name">@L["Testimonial3.Author"]</span>
+                        <span class="author-role">@L["Testimonial3.Role"]</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace LexiQuest.Api.Tests;
@@ -19,24 +20,17 @@ public class GameEndpointsTests
 {
     private static readonly string TestDbName = $"TestDb_{Guid.NewGuid()}";
 
-    private WebApplicationFactory<Program> CreateFactory()
+    static GameEndpointsTests()
     {
-        return new WebApplicationFactory<Program>()
-            .WithWebHostBuilder(builder =>
-            {
-                builder.UseEnvironment("Test");
+        // Set JWT settings as environment variables before any factory is created
+        Environment.SetEnvironmentVariable("JwtSettings__SecretKey", "Test-Secret-Key-That-Is-Long-Enough-For-HS256-Algorithm-!!", EnvironmentVariableTarget.Process);
+        Environment.SetEnvironmentVariable("JwtSettings__Issuer", "TestIssuer", EnvironmentVariableTarget.Process);
+        Environment.SetEnvironmentVariable("JwtSettings__Audience", "TestAudience", EnvironmentVariableTarget.Process);
+    }
 
-                // Set environment variables for JWT
-                Environment.SetEnvironmentVariable("JwtSettings__SecretKey", "Test-Secret-Key-That-Is-Long-Enough-For-HS256-Algorithm-!!", EnvironmentVariableTarget.Process);
-                Environment.SetEnvironmentVariable("JwtSettings__Issuer", "TestIssuer", EnvironmentVariableTarget.Process);
-                Environment.SetEnvironmentVariable("JwtSettings__Audience", "TestAudience", EnvironmentVariableTarget.Process);
-
-                builder.ConfigureServices(services =>
-                {
-                    services.AddDbContext<LexiQuestDbContext>(options =>
-                        options.UseInMemoryDatabase(TestDbName));
-                });
-            });
+    private CustomWebApplicationFactory CreateFactory()
+    {
+        return new CustomWebApplicationFactory(TestDbName);
     }
 
     private async Task<(HttpClient Client, WebApplicationFactory<Program> Factory, AuthResponse Auth)> CreateAuthenticatedClientAsync()

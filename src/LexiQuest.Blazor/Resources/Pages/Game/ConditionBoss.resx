@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="ConditionBoss_Title" xml:space="preserve">
+    <value>Condition Boss</value>
+  </data>
+  <data name="ConditionBoss_Subtitle" xml:space="preserve">
+    <value>15 slov, zakázaná písmena, alternativní řešení</value>
+  </data>
+  <data name="ConditionBoss_Level" xml:space="preserve">
+    <value>Boss Level</value>
+  </data>
+  <data name="ConditionBoss_Progress" xml:space="preserve">
+    <value>Postup</value>
+  </data>
+  <data name="ConditionBoss_ForbiddenTitle" xml:space="preserve">
+    <value>ZAKÁZANÁ PÍSMENA</value>
+  </data>
+  <data name="ConditionBoss_PenaltyWarning" xml:space="preserve">
+    <value>Použití zakázaného písmene = -5 XP</value>
+  </data>
+  <data name="ConditionBoss_PenaltyApplied" xml:space="preserve">
+    <value>Použil jsi zakázané písmeno '{0}'!</value>
+  </data>
+  <data name="ConditionBoss_UnscrambleHint" xml:space="preserve">
+    <value>Najdi alternativní řešení bez zakázaných písmen</value>
+  </data>
+  <data name="ConditionBoss_AnswerLabel" xml:space="preserve">
+    <value>Vaše odpověď</value>
+  </data>
+  <data name="ConditionBoss_AnswerPlaceholder" xml:space="preserve">
+    <value>Zadejte slovo bez zakázaných písmen...</value>
+  </data>
+  <data name="ConditionBoss_Submit" xml:space="preserve">
+    <value>Odeslat odpověď</value>
+  </data>
+  <data name="ConditionBoss_Victory" xml:space="preserve">
+    <value>Vítězství!</value>
+  </data>
+  <data name="ConditionBoss_Congratulations" xml:space="preserve">
+    <value>Výborně!</value>
+  </data>
+  <data name="ConditionBoss_VictoryMessage" xml:space="preserve">
+    <value>Porazil jsi Condition Bosta! Tvá kreativita a schopnost najít alternativy jsou impozantní.</value>
+  </data>
+  <data name="ConditionBoss_TotalEarned" xml:space="preserve">
+    <value>Celkem získáno</value>
+  </data>
+  <data name="ConditionBoss_Defeat" xml:space="preserve">
+    <value>Prohra</value>
+  </data>
+  <data name="ConditionBoss_GameOver" xml:space="preserve">
+    <value>Konec hry</value>
+  </data>
+  <data name="ConditionBoss_DefeatMessage" xml:space="preserve">
+    <value>Podmínky byly příliš přísné. Příště buď opatrnější!</value>
+  </data>
+  <data name="ConditionBoss_TryAgain" xml:space="preserve">
+    <value>Zkusit znovu</value>
+  </data>
+  <data name="ConditionBoss_BackToDashboard" xml:space="preserve">
+    <value>Zpět na dashboard</value>
+  </data>
+</root>

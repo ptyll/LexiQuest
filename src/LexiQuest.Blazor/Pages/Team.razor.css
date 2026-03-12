@@ -1,0 +1,231 @@
+.team-page {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: var(--tm-spacing-lg);
+}
+
+.page-title {
+    font-size: var(--tm-font-size-2xl);
+    font-weight: var(--tm-font-weight-bold);
+    margin-bottom: var(--tm-spacing-lg);
+    text-align: center;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: var(--tm-spacing-2xl) 0;
+}
+
+.invites-section {
+    margin-top: var(--tm-spacing-xl);
+    padding: var(--tm-spacing-lg);
+}
+
+.invite-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--tm-spacing-sm) 0;
+    border-bottom: 1px solid var(--tm-color-border);
+}
+
+.invite-item:last-child {
+    border-bottom: none;
+}
+
+.invite-info {
+    display: flex;
+    align-items: center;
+    gap: var(--tm-spacing-sm);
+}
+
+.invite-actions {
+    display: flex;
+    gap: var(--tm-spacing-xs);
+}
+
+/* Team Dashboard */
+.team-dashboard {
+    display: flex;
+    flex-direction: column;
+    gap: var(--tm-spacing-lg);
+}
+
+.team-header {
+    text-align: center;
+}
+
+.team-identity {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--tm-spacing-md);
+    margin-bottom: var(--tm-spacing-sm);
+}
+
+.team-identity h3 {
+    font-size: var(--tm-font-size-xl);
+    font-weight: var(--tm-font-weight-bold);
+    margin: 0;
+}
+
+.team-tag {
+    font-family: var(--tm-font-family-mono);
+    font-size: var(--tm-font-size-lg);
+}
+
+.team-description {
+    color: var(--tm-color-text-secondary);
+    margin-top: var(--tm-spacing-xs);
+}
+
+/* Stats Grid */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--tm-spacing-md);
+}
+
+.stat-card {
+    text-align: center;
+    padding: var(--tm-spacing-md);
+}
+
+.stat-value {
+    font-size: var(--tm-font-size-2xl);
+    font-weight: var(--tm-font-weight-bold);
+    color: var(--tm-color-primary);
+}
+
+.stat-label {
+    font-size: var(--tm-font-size-sm);
+    color: var(--tm-color-text-secondary);
+    margin-top: var(--tm-spacing-xs);
+}
+
+/* Members */
+.members-section {
+    padding: var(--tm-spacing-lg);
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--tm-spacing-md);
+}
+
+.section-header h3 {
+    margin: 0;
+}
+
+.member-info {
+    display: flex;
+    align-items: center;
+    gap: var(--tm-spacing-sm);
+}
+
+.members-table,
+.ranking-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.members-table th,
+.ranking-table th {
+    text-align: left;
+    padding: var(--tm-spacing-sm) var(--tm-spacing-md);
+    border-bottom: 2px solid var(--tm-color-border);
+    font-size: var(--tm-font-size-sm);
+    color: var(--tm-color-text-secondary);
+    font-weight: var(--tm-font-weight-semibold);
+}
+
+.members-table td,
+.ranking-table td {
+    padding: var(--tm-spacing-sm) var(--tm-spacing-md);
+    border-bottom: 1px solid var(--tm-color-border);
+    vertical-align: middle;
+}
+
+/* Join Requests */
+.join-requests-section {
+    padding: var(--tm-spacing-lg);
+}
+
+.join-request-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--tm-spacing-sm) 0;
+    border-bottom: 1px solid var(--tm-color-border);
+}
+
+.join-request-item:last-child {
+    border-bottom: none;
+}
+
+.request-info {
+    display: flex;
+    flex-direction: column;
+    gap: var(--tm-spacing-xs);
+}
+
+.request-username {
+    font-weight: var(--tm-font-weight-semibold);
+}
+
+.request-message {
+    font-size: var(--tm-font-size-sm);
+    color: var(--tm-color-text-secondary);
+    font-style: italic;
+}
+
+.request-actions {
+    display: flex;
+    gap: var(--tm-spacing-xs);
+}
+
+/* Management Actions */
+.management-actions {
+    display: flex;
+    gap: var(--tm-spacing-md);
+    justify-content: center;
+    padding-top: var(--tm-spacing-lg);
+    border-top: 1px solid var(--tm-color-border);
+}
+
+/* Ranking */
+.ranking-section {
+    margin-top: var(--tm-spacing-xl);
+    padding: var(--tm-spacing-lg);
+}
+
+.ranking-section h3 {
+    margin-bottom: var(--tm-spacing-md);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .management-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .invite-item,
+    .join-request-item {
+        flex-direction: column;
+        gap: var(--tm-spacing-sm);
+        align-items: stretch;
+    }
+
+    .invite-actions,
+    .request-actions {
+        justify-content: flex-end;
+    }
+}

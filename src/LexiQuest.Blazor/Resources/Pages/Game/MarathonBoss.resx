@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="MarathonBoss_Title" xml:space="preserve">
+    <value>Marathon Boss</value>
+  </data>
+  <data name="MarathonBoss_Subtitle" xml:space="preserve">
+    <value>20 slov, 3 životy, žádná regenerace</value>
+  </data>
+  <data name="MarathonBoss_Level" xml:space="preserve">
+    <value>Boss Level</value>
+  </data>
+  <data name="MarathonBoss_Progress" xml:space="preserve">
+    <value>Postup</value>
+  </data>
+  <data name="MarathonBoss_UnscrambleHint" xml:space="preserve">
+    <value>Uspořádejte písmena do správného slova</value>
+  </data>
+  <data name="MarathonBoss_AnswerLabel" xml:space="preserve">
+    <value>Vaše odpověď</value>
+  </data>
+  <data name="MarathonBoss_AnswerPlaceholder" xml:space="preserve">
+    <value>Zadejte slovo...</value>
+  </data>
+  <data name="MarathonBoss_Submit" xml:space="preserve">
+    <value>Odeslat odpověď</value>
+  </data>
+  <data name="MarathonBoss_Victory" xml:space="preserve">
+    <value>Vítězství!</value>
+  </data>
+  <data name="MarathonBoss_Congratulations" xml:space="preserve">
+    <value>Gratulujeme!</value>
+  </data>
+  <data name="MarathonBoss_VictoryMessage" xml:space="preserve">
+    <value>Porazil jsi Marathon Bosta! Tvá vytrvalost a znalosti jsou obdivuhodné.</value>
+  </data>
+  <data name="MarathonBoss_Time" xml:space="preserve">
+    <value>Čas</value>
+  </data>
+  <data name="MarathonBoss_Accuracy" xml:space="preserve">
+    <value>Přesnost</value>
+  </data>
+  <data name="MarathonBoss_LivesLeft" xml:space="preserve">
+    <value>Zbývající životy</value>
+  </data>
+  <data name="MarathonBoss_TotalXP" xml:space="preserve">
+    <value>Celkem XP</value>
+  </data>
+  <data name="MarathonBoss_XPBreakdown" xml:space="preserve">
+    <value>Rozpis XP</value>
+  </data>
+  <data name="MarathonBoss_BaseXP" xml:space="preserve">
+    <value>Základní XP</value>
+  </data>
+  <data name="MarathonBoss_PerfectBonus" xml:space="preserve">
+    <value>Bonus za perfektní hru</value>
+  </data>
+  <data name="MarathonBoss_CompletionBonus" xml:space="preserve">
+    <value>Bonus za dokončení</value>
+  </data>
+  <data name="MarathonBoss_SpeedBonus" xml:space="preserve">
+    <value>Bonus za rychlost</value>
+  </data>
+  <data name="MarathonBoss_BackToDashboard" xml:space="preserve">
+    <value>Zpět na dashboard</value>
+  </data>
+  <data name="MarathonBoss_Defeat" xml:space="preserve">
+    <value>Prohra</value>
+  </data>
+  <data name="MarathonBoss_GameOver" xml:space="preserve">
+    <value>Konec hry</value>
+  </data>
+  <data name="MarathonBoss_DefeatMessage" xml:space="preserve">
+    <value>Marathon Boss tě porazil. Nevzdávej se, trénink dělá mistra!</value>
+  </data>
+  <data name="MarathonBoss_WordsSolved" xml:space="preserve">
+    <value>Vyřešených slov</value>
+  </data>
+  <data name="MarathonBoss_XPEarned" xml:space="preserve">
+    <value>Získané XP</value>
+  </data>
+  <data name="MarathonBoss_MotivationalQuote" xml:space="preserve">
+    <value>"Každý pád je příležitostí znovu vystoupit výše."</value>
+  </data>
+  <data name="MarathonBoss_GiveUp" xml:space="preserve">
+    <value>Vzdát se</value>
+  </data>
+  <data name="MarathonBoss_TryAgain" xml:space="preserve">
+    <value>Zkusit znovu</value>
+  </data>
+</root>

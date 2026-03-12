@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="OfflineTitle" xml:space="preserve">
+    <value>Jsi offline</value>
+  </data>
+  <data name="OfflineMessage" xml:space="preserve">
+    <value>Některé funkce nejsou dostupné. Připoj se k internetu pro plný přístup.</value>
+  </data>
+</root>

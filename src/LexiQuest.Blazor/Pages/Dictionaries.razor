@@ -1,0 +1,411 @@
+@page "/dictionaries"
+@using LexiQuest.Shared.DTOs.Dictionaries
+@inject IStringLocalizer<Dictionaries> L
+@inject IToastService ToastService
+@inject NavigationManager NavigationManager
+
+<PageTitle>@L["Page_Title"] - LexiQuest</PageTitle>
+
+<div class="dictionaries-page">
+    <div class="page-header">
+        <div class="header-content">
+            <h1 class="page-title">@L["Page_Title"]</h1>
+            <p class="page-subtitle">@L["Page_Description"]</p>
+        </div>
+        <TmButton Variant="ButtonVariant.Primary" Icon="@IconNames.Plus" OnClick="ShowCreateDialog">
+            @L["Button_CreateDictionary"]
+        </TmButton>
+    </div>
+
+    <TmTabs @bind-ActiveTabId="ActiveTab" Variant="TabVariant.Line" Class="dictionaries-tabs">
+        <TmTabPanel Id="my" Title="@L["Tab_MyDictionaries"]">
+            @if (MyDictionaries.Count == 0)
+            {
+                <div class="empty-state">
+                    <TmIcon Name="@IconNames.AlertCircle" Class="empty-icon" />
+                    <h3>@L["EmptyState_NoDictionaries"]</h3>
+                    <p>@L["EmptyState_CreateFirst"]</p>
+                    <TmButton Variant="ButtonVariant.Primary" OnClick="ShowCreateDialog">
+                        @L["Button_CreateDictionary"]
+                    </TmButton>
+                </div>
+            }
+            else
+            {
+                <div class="dictionaries-grid">
+                    @foreach (var dictionary in MyDictionaries)
+                    {
+                        <TmCard Class="dictionary-card">
+                            <div class="dictionary-header">
+                                <h3 class="dictionary-name">@dictionary.Name</h3>
+                                @if (dictionary.IsPublic)
+                                {
+                                    <TmBadge Variant="BadgeVariant.Success" Icon="@IconNames.Eye">
+                                        @L["Label_IsPublic"]
+                                    </TmBadge>
+                                }
+                            </div>
+                            <p class="dictionary-description">@dictionary.Description</p>
+                            <div class="dictionary-stats">
+                                <TmBadge Variant="BadgeVariant.Info" Icon="@IconNames.List">
+                                    @dictionary.WordCount @L["Label_WordCount"]
+                                </TmBadge>
+                                <span class="created-date">
+                                    @L["Label_CreatedAt"]: @dictionary.CreatedAt.ToString("d")
+                                </span>
+                            </div>
+                            <div class="dictionary-actions">
+                                <TmButton Variant="ButtonVariant.Secondary"
+                                          Icon="@IconNames.Plus" OnClick="() => ShowAddWordDialog(dictionary.Id)">
+                                    @L["Button_AddWord"]
+                                </TmButton>
+                                <TmButton Variant="ButtonVariant.Secondary"
+                                          Icon="@IconNames.Plus" OnClick="() => ShowImportDialog(dictionary.Id)">
+                                    @L["Button_ImportWords"]
+                                </TmButton>
+                                <TmButton Variant="ButtonVariant.Danger"
+                                          Icon="@IconNames.X" OnClick="() => DeleteDictionary(dictionary.Id)">
+                                    @L["Button_Delete"]
+                                </TmButton>
+                            </div>
+                        </TmCard>
+                    }
+                </div>
+            }
+        </TmTabPanel>
+
+        <TmTabPanel Id="public" Title="@L["Tab_PublicDictionaries"]">
+            @if (PublicDictionaries.Count == 0)
+            {
+                <div class="empty-state">
+                    <TmIcon Name="@IconNames.AlertCircle" Class="empty-icon" />
+                    <h3>Žádné veřejné slovníky</h3>
+                    <p>Zatím nejsou k dispozici žádné veřejné slovníky</p>
+                </div>
+            }
+            else
+            {
+                <div class="dictionaries-grid">
+                    @foreach (var dictionary in PublicDictionaries)
+                    {
+                        <TmCard Class="dictionary-card">
+                            <div class="dictionary-header">
+                                <h3 class="dictionary-name">@dictionary.Name</h3>
+                                <TmBadge Variant="BadgeVariant.Success" Icon="@IconNames.Eye">
+                                    @L["Label_IsPublic"]
+                                </TmBadge>
+                            </div>
+                            <p class="dictionary-description">@dictionary.Description</p>
+                            <div class="dictionary-stats">
+                                <TmBadge Variant="BadgeVariant.Info" Icon="@IconNames.List">
+                                    @dictionary.WordCount @L["Label_WordCount"]
+                                </TmBadge>
+                            </div>
+                        </TmCard>
+                    }
+                </div>
+            }
+        </TmTabPanel>
+    </TmTabs>
+</div>
+
+<!-- Create Dictionary Dialog -->
+<TmDialog @bind-IsVisible="IsCreateDialogVisible" Title="@L["Dialog_CreateDictionary_Title"]" Size="DialogSize.Medium">
+    <div class="form-group">
+        <label for="dict-name">@L["Label_Name"]</label>
+        <TmTextInput Id="dict-name" @bind-Value="NewDictionary.Name" 
+                     Placeholder="@L["Label_Name"]" MaxLength="100" />
+        @if (!string.IsNullOrEmpty(NameError))
+        {
+            <span class="validation-message">@NameError</span>
+        }
+    </div>
+    <div class="form-group">
+        <label for="dict-description">@L["Label_Description"]</label>
+        <TmTextArea Id="dict-description" @bind-Value="NewDictionary.Description"
+                    Placeholder="@L["Label_Description"]" MaxLength="500" Rows="3" />
+    </div>
+    <div class="form-group checkbox-group">
+        <TmCheckbox Id="dict-public" @bind-Value="NewDictionary.IsPublic" />
+        <label for="dict-public">@L["Label_IsPublic"]</label>
+    </div>
+    <div class="dialog-actions">
+        <TmButton Variant="ButtonVariant.Secondary" OnClick="() => IsCreateDialogVisible = false">
+            @L["Button_Cancel"]
+        </TmButton>
+        <TmButton Variant="ButtonVariant.Primary" OnClick="CreateDictionary" IsLoading="IsCreating">
+            @L["Button_Save"]
+        </TmButton>
+    </div>
+</TmDialog>
+
+<!-- Add Word Dialog -->
+<TmDialog @bind-IsVisible="IsAddWordDialogVisible" Title="@L["Dialog_AddWord_Title"]" Size="DialogSize.Medium">
+    <div class="form-group">
+        <label for="word-text">@L["Label_Word"]</label>
+        <TmTextInput Id="word-text" @bind-Value="NewWord.Word"
+                     Placeholder="@L["Label_Word"]" MaxLength="100" />
+        @if (!string.IsNullOrEmpty(WordError))
+        {
+            <span class="validation-message">@WordError</span>
+        }
+    </div>
+    <div class="form-group">
+        <label for="word-difficulty">@L["Label_Difficulty"]</label>
+        <TmSelect Id="word-difficulty" @bind-Value="NewWord.Difficulty">
+            <option value="Beginner">@L["Difficulty_Beginner"]</option>
+            <option value="Intermediate">@L["Difficulty_Intermediate"]</option>
+            <option value="Advanced">@L["Difficulty_Advanced"]</option>
+            <option value="Expert">@L["Difficulty_Expert"]</option>
+        </TmSelect>
+    </div>
+    <div class="dialog-actions">
+        <TmButton Variant="ButtonVariant.Secondary" OnClick="() => IsAddWordDialogVisible = false">
+            @L["Button_Cancel"]
+        </TmButton>
+        <TmButton Variant="ButtonVariant.Primary" OnClick="AddWord" IsLoading="IsAddingWord">
+            @L["Button_AddWord"]
+        </TmButton>
+    </div>
+</TmDialog>
+
+<!-- Import Dialog -->
+<TmDialog @bind-IsVisible="IsImportDialogVisible" Title="@L["Dialog_Import_Title"]" Size="DialogSize.Large">
+    <TmTabs Variant="TabVariant.Pill" Size="TabSize.Small">
+        <TmTabPanel Id="csv" Title="CSV">
+            <p class="import-hint">@L["Import_Format_CSV"]</p>
+        </TmTabPanel>
+        <TmTabPanel Id="txt" Title="TXT">
+            <p class="import-hint">@L["Import_Format_TXT"]</p>
+        </TmTabPanel>
+    </TmTabs>
+    
+    <div class="import-area">
+        <InputFile OnChange="OnImportFileSelected" accept=".csv,.txt" />
+    </div>
+    
+    @if (!string.IsNullOrEmpty(ImportPreview))
+    {
+        <div class="import-preview">
+            <h4>Náhled:</h4>
+            <pre>@ImportPreview</pre>
+        </div>
+    }
+    
+    <div class="dialog-actions">
+        <TmButton Variant="ButtonVariant.Secondary" OnClick="() => IsImportDialogVisible = false">
+            @L["Button_Cancel"]
+        </TmButton>
+        <TmButton Variant="ButtonVariant.Primary" OnClick="ImportWords" IsLoading="IsImporting">
+            @L["Button_ImportWords"]
+        </TmButton>
+    </div>
+</TmDialog>
+
+@code {
+    private List<DictionaryDto> MyDictionaries { get; set; } = new();
+    private List<DictionaryDto> PublicDictionaries { get; set; } = new();
+    private string ActiveTab { get; set; } = "my";
+    
+    // Dialog states
+    private bool IsCreateDialogVisible { get; set; }
+    private bool IsAddWordDialogVisible { get; set; }
+    private bool IsImportDialogVisible { get; set; }
+    private bool IsCreating { get; set; }
+    private bool IsAddingWord { get; set; }
+    private bool IsImporting { get; set; }
+    
+    // Form data
+    private CreateDictionaryModel NewDictionary { get; set; } = new();
+    private AddWordModel NewWord { get; set; } = new();
+    private Guid SelectedDictionaryId { get; set; }
+    private IBrowserFile? ImportFile { get; set; }
+    private string ImportPreview { get; set; } = "";
+    private string ImportContent { get; set; } = "";
+    
+    // Validation errors
+    private string NameError { get; set; } = "";
+    private string WordError { get; set; } = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDictionaries();
+    }
+
+    private async Task LoadDictionaries()
+    {
+        try
+        {
+            // TODO: Call API to load dictionaries
+            // MyDictionaries = await DictionaryService.GetMyDictionariesAsync();
+            // PublicDictionaries = await DictionaryService.GetPublicDictionariesAsync();
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"Chyba při načítání slovníků: {ex.Message}");
+        }
+    }
+
+    private void ShowCreateDialog()
+    {
+        NewDictionary = new CreateDictionaryModel();
+        NameError = "";
+        IsCreateDialogVisible = true;
+    }
+
+    private async Task CreateDictionary()
+    {
+        if (string.IsNullOrWhiteSpace(NewDictionary.Name))
+        {
+            NameError = L["Error_NameRequired"];
+            return;
+        }
+
+        IsCreating = true;
+        try
+        {
+            // TODO: Call API to create dictionary
+            // await DictionaryService.CreateDictionaryAsync(new CreateDictionaryRequest(
+            //     NewDictionary.Name, NewDictionary.Description));
+            ToastService.ShowSuccess(L["Message_DictionaryCreated"]);
+            IsCreateDialogVisible = false;
+            await LoadDictionaries();
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"Chyba při vytváření slovníku: {ex.Message}");
+        }
+        finally
+        {
+            IsCreating = false;
+        }
+    }
+
+    private void ShowAddWordDialog(Guid dictionaryId)
+    {
+        SelectedDictionaryId = dictionaryId;
+        NewWord = new AddWordModel { Difficulty = "Intermediate" };
+        WordError = "";
+        IsAddWordDialogVisible = true;
+    }
+
+    private async Task AddWord()
+    {
+        if (string.IsNullOrWhiteSpace(NewWord.Word))
+        {
+            WordError = L["Error_WordRequired"];
+            return;
+        }
+
+        IsAddingWord = true;
+        try
+        {
+            // TODO: Call API to add word
+            // await DictionaryService.AddWordAsync(SelectedDictionaryId, 
+            //     new AddWordRequest(NewWord.Word, Enum.Parse<DifficultyLevel>(NewWord.Difficulty)));
+            ToastService.ShowSuccess(L["Message_WordAdded"]);
+            IsAddWordDialogVisible = false;
+            await LoadDictionaries();
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"Chyba při přidávání slova: {ex.Message}");
+        }
+        finally
+        {
+            IsAddingWord = false;
+        }
+    }
+
+    private void ShowImportDialog(Guid dictionaryId)
+    {
+        SelectedDictionaryId = dictionaryId;
+        ImportFile = null;
+        ImportPreview = "";
+        ImportContent = "";
+        IsImportDialogVisible = true;
+    }
+
+    private async Task OnImportFileSelected(InputFileChangeEventArgs e)
+    {
+        ImportFile = e.File;
+        if (ImportFile == null) return;
+
+        using var stream = ImportFile.OpenReadStream(1048576);
+        using var reader = new StreamReader(stream);
+        ImportContent = await reader.ReadToEndAsync();
+        
+        // Show preview (first 10 lines)
+        var lines = ImportContent.Split('\n').Take(10);
+        ImportPreview = string.Join('\n', lines);
+        if (ImportContent.Split('\n').Length > 10)
+        {
+            ImportPreview += "\n...";
+        }
+    }
+
+    private async Task ImportWords()
+    {
+        if (string.IsNullOrWhiteSpace(ImportContent))
+        {
+            ToastService.ShowWarning("Vyberte soubor pro import");
+            return;
+        }
+
+        IsImporting = true;
+        try
+        {
+            // TODO: Call API to import words
+            // var result = ImportFile?.Name.EndsWith(".csv") == true
+            //     ? await DictionaryService.ImportCsvAsync(SelectedDictionaryId, ImportContent)
+            //     : await DictionaryService.ImportTxtAsync(SelectedDictionaryId, ImportContent);
+            // ToastService.ShowSuccess(string.Format(L["Message_ImportSuccess"], result.ImportedCount, result.SkippedCount));
+            IsImportDialogVisible = false;
+            await LoadDictionaries();
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"Chyba při importu: {ex.Message}");
+        }
+        finally
+        {
+            IsImporting = false;
+        }
+    }
+
+    private async Task DeleteDictionary(Guid id)
+    {
+        if (!await ConfirmDelete()) return;
+
+        try
+        {
+            // TODO: Call API to delete dictionary
+            // await DictionaryService.DeleteDictionaryAsync(id);
+            ToastService.ShowSuccess(L["Message_DictionaryDeleted"]);
+            await LoadDictionaries();
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"Chyba při mazání slovníku: {ex.Message}");
+        }
+    }
+
+    private async Task<bool> ConfirmDelete()
+    {
+        // TODO: Show confirmation dialog
+        return true;
+    }
+
+    private class CreateDictionaryModel
+    {
+        public string Name { get; set; } = "";
+        public string Description { get; set; } = "";
+        public bool IsPublic { get; set; }
+    }
+
+    private class AddWordModel
+    {
+        public string Word { get; set; } = "";
+        public string Difficulty { get; set; } = "Intermediate";
+    }
+}

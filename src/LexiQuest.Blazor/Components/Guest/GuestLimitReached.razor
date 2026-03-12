@@ -1,0 +1,38 @@
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<GuestLimitReached> L
+
+<div class="guest-limit-reached" data-testid="guest-limit-reached">
+    <TmCard Variant="CardVariant.Elevated" Class="limit-card">
+        <div class="limit-icon">
+            <TmIcon Name="@IconNames.Clock" Class="icon-clock" />
+        </div>
+        <h2 class="limit-title">@L["Title"]</h2>
+        <p class="limit-description">@L["Description"]</p>
+        <div class="limit-actions">
+            <div data-testid="btn-register">
+                <TmButton Variant="ButtonVariant.Primary" OnClick="OnRegister" Size="ButtonSize.Lg">
+                    @L["Register"]
+                </TmButton>
+            </div>
+            <div data-testid="btn-back">
+                <TmButton Variant="ButtonVariant.Ghost" OnClick="OnBack">
+                    @L["Back"]
+                </TmButton>
+            </div>
+        </div>
+        <div class="limit-login">
+            <span>@L["HaveAccount"]</span>
+            <div data-testid="btn-login">
+                <TmButton Variant="ButtonVariant.Link" OnClick="OnLogin">
+                    @L["Login"]
+                </TmButton>
+            </div>
+        </div>
+    </TmCard>
+</div>
+
+@code {
+    [Parameter] public EventCallback OnRegister { get; set; }
+    [Parameter] public EventCallback OnLogin { get; set; }
+    [Parameter] public EventCallback OnBack { get; set; }
+}

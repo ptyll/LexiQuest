@@ -1,0 +1,144 @@
+@inject IStringLocalizer<Pages.Multiplayer> Localizer
+
+<TmModal 
+    Show="@IsVisible" 
+    Title="@Localizer["Room_Create_Title"]"
+    Size="ModalSize.Medium"
+    OnClose="OnClose"
+    Class="create-room-modal">
+    
+    <ChildContent>
+        <div class="create-room-form">
+            <TmFormSection Title="@Localizer["Room_Settings_Title"]">
+                <!-- Word Count -->
+                <div class="form-section word-count-section">
+                    <TmFormField Label="@Localizer["Room_Settings_WordCount"]">
+                        <div class="radio-group">
+                            @for (int i = 0; i < WordCountOptions.Length; i++)
+                            {
+                                int countValue = WordCountOptions[i];
+                                <TmButton 
+                                    Variant="@GetWordCountVariant(countValue)"
+                                    Size="ButtonSize.Md"
+                                    Class="word-count-option"
+                                    OnClick="@(() => SetWordCount(countValue))">
+                                    @countValue
+                                </TmButton>
+                            }
+                        </div>
+                    </TmFormField>
+                </div>
+
+                <!-- Time Limit -->
+                <div class="form-section time-limit-section">
+                    <TmFormField Label="@Localizer["Room_Settings_TimeLimit"]">
+                        <div class="radio-group">
+                            @for (int i = 0; i < TimeLimitOptions.Length; i++)
+                            {
+                                int timeValue = TimeLimitOptions[i];
+                                <TmButton 
+                                    Variant="@GetTimeLimitVariant(timeValue)"
+                                    Size="ButtonSize.Md"
+                                    Class="time-limit-option"
+                                    OnClick="@(() => SetTimeLimit(timeValue))">
+                                    @timeValue min
+                                </TmButton>
+                            }
+                        </div>
+                    </TmFormField>
+                </div>
+
+                <!-- Difficulty -->
+                <div class="form-section difficulty-section">
+                    <TmFormField Label="@Localizer["Room_Settings_Difficulty"]">
+                        <TmSelect 
+                            @bind-Value="_difficulty"
+                            Options="@DifficultyOptions" />
+                    </TmFormField>
+                </div>
+
+                <!-- Best Of -->
+                <div class="form-section best-of-section">
+                    <TmFormField Label="@Localizer["Room_Settings_BestOf"]">
+                        <div class="radio-group">
+                            @for (int i = 0; i < BestOfOptions.Length; i++)
+                            {
+                                int bestOfValue = BestOfOptions[i];
+                                <TmButton 
+                                    Variant="@GetBestOfVariant(bestOfValue)"
+                                    Size="ButtonSize.Md"
+                                    Class="best-of-option"
+                                    OnClick="@(() => SetBestOf(bestOfValue))">
+                                    @(bestOfValue == 1 ? "1 hra" : $"Best of {bestOfValue}")
+                                </TmButton>
+                            }
+                        </div>
+                    </TmFormField>
+                </div>
+            </TmFormSection>
+
+            <TmAlert Severity="AlertSeverity.Info" Class="no-league-info">
+                @Localizer["Room_NoLeagueXP_Info"]
+            </TmAlert>
+        </div>
+    </ChildContent>
+
+    <Footer>
+        <TmButton 
+            Variant="ButtonVariant.Primary" 
+            Size="ButtonSize.Lg"
+            Class="create-button"
+            OnClick="HandleSubmit">
+            @Localizer["Button_Create"]
+        </TmButton>
+        <TmButton 
+            Variant="ButtonVariant.Ghost" 
+            Size="ButtonSize.Lg"
+            Class="cancel-button"
+            OnClick="OnClose">
+            @Localizer["Button_Cancel"]
+        </TmButton>
+    </Footer>
+</TmModal>
+
+@code {
+    [Parameter] public bool IsVisible { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+    [Parameter] public EventCallback<RoomSettingsDto> OnCreate { get; set; }
+
+    private int _wordCount = 15;
+    private int _timeLimitMinutes = 3;
+    private DifficultyLevel _difficulty = DifficultyLevel.Beginner;
+    private int _bestOf = 1;
+
+    private static readonly int[] WordCountOptions = { 10, 15, 20 };
+    private static readonly int[] TimeLimitOptions = { 2, 3, 5 };
+    private static readonly int[] BestOfOptions = { 1, 3, 5 };
+
+    private static readonly List<SelectOption<DifficultyLevel>> DifficultyOptions = new()
+    {
+        new(DifficultyLevel.Beginner, "Beginner 🌱"),
+        new(DifficultyLevel.Intermediate, "Intermediate 🌿"),
+        new(DifficultyLevel.Advanced, "Advanced 🌳"),
+        new(DifficultyLevel.Expert, "Expert 🔥")
+    };
+
+    private void SetWordCount(int count) => _wordCount = count;
+    private void SetTimeLimit(int minutes) => _timeLimitMinutes = minutes;
+    private void SetBestOf(int bestOf) => _bestOf = bestOf;
+
+    private ButtonVariant GetWordCountVariant(int count) => 
+        _wordCount == count ? ButtonVariant.Primary : ButtonVariant.Outline;
+
+    private ButtonVariant GetTimeLimitVariant(int minutes) => 
+        _timeLimitMinutes == minutes ? ButtonVariant.Primary : ButtonVariant.Outline;
+
+    private ButtonVariant GetBestOfVariant(int bestOf) => 
+        _bestOf == bestOf ? ButtonVariant.Primary : ButtonVariant.Outline;
+
+    private async Task HandleSubmit()
+    {
+        var settings = new RoomSettingsDto(_wordCount, _timeLimitMinutes, _difficulty, _bestOf);
+        await OnCreate.InvokeAsync(settings);
+    }
+}

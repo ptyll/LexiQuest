@@ -309,13 +309,13 @@ public class RegisterRequestValidatorTests
     public void RegisterRequestValidator_ValidRequest_NoErrors(string email, string username, string password)
     {
         // Arrange
-        var request = new RegisterRequest 
-        { 
-            Email = email, 
-            Username = username, 
-            Password = password, 
+        var request = new RegisterRequest
+        {
+            Email = email,
+            Username = username,
+            Password = password,
             ConfirmPassword = password,
-            AcceptTerms = true 
+            AcceptTerms = true
         };
 
         // Act
@@ -323,5 +323,204 @@ public class RegisterRequestValidatorTests
 
         // Assert
         result.ShouldNotHaveAnyValidationErrors();
+    }
+
+    // ── Unicode/Diacritics in Username ──
+
+    [Theory]
+    [InlineData("příliš")]
+    [InlineData("žluťoučký")]
+    [InlineData("kůň")]
+    public void RegisterRequestValidator_CzechCharactersInUsername_ShouldFail(string username)
+    {
+        var request = new RegisterRequest
+        {
+            Email = "test@test.com",
+            Username = username,
+            Password = "Strong1!Pass",
+            ConfirmPassword = "Strong1!Pass",
+            AcceptTerms = true
+        };
+
+        var result = _validator.TestValidate(request);
+
+        result.ShouldHaveValidationErrorFor(x => x.Username);
+    }
+
+    [Fact]
+    public void RegisterRequestValidator_MixedLatinCyrillicUsername_ShouldFail()
+    {
+        var request = new RegisterRequest
+        {
+            Email = "test@test.com",
+            Username = "userПривет",
+            Password = "Strong1!Pass",
+            ConfirmPassword = "Strong1!Pass",
+            AcceptTerms = true
+        };
+
+        var result = _validator.TestValidate(request);
+
+        result.ShouldHaveValidationErrorFor(x => x.Username);
+    }
+
+    [Fact]
+    public void RegisterRequestValidator_EmojiInUsername_ShouldFail()
+    {
+        var request = new RegisterRequest
+        {
+            Email = "test@test.com",
+            Username = "user🎮",
+            Password = "Strong1!Pass",
+            ConfirmPassword = "Strong1!Pass",
+            AcceptTerms = true
+        };
+
+        var result = _validator.TestValidate(request);
+
+        result.ShouldHaveValidationErrorFor(x => x.Username);
+    }
+
+    // ── SQL injection strings in Username ──
+
+    [Theory]
+    [InlineData("'; DROP TABLE Users; --")]
+    [InlineData("' OR '1'='1")]
+    [InlineData("admin'--")]
+    public void RegisterRequestValidator_SqlInjectionInUsername_ShouldFail(string username)
+    {
+        var request = new RegisterRequest
+        {
+            Email = "test@test.com",
+            Username = username,
+            Password = "Strong1!Pass",
+            ConfirmPassword = "Strong1!Pass",
+            AcceptTerms = true
+        };
+
+        var result = _validator.TestValidate(request);
+
+        result.ShouldHaveValidationErrorFor(x => x.Username);
+    }
+
+    // ── XSS attempt strings in Username ──
+
+    [Theory]
+    [InlineData("<script>alert('xss')</script>")]
+    [InlineData("<img onerror=alert(1) src=x>")]
+    [InlineData("javascript:alert(1)")]
+    public void RegisterRequestValidator_XssInUsername_ShouldFail(string username)
+    {
+        var request = new RegisterRequest
+        {
+            Email = "test@test.com",
+            Username = username,
+            Password = "Strong1!Pass",
+            ConfirmPassword = "Strong1!Pass",
+            AcceptTerms = true
+        };
+
+        var result = _validator.TestValidate(request);
+
+        result.ShouldHaveValidationErrorFor(x => x.Username);
+    }
+
+    // ── Extremely long strings ──
+
+    [Fact]
+    public void RegisterRequestValidator_ExtremelyLongUsername_ShouldFail()
+    {
+        var request = new RegisterRequest
+        {
+            Email = "test@test.com",
+            Username = new string('a', 10001),
+            Password = "Strong1!Pass",
+            ConfirmPassword = "Strong1!Pass",
+            AcceptTerms = true
+        };
+
+        var result = _validator.TestValidate(request);
+
+        result.ShouldHaveValidationErrorFor(x => x.Username);
+    }
+
+    [Fact]
+    public void RegisterRequestValidator_ExtremelyLongEmail_NoMaxLengthRule()
+    {
+        // The validator has no max length for email, so a long but structurally valid email passes.
+        // This documents the current behavior - a max length rule could be added for defense in depth.
+        var request = new RegisterRequest
+        {
+            Email = new string('a', 10001) + "@test.com",
+            Username = "testuser",
+            Password = "Strong1!Pass",
+            ConfirmPassword = "Strong1!Pass",
+            AcceptTerms = true
+        };
+
+        var result = _validator.TestValidate(request);
+
+        result.ShouldNotHaveValidationErrorFor(x => x.Email);
+    }
+
+    [Fact]
+    public void RegisterRequestValidator_ExtremelyLongPassword_MeetingRules_ShouldPass()
+    {
+        // No max length on password, so extremely long password meeting all rules passes
+        var password = "Aa1!" + new string('x', 9997);
+        var request = new RegisterRequest
+        {
+            Email = "test@test.com",
+            Username = "testuser",
+            Password = password,
+            ConfirmPassword = password,
+            AcceptTerms = true
+        };
+
+        var result = _validator.TestValidate(request);
+
+        result.ShouldNotHaveValidationErrorFor(x => x.Password);
+    }
+
+    // ── SQL injection in Email ──
+
+    [Theory]
+    [InlineData("'; DROP TABLE Users; --")]
+    [InlineData("' OR '1'='1")]
+    public void RegisterRequestValidator_SqlInjectionInEmail_ShouldFail(string email)
+    {
+        var request = new RegisterRequest
+        {
+            Email = email,
+            Username = "testuser",
+            Password = "Strong1!Pass",
+            ConfirmPassword = "Strong1!Pass",
+            AcceptTerms = true
+        };
+
+        var result = _validator.TestValidate(request);
+
+        result.ShouldHaveValidationErrorFor(x => x.Email);
+    }
+
+    // ── XSS in Email ──
+
+    [Theory]
+    [InlineData("<script>alert('xss')</script>")]
+    [InlineData("javascript:alert(1)")]
+    public void RegisterRequestValidator_XssInEmail_ShouldFail(string email)
+    {
+        var request = new RegisterRequest
+        {
+            Email = email,
+            Username = "testuser",
+            Password = "Strong1!Pass",
+            ConfirmPassword = "Strong1!Pass",
+            AcceptTerms = true
+        };
+
+        var result = _validator.TestValidate(request);
+
+        result.ShouldHaveValidationErrorFor(x => x.Email);
     }
 }

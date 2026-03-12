@@ -1,0 +1,55 @@
+@page "/premium/success"
+@inject IStringLocalizer<CheckoutSuccess> L
+@inject NavigationManager NavigationManager
+
+<PageTitle>@L["Title"] - LexiQuest</PageTitle>
+
+<div class="checkout-success-page">
+    <div class="success-container">
+        <TmCard Class="success-card" Elevated="true">
+            <div class="success-icon">
+                <TmIcon Name="@IconNames.CheckCircle" Size="IconSize.Xl" />
+            </div>
+            
+            <h1 class="success-title">@L["Title"]</h1>
+            <p class="success-message">@L["Message"]</p>
+            
+            <div class="features-preview">
+                <h3>@L["Features_Title"]</h3>
+                <ul class="feature-list">
+                    <li><TmIcon Name="@IconNames.Check" /> @L["Feature_NoAds"]</li>
+                    <li><TmIcon Name="@IconNames.Check" /> @L["Feature_StreakFreeze"]</li>
+                    <li><TmIcon Name="@IconNames.Check" /> @L["Feature_StreakShield"]</li>
+                    <li><TmIcon Name="@IconNames.Check" /> @L["Feature_DoubleXP"]</li>
+                    <li><TmIcon Name="@IconNames.Check" /> @L["Feature_ExclusivePaths"]</li>
+                    <li><TmIcon Name="@IconNames.Check" /> @L["Feature_CustomDictionaries"]</li>
+                </ul>
+            </div>
+            
+            <div class="actions">
+                <TmButton Variant="ButtonVariant.Primary" 
+                          OnClick="GoToDashboard"
+                          Icon="@IconNames.Home">
+                    @L["Button_Dashboard"]
+                </TmButton>
+                <TmButton Variant="ButtonVariant.Secondary" 
+                          OnClick="GoToSettings"
+                          Icon="@IconNames.Settings">
+                    @L["Button_Settings"]
+                </TmButton>
+            </div>
+        </TmCard>
+    </div>
+</div>
+
+@code {
+    private void GoToDashboard()
+    {
+        NavigationManager.NavigateTo("/dashboard");
+    }
+
+    private void GoToSettings()
+    {
+        NavigationManager.NavigateTo("/settings");
+    }
+}

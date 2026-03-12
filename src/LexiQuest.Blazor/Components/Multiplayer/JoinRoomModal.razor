@@ -1,0 +1,87 @@
+@inject IStringLocalizer<Pages.Multiplayer> Localizer
+
+<TmModal 
+    Show="@IsVisible" 
+    Title="@Localizer["Room_Join_Title"]"
+    Size="ModalSize.Small"
+    OnClose="OnClose"
+    Class="join-room-modal">
+    
+    <ChildContent>
+        <EditForm Model="@this" OnValidSubmit="HandleSubmit" class="join-room-form">
+            <DataAnnotationsValidator />
+            
+            <TmFormField Label="@Localizer["Room_Code_Label"]">
+                <TmTextInput 
+                    @bind-Value="RoomCode"
+                    Placeholder="@Localizer["Room_Code_Placeholder"]"
+                    MaxLength="10"
+                    AutoFocus="true"
+                    Class="room-code-input"
+                    @oninput="HandleInput" />
+                <ValidationMessage For="() => RoomCode" class="validation-message" />
+            </TmFormField>
+
+            @if (!string.IsNullOrEmpty(ErrorMessage))
+            {
+                <TmAlert Severity="AlertSeverity.Error" Class="error-alert">
+                    @ErrorMessage
+                </TmAlert>
+            }
+        </EditForm>
+    </ChildContent>
+
+    <Footer>
+        <TmButton 
+            Variant="ButtonVariant.Primary" 
+            Size="ButtonSize.Lg"
+            Class="join-button"
+            IsLoading="IsLoading"
+            OnClick="HandleSubmit">
+            @Localizer["Button_Join"]
+        </TmButton>
+        <TmButton 
+            Variant="ButtonVariant.Ghost" 
+            Size="ButtonSize.Lg"
+            Class="cancel-button"
+            OnClick="OnClose">
+            @Localizer["Button_Cancel"]
+        </TmButton>
+    </Footer>
+</TmModal>
+
+@code {
+    [Parameter] public bool IsVisible { get; set; }
+    [Parameter] public bool IsLoading { get; set; }
+    [Parameter] public string? ErrorMessage { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+    [Parameter] public EventCallback<string> OnJoin { get; set; }
+
+    [Required(ErrorMessage = "Kód místnosti je povinný")]
+    [RegularExpression(@"^LEXIQ-[A-Z0-9]{4}$", ErrorMessage = "Kód musí být ve formátu LEXIQ-XXXX")]
+    public string RoomCode { get; set; } = "";
+
+    private void HandleInput(ChangeEventArgs e)
+    {
+        var value = e.Value?.ToString() ?? "";
+        // Auto uppercase and limit length
+        RoomCode = value.ToUpperInvariant()[..Math.Min(value.Length, 10)];
+    }
+
+    private async Task HandleSubmit()
+    {
+        if (string.IsNullOrWhiteSpace(RoomCode))
+        {
+            return;
+        }
+
+        // Validate format
+        var regex = new System.Text.RegularExpressions.Regex(@"^LEXIQ-[A-Z0-9]{4}$");
+        if (!regex.IsMatch(RoomCode))
+        {
+            return;
+        }
+
+        await OnJoin.InvokeAsync(RoomCode);
+    }
+}

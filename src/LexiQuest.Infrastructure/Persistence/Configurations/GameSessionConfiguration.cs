@@ -18,6 +18,7 @@ public class GameSessionConfiguration : IEntityTypeConfiguration<GameSession>
 
         builder.HasIndex(gs => gs.UserId);
         builder.HasIndex(gs => gs.Status);
+        builder.HasIndex(gs => new { gs.UserId, gs.StartedAt });
 
         builder.HasMany(gs => gs.Rounds)
             .WithOne()

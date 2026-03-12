@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="XP_Gained" xml:space="preserve">
+    <value>Získali jste {0} XP!</value>
+  </data>
+  <data name="Level_Up" xml:space="preserve">
+    <value>🎉 Postup na úroveň {0}!</value>
+  </data>
+  <data name="Achievement_Unlocked" xml:space="preserve">
+    <value>🏆 Achievement odemčen: {0}!</value>
+  </data>
+  <data name="Word_Solved" xml:space="preserve">
+    <value>Správně! +{0} bodů</value>
+  </data>
+  <data name="Streak_Updated" xml:space="preserve">
+    <value>🔥 Streak: {0} dní!</value>
+  </data>
+  <data name="Api_Error" xml:space="preserve">
+    <value>Chyba komunikace se serverem</value>
+  </data>
+  <data name="Connection_Lost" xml:space="preserve">
+    <value>Spojení ztraceno. Zkontrolujte připojení k internetu.</value>
+  </data>
+  <data name="Validation_Error" xml:space="preserve">
+    <value>Chyba validace: {0}</value>
+  </data>
+  <data name="Streak_Ending" xml:space="preserve">
+    <value>⏰ Pozor! Váš streak končí za {0} hodin!</value>
+  </data>
+  <data name="Lives_Low" xml:space="preserve">
+    <value>💔 Máte jen {0} životů!</value>
+  </data>
+  <data name="Daily_Challenge_Available" xml:space="preserve">
+    <value>📅 Denní výzva je dostupná!</value>
+  </data>
+  <data name="League_Updated" xml:space="preserve">
+    <value>🏅 Vaše pozice v lize byla aktualizována</value>
+  </data>
+</root>

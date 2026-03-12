@@ -65,4 +65,40 @@
   <data name="Level.Progress" xml:space="preserve">
     <value>Slovo {0} z {1}</value>
   </data>
+  <data name="Button.Back" xml:space="preserve">
+    <value>Zpět</value>
+  </data>
+  <data name="Button.Submit" xml:space="preserve">
+    <value>Potvrdit</value>
+  </data>
+  <data name="Button.Submitting" xml:space="preserve">
+    <value>Odesílám...</value>
+  </data>
+  <data name="Button.Skip" xml:space="preserve">
+    <value>Přeskočit</value>
+  </data>
+  <data name="Button.Continue" xml:space="preserve">
+    <value>Pokračovat</value>
+  </data>
+  <data name="Level.Name" xml:space="preserve">
+    <value>Kolo {0}</value>
+  </data>
+  <data name="Feedback.Correct" xml:space="preserve">
+    <value>Správně! +{0} XP</value>
+  </data>
+  <data name="Feedback.Wrong" xml:space="preserve">
+    <value>Špatně!</value>
+  </data>
+  <data name="SpeedBonus.Label" xml:space="preserve">
+    <value>bonus za rychlost</value>
+  </data>
+  <data name="CorrectAnswer.Was" xml:space="preserve">
+    <value>Správná odpověď: {0}</value>
+  </data>
+  <data name="LevelComplete.Title" xml:space="preserve">
+    <value>Úroveň dokončena!</value>
+  </data>
+  <data name="LevelComplete.XP" xml:space="preserve">
+    <value>Získal jsi {0} XP</value>
+  </data>
 </root>
