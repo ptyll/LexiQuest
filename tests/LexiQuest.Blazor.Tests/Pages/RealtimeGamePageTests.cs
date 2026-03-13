@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
 using NSubstitute;
+using LexiQuest.Blazor.Tests.Helpers;
 using Xunit;
 
 namespace LexiQuest.Blazor.Tests.Pages;
@@ -32,6 +33,7 @@ public class RealtimeGamePageTests : TestContext
         Services.AddSingleton(_matchHubClient);
         Services.AddSingleton(_localizer);
         Services.AddSingleton<NavigationManager>(new TestNavigationManager());
+        TempoTestHelper.RegisterTempoServices(Services);
     }
 
     [Fact]
@@ -74,7 +76,7 @@ public class RealtimeGamePageTests : TestContext
         
         // Act - simulate opponent progress
         _matchHubClient.OnOpponentProgress += Raise.Event<EventHandler<LexiQuest.Shared.DTOs.Multiplayer.OpponentProgressDto>>(
-            this, new LexiQuest.Shared.DTOs.Multiplayer.OpponentProgressDto(5, 5, 2));
+            this, new LexiQuest.Shared.DTOs.Multiplayer.OpponentProgressDto(5, 5, 2, 1));
         
         // Assert
         cut.Find(".score-opponent").TextContent.Should().Contain("5");

@@ -4,6 +4,7 @@ using LexiQuest.Blazor.Components.Game;
 using LexiQuest.Shared.DTOs.Game;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
+using LexiQuest.Blazor.Tests.Helpers;
 using NSubstitute;
 
 namespace LexiQuest.Blazor.Tests.Components;
@@ -20,6 +21,7 @@ public class LivesIndicatorTests : BunitContext
         _localizer["Tooltip.RegenIn"].Returns(new LocalizedString("Tooltip.RegenIn", "Další život za"));
         
         Services.AddSingleton(_localizer);
+        TempoTestHelper.RegisterTempoServices(Services);
     }
 
     [Fact]

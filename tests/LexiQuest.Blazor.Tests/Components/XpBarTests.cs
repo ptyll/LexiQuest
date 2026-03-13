@@ -4,6 +4,7 @@ using LexiQuest.Blazor.Components.Game;
 using LexiQuest.Shared.DTOs.Game;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
+using LexiQuest.Blazor.Tests.Helpers;
 using NSubstitute;
 
 namespace LexiQuest.Blazor.Tests.Components;
@@ -19,6 +20,7 @@ public class XpBarTests : BunitContext
         _localizer["Level", Arg.Any<object[]>()].Returns(x => new LocalizedString("Level", $"Level {x.Arg<object[]>()[0]}"));
         
         Services.AddSingleton(_localizer);
+        TempoTestHelper.RegisterTempoServices(Services);
     }
 
     [Fact]

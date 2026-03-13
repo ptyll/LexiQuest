@@ -126,7 +126,8 @@ public class Program
         services.AddScoped<IXpService, Core.Services.XpService>();
         services.AddScoped<ILevelCalculator, LevelCalculator>();
         services.AddScoped<IPasswordResetService, PasswordResetService>();
-        services.AddScoped<IEmailService, MockEmailService>();
+        services.Configure<EmailSettings>(configuration.GetSection("EmailSettings"));
+        services.AddScoped<IEmailService, LexiQuest.Infrastructure.Services.EmailService>();
         services.AddScoped<ILeagueService, LeagueService>();
         services.AddScoped<IDailyChallengeService, DailyChallengeService>();
         services.AddScoped<IAchievementService, AchievementService>();
@@ -281,6 +282,12 @@ public class Program
             app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "LexiQuest API v1"));
         }
 
+        // HSTS in production
+        if (!environment.IsDevelopment())
+        {
+            app.UseHsts();
+        }
+
         // Security headers must be first in the pipeline
         app.UseSecurityHeaders();
 
@@ -295,6 +302,7 @@ public class Program
         app.MapGameEndpoints();
         app.MapUserEndpoints();
         app.MapGuestEndpoints();
+        app.MapClientErrorEndpoints();
 
         // Health check endpoints
         app.MapHealthChecks("/health", new HealthCheckOptions

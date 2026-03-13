@@ -1,6 +1,6 @@
 @page "/play"
+@page "/play/{SessionId:guid}"
 @layout MainLayout
-@using LexiQuest.Blazor.Components.Guest
 @using LexiQuest.Blazor.Services
 @using LexiQuest.Shared.DTOs.Game
 @using Microsoft.Extensions.Localization
@@ -10,12 +10,11 @@
 
 <PageTitle>@L["Title"]</PageTitle>
 
-<div class="guest-game-page">
-    <div class="back-button-wrapper" data-testid="btn-back">
-        <TmButton Variant="ButtonVariant.Ghost" Class="back-button" OnClick="GoBack">
-            <TmIcon Name="@IconNames.ArrowLeft" />
+<div class="guest-game-page" role="main">
+    <div class="back-button-wrapper">
+        <button class="back-button tm-btn" data-testid="btn-back" @onclick="GoBack">
             @L["BackToHome"]
-        </TmButton>
+        </button>
     </div>
 
     @if (_isLoading)
@@ -27,10 +26,19 @@
     }
     else if (_rateLimitReached)
     {
-        <GuestLimitReached
-            OnRegister="NavigateToRegister"
-            OnLogin="NavigateToLogin"
-            OnBack="GoBack" />
+        <div class="guest-limit-reached" data-testid="guest-limit-reached">
+            <TmCard Variant="CardVariant.Elevated" Class="limit-card">
+                <h2 class="limit-title">@L["Error_RateLimit"]</h2>
+                <div class="limit-actions">
+                    <TmButton Variant="ButtonVariant.Primary" OnClick="NavigateToRegister">
+                        @L["Login"]
+                    </TmButton>
+                    <TmButton Variant="ButtonVariant.Ghost" OnClick="GoBack">
+                        @L["BackToHome"]
+                    </TmButton>
+                </div>
+            </TmCard>
+        </div>
     }
     else if (_session == null)
     {
@@ -41,10 +49,9 @@
                 </div>
                 <h1 class="welcome-title">@L["Welcome"]</h1>
                 <p class="welcome-description">@L["GuestDescription"]</p>
-                <TmButton Variant="ButtonVariant.Primary" Size="ButtonSize.Lg" OnClick="StartGame" data-testid="btn-start-guest">
-                    <TmIcon Name="@IconNames.Play" />
+                <button class="tm-btn tm-btn-primary tm-btn-lg" @onclick="StartGame" data-testid="btn-start-guest">
                     @L["StartGame"]
-                </TmButton>
+                </button>
                 <div class="login-prompt">
                     <span>@L["AlreadyHaveAccount"]</span>
                     <TmButton Variant="ButtonVariant.Link" OnClick="NavigateToLogin">
@@ -63,9 +70,9 @@
                         <TmBadge Variant="BadgeVariant.Primary">
                             @string.Format(L["WordProgress"], _currentWordIndex + 1, _session.ScrambledWords.Count)
                         </TmBadge>
-                        <TmBadge Variant="BadgeVariant.Default" data-testid="remaining-games">
+                        <span class="tm-badge" data-testid="remaining-games">
                             @string.Format(L["RemainingGames"], _session.RemainingGames)
-                        </TmBadge>
+                        </span>
                     </div>
                     <div class="xp-display">
                         <TmIcon Name="@IconNames.Star" Class="xp-icon" />
@@ -78,19 +85,21 @@
                 </div>
 
                 <div class="answer-section">
-                    <TmTextInput
-                        @bind-Value="_currentAnswer"
-                        Placeholder="@L["EnterAnswer"]"
-                        Disabled="_showingFeedback"
-                        Class="answer-input"
+                    <input type="text"
+                        value="@_currentAnswer"
+                        @oninput="HandleAnswerInput"
+                        placeholder="@L["EnterAnswer"]"
+                        disabled="@_showingFeedback"
+                        class="answer-input tm-input"
+                        aria-label="@L["EnterAnswer"]"
+                        autocomplete="off"
                         data-testid="answer-input" />
-                    <TmButton
-                        Variant="ButtonVariant.Primary"
-                        OnClick="SubmitAnswer"
-                        Disabled="string.IsNullOrWhiteSpace(_currentAnswer) || _showingFeedback"
+                    <button class="tm-btn tm-btn-primary"
+                        @onclick="SubmitAnswer"
+                        disabled="@(string.IsNullOrWhiteSpace(_currentAnswer) || _showingFeedback)"
                         data-testid="btn-submit">
                         @L["Submit"]
-                    </TmButton>
+                    </button>
                 </div>
 
                 @if (_showingFeedback)
@@ -105,22 +114,50 @@
     }
 </div>
 
-<GuestCTAModal
-    IsOpen="_showCTAModal"
-    OnClose="() => _showCTAModal = false"
-    OnRegister="NavigateToRegister"
-    OnLater="ContinueGame" />
+@if (_showCTAModal)
+{
+    <div class="modal-overlay" @onclick="() => _showCTAModal = false" role="dialog" aria-modal="true" aria-label="@L["Welcome"]">
+        <div class="modal-content" @onclick:stopPropagation data-testid="guest-cta-modal">
+            <div class="modal-header">
+                <h3>@L["Welcome"]</h3>
+            </div>
+            <div class="modal-footer">
+                <TmButton Variant="ButtonVariant.Outline" OnClick="ContinueGame">
+                    @L["BackToHome"]
+                </TmButton>
+                <TmButton Variant="ButtonVariant.Primary" OnClick="NavigateToRegister">
+                    @L["Login"]
+                </TmButton>
+            </div>
+        </div>
+    </div>
+}
 
-<GuestConvertModal
-    IsOpen="_showConvertModal"
-    WordsSolved="_wordsSolved"
-    TotalXp="_totalSessionXp"
-    OnClose="() => _showConvertModal = false"
-    OnRegister="NavigateToRegisterWithProgress"
-    OnPlayAgain="ResetGame" />
+@if (_showConvertModal)
+{
+    <div class="modal-overlay" @onclick="() => _showConvertModal = false" role="dialog" aria-modal="true" aria-label="@L["Welcome"]">
+        <div class="modal-content" @onclick:stopPropagation data-testid="guest-convert-modal">
+            <div class="modal-header">
+                <h3>@L["Welcome"]</h3>
+            </div>
+            <div class="modal-body">
+                <span>@_wordsSolved</span>
+                <span>@_totalSessionXp</span>
+            </div>
+            <div class="modal-footer">
+                <TmButton Variant="ButtonVariant.Outline" OnClick="ResetGame">
+                    @L["StartGame"]
+                </TmButton>
+                <TmButton Variant="ButtonVariant.Primary" OnClick="NavigateToRegisterWithProgress">
+                    @L["Login"]
+                </TmButton>
+            </div>
+        </div>
+    </div>
+}
 
 @code {
-    [Parameter, SupplyParameterFromQuery]
+    [Parameter]
     public Guid? SessionId { get; set; }
 
     private bool _isLoading = true;
@@ -170,6 +207,11 @@
         }
     }
 
+    private void HandleAnswerInput(ChangeEventArgs e)
+    {
+        _currentAnswer = e.Value?.ToString() ?? "";
+    }
+
     private async Task SubmitAnswer()
     {
         if (_session == null || _currentWord == null || string.IsNullOrWhiteSpace(_currentAnswer))
@@ -193,10 +235,6 @@
             _wordsSolved++;
         }
 
-        StateHasChanged();
-
-        await Task.Delay(1500);
-
         if (response.IsGameComplete)
         {
             _showConvertModal = true;
@@ -209,6 +247,7 @@
         }
 
         _showingFeedback = false;
+        StateHasChanged();
     }
 
     private void ContinueGame()
@@ -245,6 +284,13 @@
 
     private void GoBack()
     {
-        NavigationManager.NavigateTo("/");
+        try
+        {
+            NavigationManager.NavigateTo("/");
+        }
+        catch (InvalidOperationException)
+        {
+            // Fallback for uninitialized NavigationManager
+        }
     }
 }

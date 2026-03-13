@@ -11,17 +11,20 @@ public class InventoryService : IInventoryService
     private readonly IShopItemRepository _shopItemRepository;
     private readonly IUserInventoryRepository _inventoryRepository;
     private readonly IPremiumFeatureService _premiumFeatureService;
+    private readonly IUserRepository _userRepository;
     private readonly IUnitOfWork _unitOfWork;
 
     public InventoryService(
         IShopItemRepository shopItemRepository,
         IUserInventoryRepository inventoryRepository,
         IPremiumFeatureService premiumFeatureService,
+        IUserRepository userRepository,
         IUnitOfWork unitOfWork)
     {
         _shopItemRepository = shopItemRepository;
         _inventoryRepository = inventoryRepository;
         _premiumFeatureService = premiumFeatureService;
+        _userRepository = userRepository;
         _unitOfWork = unitOfWork;
     }
 
@@ -129,21 +132,36 @@ public class InventoryService : IInventoryService
         return new EquipResult(true, "Položka byla sundána.", false);
     }
 
-    public Task<int> GetCoinBalanceAsync(Guid userId, CancellationToken cancellationToken = default)
+    public async Task<int> GetCoinBalanceAsync(Guid userId, CancellationToken cancellationToken = default)
     {
-        // TODO: Implement when UserCoins is added to User entity
-        return Task.FromResult(1000);
+        var user = await _userRepository.GetByIdAsync(userId, cancellationToken);
+        return user?.CoinBalance ?? 0;
     }
 
-    public Task AddCoinsAsync(Guid userId, int amount, string reason, CancellationToken cancellationToken = default)
+    public async Task AddCoinsAsync(Guid userId, int amount, string reason, CancellationToken cancellationToken = default)
     {
-        // TODO: Implement when UserCoins is added to User entity
-        return Task.CompletedTask;
+        if (amount <= 0) throw new ArgumentException("Amount must be positive", nameof(amount));
+
+        var user = await _userRepository.GetByIdAsync(userId, cancellationToken);
+        if (user == null) return;
+
+        user.AddCoinTransaction(amount, "Credit", reason);
+        _userRepository.Update(user);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
 
-    public Task<bool> SpendCoinsAsync(Guid userId, int amount, string reason, CancellationToken cancellationToken = default)
+    public async Task<bool> SpendCoinsAsync(Guid userId, int amount, string reason, CancellationToken cancellationToken = default)
     {
-        // TODO: Implement when UserCoins is added to User entity
-        return Task.FromResult(true);
+        if (amount <= 0) throw new ArgumentException("Amount must be positive", nameof(amount));
+
+        var user = await _userRepository.GetByIdAsync(userId, cancellationToken);
+        if (user == null) return false;
+
+        if (user.CoinBalance < amount) return false;
+
+        user.AddCoinTransaction(-amount, "Debit", reason);
+        _userRepository.Update(user);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        return true;
     }
 }

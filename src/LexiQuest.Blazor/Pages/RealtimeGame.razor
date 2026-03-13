@@ -1,7 +1,5 @@
 @page "/multiplayer/game/{MatchId:guid}"
-@attribute [Authorize]
 @namespace LexiQuest.Blazor.Pages
-@using Microsoft.AspNetCore.Authorization
 @inject IMatchHubClient MatchHubClient
 @inject IStringLocalizer<RealtimeGame> L
 @inject NavigationManager NavigationManager
@@ -15,12 +13,12 @@
 @using Tempo.Blazor.Components.Icons
 @using LexiQuest.Shared.DTOs.Multiplayer
 
-<div class="realtime-game">
+<div class="realtime-game" role="main" aria-label="@L["Game_Aria_Label"]">
     <!-- Header with Timer and Progress -->
     <div class="game-header">
-        <div class="timer-section">
+        <div class="timer-section" role="timer" aria-live="polite">
             <TmIcon Name="timer" />
-            <span class="timer-display">@FormatTime(_timeRemaining)</span>
+            <span class="timer-display" aria-label="@L["Game_Timer_Aria"]">@FormatTime(_timeRemaining)</span>
             <TmProgressBar Value="GetTimeProgress()" Max="100" Size="ProgressBarSize.Sm" Class="timer-bar" />
         </div>
         <div class="word-progress">
@@ -40,7 +38,7 @@
                     <TmAvatar Name="@L["Game_Player_You"]" Size="AvatarSize.Lg" Color="AvatarColor.Blue" />
                     <div class="player-info">
                         <span class="player-name">@L["Game_Player_You"]</span>
-                        <span class="player-score">@_playerScore/@_totalRounds ✓</span>
+                        <span class="player-score score-you">@_playerScore/@_totalRounds ✓</span>
                     </div>
                 </div>
                 <TmProgressBar Value="_playerScore" Max="_totalRounds" Size="ProgressBarSize.Md" Variant="ProgressBarVariant.Success" />
@@ -89,28 +87,28 @@
             </div>
         }
 
-        <div class="answer-section @GetShakeClass()">
-            <TmTextInput @bind-Value="_currentAnswer"
-                         Placeholder="@L["Game_Input_Placeholder"]"
-                         Disabled="_isSubmitting"
-                         AutoFocus="true"
-                         OnKeyDown="HandleKeyDown"
-                         Class="answer-input" />
+        <form class="answer-section @GetShakeClass()" @onsubmit="SubmitAnswer" @onsubmit:preventDefault>
+            <input type="text"
+                   value="@_currentAnswer"
+                   @oninput="HandleAnswerInput"
+                   placeholder="@L["Game_Input_Placeholder"]"
+                   disabled="@_isSubmitting"
+                   autofocus
+                   aria-label="@L["Game_Input_Placeholder"]"
+                   autocomplete="off"
+                   class="answer-input tm-input" />
 
-            <TmButton Variant="ButtonVariant.Primary"
-                      Size="ButtonSize.Lg"
-                      OnClick="SubmitAnswer"
-                      Disabled="!CanSubmit"
-                      IsLoading="_isSubmitting"
-                      Class="btn-submit">
+            <button type="submit"
+                    disabled="@(!CanSubmit)"
+                    class="btn-submit tm-btn tm-btn-primary">
                 @L["Game_Button_Submit"]
-            </TmButton>
-        </div>
+            </button>
+        </form>
 
         <!-- Feedback -->
         @if (_showFeedback)
         {
-            <div class="feedback @_feedbackClass">
+            <div class="feedback @_feedbackClass" role="status" aria-live="assertive">
                 <span>@_feedbackMessage</span>
                 @if (_lastXPEarned > 0)
                 {
@@ -154,6 +152,7 @@
     private bool _opponentShouldFlash = false;
     private bool _shouldShake = false;
     private Timer? _timer;
+    private int _lastSeenSequenceNumber = 0;
 
     protected override async Task OnInitializedAsync()
     {
@@ -172,7 +171,7 @@
 
             await MatchHubClient.StartAsync();
 
-            // Start game timer
+            // Start game timer (delayed start to avoid immediate re-render)
             _timer = new Timer(_ =>
             {
                 if (_timeRemaining > 0)
@@ -180,7 +179,7 @@
                     _timeRemaining--;
                     InvokeAsync(StateHasChanged);
                 }
-            }, null, TimeSpan.Zero, TimeSpan.FromSeconds(1));
+            }, null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
         }
         catch (Exception)
         {
@@ -192,6 +191,12 @@
 
     private void OnRoundStarted(object? sender, MultiplayerRoundDto round)
     {
+        // Ignore stale/duplicate events using sequence numbers
+        if (round.SequenceNumber > 0 && round.SequenceNumber <= _lastSeenSequenceNumber)
+            return;
+        if (round.SequenceNumber > 0)
+            _lastSeenSequenceNumber = round.SequenceNumber;
+
         _scrambledWord = round.ScrambledWord;
         _currentRound = round.RoundNumber;
         _currentAnswer = "";
@@ -202,10 +207,17 @@
 
     private void OnOpponentProgress(object? sender, OpponentProgressDto progress)
     {
+        // Ignore stale/duplicate events using sequence numbers
+        if (progress.SequenceNumber > 0 && progress.SequenceNumber <= _lastSeenSequenceNumber)
+            return;
+        if (progress.SequenceNumber > 0)
+            _lastSeenSequenceNumber = progress.SequenceNumber;
+
+        // Use server-authoritative score, not local calculation
         _opponentScore = progress.CorrectCount;
         _opponentCombo = progress.ComboCount;
         _opponentShouldFlash = true;
-        
+
         // Reset flash after animation
         _ = Task.Run(async () =>
         {
@@ -213,7 +225,7 @@
             _opponentShouldFlash = false;
             await InvokeAsync(StateHasChanged);
         });
-        
+
         InvokeAsync(StateHasChanged);
     }
 
@@ -242,43 +254,21 @@
         {
             var timeSpentMs = (180 - _timeRemaining) * 1000;
             await MatchHubClient.SubmitAnswerAsync(_currentAnswer.ToUpper(), timeSpentMs);
-            
-            // For demo, assume correct if matches (in real app, wait for server response)
-            _playerScore++;
-            _playerCombo++;
-            _shouldFlash = true;
-            _lastXPEarned = 10;
-            
-            _feedbackMessage = L["Game_Feedback_Correct"];
-            _feedbackClass = "success";
-            
-            // Reset flash after animation
-            _ = Task.Run(async () =>
-            {
-                await Task.Delay(500);
-                _shouldFlash = false;
-                await InvokeAsync(StateHasChanged);
-            });
+            // Score update happens via OnOpponentProgress/OnRoundStarted events from server
         }
         catch
         {
             _playerCombo = 0;
-            _shouldShake = true;
-            _feedbackMessage = L["Game_Feedback_Wrong"];
-            _feedbackClass = "error";
-            
-            // Reset shake after animation
-            _ = Task.Run(async () =>
-            {
-                await Task.Delay(500);
-                _shouldShake = false;
-                await InvokeAsync(StateHasChanged);
-            });
         }
 
         _showFeedback = true;
         _isSubmitting = false;
         _currentAnswer = "";
+    }
+
+    private void HandleAnswerInput(ChangeEventArgs e)
+    {
+        _currentAnswer = e.Value?.ToString() ?? "";
     }
 
     private async Task HandleKeyDown(KeyboardEventArgs e)

@@ -1,0 +1,57 @@
+@page "/terms"
+@inject IStringLocalizer<Terms> L
+
+<PageTitle>@L["Terms_PageTitle"]</PageTitle>
+
+<div class="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
+    <div class="max-w-4xl mx-auto px-4">
+        <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-8">@L["Terms_Title"]</h1>
+
+        <div class="space-y-6">
+            <!-- Acceptance -->
+            <TmCard Variant="CardVariant.Elevated" Class="p-6">
+                <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-3">@L["Terms_AcceptanceTitle"]</h2>
+                <p class="text-gray-600 dark:text-gray-300 leading-relaxed">@L["Terms_AcceptanceText"]</p>
+            </TmCard>
+
+            <!-- Usage -->
+            <TmCard Variant="CardVariant.Elevated" Class="p-6">
+                <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-3">@L["Terms_UsageTitle"]</h2>
+                <p class="text-gray-600 dark:text-gray-300 leading-relaxed">@L["Terms_UsageText"]</p>
+            </TmCard>
+
+            <!-- Accounts -->
+            <TmCard Variant="CardVariant.Elevated" Class="p-6">
+                <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-3">@L["Terms_AccountsTitle"]</h2>
+                <p class="text-gray-600 dark:text-gray-300 leading-relaxed">@L["Terms_AccountsText"]</p>
+            </TmCard>
+
+            <!-- Content -->
+            <TmCard Variant="CardVariant.Elevated" Class="p-6">
+                <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-3">@L["Terms_ContentTitle"]</h2>
+                <p class="text-gray-600 dark:text-gray-300 leading-relaxed">@L["Terms_ContentText"]</p>
+            </TmCard>
+
+            <!-- Privacy -->
+            <TmCard Variant="CardVariant.Elevated" Class="p-6">
+                <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-3">@L["Terms_PrivacyTitle"]</h2>
+                <p class="text-gray-600 dark:text-gray-300 leading-relaxed">
+                    @L["Terms_PrivacyText"]
+                    <a href="/privacy" class="text-blue-500 hover:underline">@L["Terms_PrivacyLink"]</a>.
+                </p>
+            </TmCard>
+
+            <!-- Liability -->
+            <TmCard Variant="CardVariant.Elevated" Class="p-6">
+                <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-3">@L["Terms_LiabilityTitle"]</h2>
+                <p class="text-gray-600 dark:text-gray-300 leading-relaxed">@L["Terms_LiabilityText"]</p>
+            </TmCard>
+
+            <!-- Changes -->
+            <TmCard Variant="CardVariant.Elevated" Class="p-6">
+                <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-3">@L["Terms_ChangesTitle"]</h2>
+                <p class="text-gray-600 dark:text-gray-300 leading-relaxed">@L["Terms_ChangesText"]</p>
+            </TmCard>
+        </div>
+    </div>
+</div>

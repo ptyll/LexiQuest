@@ -45,6 +45,9 @@ builder.Services.AddScoped<IMatchHistoryClient, MatchHistoryClient>();
 // Admin Service
 builder.Services.AddScoped<IAdminService, AdminService>();
 
+// Error Logging Service
+builder.Services.AddScoped<IErrorLoggingService, ErrorLoggingService>();
+
 // HttpClient Factory with Authorization Handler
 builder.Services.AddTransient<AuthorizationMessageHandler>();
 builder.Services.AddHttpClient("ApiClient", client =>

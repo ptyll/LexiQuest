@@ -1,6 +1,7 @@
 using FluentAssertions;
 using LexiQuest.Core.Domain.Entities;
 using LexiQuest.Core.Domain.ValueObjects;
+using LexiQuest.Shared.Enums;
 
 namespace LexiQuest.Core.Tests.Domain;
 
@@ -21,7 +22,7 @@ public class UserTests
         user.Stats.TotalWordsSolved.Should().Be(0);
         user.Stats.AverageResponseTime.Should().Be(TimeSpan.Zero);
         user.Preferences.Should().NotBeNull();
-        user.Preferences.Theme.Should().Be("light");
+        user.Preferences.Theme.Should().Be(AppTheme.Light);
         user.Preferences.Language.Should().Be("cs");
         user.Preferences.AnimationsEnabled.Should().BeTrue();
         user.Preferences.SoundsEnabled.Should().BeTrue();

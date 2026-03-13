@@ -6,6 +6,7 @@ using LexiQuest.Shared.DTOs.Multiplayer;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
 using NSubstitute;
+using LexiQuest.Blazor.Tests.Helpers;
 using Xunit;
 
 namespace LexiQuest.Blazor.Tests.Components;
@@ -20,6 +21,7 @@ public class RoomLobbyTests : BunitContext
         SetupLocalizer();
         
         Services.AddSingleton(_localizer);
+        TempoTestHelper.RegisterTempoServices(Services);
     }
 
     private void SetupLocalizer()

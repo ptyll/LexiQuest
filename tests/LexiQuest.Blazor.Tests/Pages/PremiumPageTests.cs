@@ -6,6 +6,7 @@ using LexiQuest.Shared.DTOs.Premium;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
 using NSubstitute;
+using LexiQuest.Blazor.Tests.Helpers;
 using Xunit;
 
 namespace LexiQuest.Blazor.Tests.Pages;
@@ -25,6 +26,8 @@ public class PremiumPageTests : BunitContext
         
         Services.AddSingleton(_premiumService);
         Services.AddSingleton(_localizer);
+        Services.AddSingleton(Substitute.For<LexiQuest.Blazor.Services.IToastService>());
+        TempoTestHelper.RegisterTempoServices(Services);
     }
 
     [Fact]

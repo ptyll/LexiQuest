@@ -1,3 +1,4 @@
+using LexiQuest.Api.Extensions;
 using LexiQuest.Core.Domain.Entities;
 using LexiQuest.Core.Interfaces.Services;
 using LexiQuest.Shared.DTOs.Streak;
@@ -25,7 +26,7 @@ public class StreakProtectionController : ControllerBase
     [HttpGet("protection")]
     public async Task<ActionResult<StreakProtectionDto>> GetProtection(CancellationToken cancellationToken)
     {
-        var userId = GetUserId();
+        var userId = User.GetUserId();
         var protection = await _streakProtectionService.GetProtectionAsync(userId, cancellationToken);
 
         if (protection == null)
@@ -50,7 +51,7 @@ public class StreakProtectionController : ControllerBase
     [HttpPost("shield/activate")]
     public async Task<ActionResult<ActivateShieldResponse>> ActivateShield(CancellationToken cancellationToken)
     {
-        var userId = GetUserId();
+        var userId = User.GetUserId();
 
         // Check if user has shield feature available
         var hasShieldFeature = await _premiumFeatureService.HasFeatureAsync(userId, Core.Domain.Enums.PremiumFeature.StreakShield);
@@ -78,7 +79,7 @@ public class StreakProtectionController : ControllerBase
         [FromBody] PurchaseShieldsRequest request,
         CancellationToken cancellationToken)
     {
-        var userId = GetUserId();
+        var userId = User.GetUserId();
 
         // Standard price: 3 shields for 500 coins
         var coinCost = request.Quantity == 3 ? 500 : (request.Quantity * 170);
@@ -106,7 +107,7 @@ public class StreakProtectionController : ControllerBase
     [HttpPost("shield/emergency")]
     public async Task<ActionResult<EmergencyShieldResponse>> PurchaseEmergencyShield(CancellationToken cancellationToken)
     {
-        var userId = GetUserId();
+        var userId = User.GetUserId();
 
         // Check if user is premium
         var isPremium = await _premiumFeatureService.IsPremiumAsync(userId);
@@ -137,16 +138,11 @@ public class StreakProtectionController : ControllerBase
     [HttpGet("shield/can-activate-free")]
     public async Task<ActionResult<bool>> CanActivateFreeShield(CancellationToken cancellationToken)
     {
-        var userId = GetUserId();
+        var userId = User.GetUserId();
         var isPremium = await _premiumFeatureService.IsPremiumAsync(userId);
 
         var result = await _streakProtectionService.CanActivateFreeShieldAsync(userId, isPremium, cancellationToken);
         return Ok(result);
     }
 
-    private Guid GetUserId()
-    {
-        var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-        return Guid.Parse(userIdClaim!);
-    }
 }

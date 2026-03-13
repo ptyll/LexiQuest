@@ -1,9 +1,9 @@
-using System.Collections.Concurrent;
 using LexiQuest.Core.Domain.Entities;
 using LexiQuest.Core.Interfaces.Repositories;
 using LexiQuest.Core.Interfaces.Services;
 using LexiQuest.Shared.DTOs.Game;
 using LexiQuest.Shared.Enums;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace LexiQuest.Core.Services;
 
@@ -79,16 +79,19 @@ internal class GuestSession
 public class GuestSessionService : IGuestSessionService
 {
     private readonly IWordRepository _wordRepository;
-    private readonly ConcurrentDictionary<Guid, GuestSession> _sessions = new();
+    private readonly IMemoryCache _cache;
     private readonly Random _random = new();
 
     // XP calculation constants for guest mode
     private const int BaseXpPerWord = 10;
     private const int StreakBonusPerWord = 2;
 
-    public GuestSessionService(IWordRepository wordRepository)
+    private static readonly TimeSpan SessionExpiration = TimeSpan.FromHours(24);
+
+    public GuestSessionService(IWordRepository wordRepository, IMemoryCache cache)
     {
         _wordRepository = wordRepository;
+        _cache = cache;
     }
 
     /// <summary>
@@ -124,7 +127,7 @@ public class GuestSessionService : IGuestSessionService
             });
         }
 
-        _sessions[session.SessionId] = session;
+        _cache.Set(GetSessionKey(session.SessionId), session, SessionExpiration);
 
         return new GuestSessionResult
         {
@@ -140,7 +143,7 @@ public class GuestSessionService : IGuestSessionService
     /// </summary>
     public GuestAnswerResult SubmitAnswer(Guid sessionId, Guid wordId, string answer)
     {
-        if (!_sessions.TryGetValue(sessionId, out var session))
+        if (!_cache.TryGetValue(GetSessionKey(sessionId), out GuestSession? session) || session == null)
         {
             throw new InvalidOperationException("Session not found or expired.");
         }
@@ -185,7 +188,7 @@ public class GuestSessionService : IGuestSessionService
     /// </summary>
     public GuestSessionProgress GetSessionProgress(Guid sessionId)
     {
-        if (!_sessions.TryGetValue(sessionId, out var session))
+        if (!_cache.TryGetValue(GetSessionKey(sessionId), out GuestSession? session) || session == null)
         {
             throw new InvalidOperationException("Session not found or expired.");
         }
@@ -201,10 +204,12 @@ public class GuestSessionService : IGuestSessionService
     /// </summary>
     public GuestSessionResult EndGame(Guid sessionId)
     {
-        if (!_sessions.TryRemove(sessionId, out var session))
+        if (!_cache.TryGetValue(GetSessionKey(sessionId), out GuestSession? session) || session == null)
         {
             throw new InvalidOperationException("Session not found or expired.");
         }
+
+        _cache.Remove(GetSessionKey(sessionId));
 
         return new GuestSessionResult
         {
@@ -223,6 +228,8 @@ public class GuestSessionService : IGuestSessionService
         // Base XP + length bonus
         return BaseXpPerWord + (wordLength * 2);
     }
+
+    private static string GetSessionKey(Guid sessionId) => $"guest_session:{sessionId}";
 
     /// <summary>
     /// Default beginner words if database doesn't have enough.

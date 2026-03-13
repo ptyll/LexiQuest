@@ -17,7 +17,7 @@
     else if (leagueInfo == null)
     {
         <div class="empty-state">
-            <TmEmptyState 
+            <TmEmptyState
                 Icon="trophy"
                 Title="@L["EmptyState.Title"]"
                 Description="@L["EmptyState.Description"]" />
@@ -37,10 +37,55 @@
             </TmCard>
         </div>
 
+        <div class="time-remaining-card">
+            <TmCard>
+                <div class="time-remaining-content">
+                    <TmIcon Name="clock" />
+                    <span>@L["TimeRemaining", FormatTimeRemaining(leagueInfo.WeekEnd)]</span>
+                </div>
+            </TmCard>
+        </div>
+
         <div class="user-position-card">
             <TmCard Variant="CardVariant.Elevated">
                 <div class="rank-display">#@leagueInfo.CurrentRank / @leagueInfo.TotalParticipants</div>
                 <div class="xp-display">@leagueInfo.UserXP XP</div>
+            </TmCard>
+        </div>
+
+        <div class="progress-section">
+            <TmCard>
+                <div class="progress-content">
+                    <h3>@L["Progress.Title"]</h3>
+                    <div class="progress-thresholds">
+                        <div class="threshold promotion-threshold">
+                            <span class="threshold-label">@L["Progress.Promotion"]</span>
+                            <span class="threshold-value">@L["Progress.TopN", leagueInfo.PromotionThreshold]</span>
+                            @if (leagueInfo.CurrentRank <= leagueInfo.PromotionThreshold)
+                            {
+                                <TmBadge Variant="BadgeVariant.Success">@L["Progress.InZone"]</TmBadge>
+                            }
+                        </div>
+                        <div class="progress-bar-container">
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: @GetProgressPercentage()%"></div>
+                                <div class="progress-marker promotion-marker" style="left: @GetPromotionMarkerPosition()%"></div>
+                                <div class="progress-marker demotion-marker" style="left: @GetDemotionMarkerPosition()%"></div>
+                            </div>
+                            <div class="progress-label">
+                                <span>@L["Progress.CurrentRank", leagueInfo.CurrentRank, leagueInfo.TotalParticipants]</span>
+                            </div>
+                        </div>
+                        <div class="threshold demotion-threshold">
+                            <span class="threshold-label">@L["Progress.Demotion"]</span>
+                            <span class="threshold-value">@L["Progress.BelowN", leagueInfo.DemotionThreshold]</span>
+                            @if (leagueInfo.CurrentRank >= leagueInfo.DemotionThreshold)
+                            {
+                                <TmBadge Variant="BadgeVariant.Danger">@L["Progress.InDanger"]</TmBadge>
+                            }
+                        </div>
+                    </div>
+                </div>
             </TmCard>
         </div>
 
@@ -58,12 +103,69 @@
                 }
             </div>
         </div>
+
+        @if (leagueHistory.Any())
+        {
+            <div class="history-section">
+                <h2>@L["History.Title"]</h2>
+                @foreach (var entry in leagueHistory)
+                {
+                    <TmCard Class="history-entry">
+                        <div class="history-entry-content">
+                            <div class="history-tier">
+                                <TmIcon Name="@GetTierIcon(entry.Tier)" />
+                                <span>@GetTierName(entry.Tier)</span>
+                            </div>
+                            <div class="history-week">
+                                <span>@entry.WeekStart.ToString("dd.MM") - @entry.WeekEnd.ToString("dd.MM")</span>
+                            </div>
+                            <div class="history-stats">
+                                <span class="history-rank">@L["History.Rank", entry.FinalRank]</span>
+                                <span class="history-xp">@entry.WeeklyXP XP</span>
+                                <span class="history-earned">+@entry.XPEarned XP</span>
+                            </div>
+                            <div class="history-status">
+                                <TmBadge Variant="@GetChangeStatusVariant(entry.ChangeStatus)">
+                                    @L[$"History.Status.{entry.ChangeStatus}"]
+                                </TmBadge>
+                            </div>
+                        </div>
+                    </TmCard>
+                }
+            </div>
+        }
+
+        @if (leagueRewards.Any())
+        {
+            <div class="rewards-section">
+                <h2>@L["Rewards.Title"]</h2>
+                <div class="rewards-grid">
+                    @foreach (var reward in leagueRewards)
+                    {
+                        <TmCard Class="@($"reward-card {(reward.Tier == leagueInfo.Tier ? "current-tier" : "")}")">
+                            <div class="reward-content">
+                                <TmIcon Name="@GetTierIcon(reward.Tier)" />
+                                <h4>@GetTierName(reward.Tier)</h4>
+                                <div class="reward-xp">+@reward.XPReward XP</div>
+                                <p class="reward-desc">@reward.Description</p>
+                                @if (reward.Tier == leagueInfo.Tier)
+                                {
+                                    <TmBadge Variant="BadgeVariant.Primary">@L["Rewards.Current"]</TmBadge>
+                                }
+                            </div>
+                        </TmCard>
+                    }
+                </div>
+            </div>
+        }
     }
 </div>
 
 @code {
     private LeagueInfoDto? leagueInfo;
     private List<LeagueParticipantDto> leaderboard = new();
+    private List<LeagueHistoryDto> leagueHistory = new();
+    private List<LeagueRewardsDto> leagueRewards = new();
     private bool isLoading = true;
 
     protected override async Task OnInitializedAsync()
@@ -76,6 +178,8 @@
         isLoading = true;
         leagueInfo = await LeagueService.GetCurrentLeagueAsync();
         leaderboard = await LeagueService.GetLeaderboardAsync();
+        leagueHistory = await LeagueService.GetLeagueHistoryAsync() ?? new();
+        leagueRewards = await LeagueService.GetRewardsAsync() ?? new();
         isLoading = false;
     }
 
@@ -104,4 +208,41 @@
         if (string.IsNullOrEmpty(username)) return "?";
         return username[..1].ToUpper();
     }
+
+    private string FormatTimeRemaining(DateTime weekEnd)
+    {
+        var remaining = weekEnd - DateTime.UtcNow;
+        if (remaining <= TimeSpan.Zero)
+            return L["TimeRemaining.Ended"].Value;
+        if (remaining.TotalDays >= 1)
+            return $"{(int)remaining.TotalDays}d {remaining.Hours}h";
+        if (remaining.TotalHours >= 1)
+            return $"{(int)remaining.TotalHours}h {remaining.Minutes}m";
+        return $"{remaining.Minutes}m";
+    }
+
+    private int GetProgressPercentage()
+    {
+        if (leagueInfo == null || leagueInfo.TotalParticipants == 0) return 0;
+        return (int)(100.0 * (leagueInfo.TotalParticipants - leagueInfo.CurrentRank + 1) / leagueInfo.TotalParticipants);
+    }
+
+    private int GetPromotionMarkerPosition()
+    {
+        if (leagueInfo == null || leagueInfo.TotalParticipants == 0) return 0;
+        return (int)(100.0 * (leagueInfo.TotalParticipants - leagueInfo.PromotionThreshold) / leagueInfo.TotalParticipants);
+    }
+
+    private int GetDemotionMarkerPosition()
+    {
+        if (leagueInfo == null || leagueInfo.TotalParticipants == 0) return 0;
+        return (int)(100.0 * (leagueInfo.TotalParticipants - leagueInfo.DemotionThreshold) / leagueInfo.TotalParticipants);
+    }
+
+    private static BadgeVariant GetChangeStatusVariant(LeagueChangeStatus status) => status switch
+    {
+        LeagueChangeStatus.Promoted => BadgeVariant.Success,
+        LeagueChangeStatus.Demoted => BadgeVariant.Danger,
+        _ => BadgeVariant.Default
+    };
 }

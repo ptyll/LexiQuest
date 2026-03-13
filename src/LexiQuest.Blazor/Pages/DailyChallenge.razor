@@ -4,6 +4,7 @@
 @using LexiQuest.Shared.Enums
 @inject IDailyChallengeService DailyChallengeService
 @inject IStringLocalizer<DailyChallenge> L
+@inject NavigationManager NavigationManager
 
 <div class="daily-challenge-page">
     @if (isLoading)
@@ -16,7 +17,7 @@
     else if (challenge == null)
     {
         <div class="empty-state">
-            <TmEmptyState 
+            <TmEmptyState
                 Icon="calendar"
                 Title="@L["EmptyState.Title"]"
                 Description="@L["EmptyState.Description"]" />
@@ -30,7 +31,7 @@
                     <TmIcon Name="check-circle" Class="completed-icon" />
                     <h2>@L["Completed.Title"]</h2>
                     <p>@L["Completed.Message"]</p>
-                    
+
                     @if (result != null)
                     {
                         <div class="result-stats">
@@ -115,13 +116,31 @@
         challenge = await DailyChallengeService.GetTodayAsync();
         leaderboard = await DailyChallengeService.GetLeaderboardAsync();
         isCompleted = await DailyChallengeService.HasCompletedTodayAsync();
+
+        if (isCompleted)
+        {
+            var currentUserEntry = leaderboard.FirstOrDefault(e => e.IsCurrentUser);
+            if (currentUserEntry != null)
+            {
+                result = new ChallengeResultDto(
+                    IsCorrect: true,
+                    CorrectAnswer: string.Empty,
+                    XPEarned: currentUserEntry.XPEarned,
+                    TimeTaken: currentUserEntry.TimeTaken,
+                    Rank: currentUserEntry.Rank
+                );
+            }
+        }
+
         isLoading = false;
     }
 
-    private async Task StartChallenge()
+    private void StartChallenge()
     {
-        // Navigate to game with daily challenge mode
-        // This would integrate with GameService
+        if (challenge != null)
+        {
+            NavigationManager.NavigateTo($"/game?mode=daily&wordId={challenge.WordId}");
+        }
     }
 
     private string GetModifierClass(DailyModifier modifier) => $"modifier-{modifier.ToString().ToLower()}";

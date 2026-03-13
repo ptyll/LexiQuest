@@ -14,6 +14,7 @@ public class InventoryServiceTests
     private readonly IShopItemRepository _shopItemRepository;
     private readonly IUserInventoryRepository _inventoryRepository;
     private readonly IPremiumFeatureService _premiumFeatureService;
+    private readonly IUserRepository _userRepository;
     private readonly IUnitOfWork _unitOfWork;
     private readonly InventoryService _service;
 
@@ -22,11 +23,13 @@ public class InventoryServiceTests
         _shopItemRepository = Substitute.For<IShopItemRepository>();
         _inventoryRepository = Substitute.For<IUserInventoryRepository>();
         _premiumFeatureService = Substitute.For<IPremiumFeatureService>();
+        _userRepository = Substitute.For<IUserRepository>();
         _unitOfWork = Substitute.For<IUnitOfWork>();
         _service = new InventoryService(
             _shopItemRepository,
             _inventoryRepository,
             _premiumFeatureService,
+            _userRepository,
             _unitOfWork);
     }
 

@@ -1,3 +1,4 @@
+using LexiQuest.Api.Extensions;
 using LexiQuest.Core.Domain.Enums;
 using LexiQuest.Core.Interfaces.Services;
 using LexiQuest.Shared.DTOs.Premium;
@@ -27,7 +28,7 @@ public class PremiumController : ControllerBase
         [FromBody] CreateCheckoutRequest request,
         CancellationToken cancellationToken)
     {
-        var userId = GetUserId();
+        var userId = User.GetUserId();
         var email = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? "";
         
         var checkoutUrl = await _subscriptionService.CreateCheckoutSessionAsync(
@@ -42,7 +43,7 @@ public class PremiumController : ControllerBase
     [HttpGet("status")]
     public async Task<ActionResult<SubscriptionStatusDto>> GetStatus(CancellationToken cancellationToken)
     {
-        var userId = GetUserId();
+        var userId = User.GetUserId();
         var subscription = await _subscriptionService.GetActiveSubscriptionAsync(userId, cancellationToken);
         
         if (subscription == null)
@@ -64,7 +65,7 @@ public class PremiumController : ControllerBase
     [HttpPost("cancel")]
     public async Task<IActionResult> CancelSubscription(CancellationToken cancellationToken)
     {
-        var userId = GetUserId();
+        var userId = User.GetUserId();
         await _subscriptionService.CancelSubscriptionAsync(userId, cancellationToken);
         return NoContent();
     }
@@ -72,7 +73,7 @@ public class PremiumController : ControllerBase
     [HttpGet("features")]
     public async Task<ActionResult<IEnumerable<PremiumFeatureDto>>> GetFeatures(CancellationToken cancellationToken)
     {
-        var userId = GetUserId();
+        var userId = User.GetUserId();
         var isPremium = await _subscriptionService.IsPremiumAsync(userId, cancellationToken);
         
         var features = new List<PremiumFeatureDto>
@@ -92,9 +93,4 @@ public class PremiumController : ControllerBase
         return Ok(features);
     }
 
-    private Guid GetUserId()
-    {
-        var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-        return Guid.Parse(userIdClaim!);
-    }
 }

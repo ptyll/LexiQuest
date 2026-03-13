@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
 using NSubstitute;
+using LexiQuest.Blazor.Tests.Helpers;
 using Tempo.Blazor.Localization;
 using Xunit;
 
@@ -43,6 +44,7 @@ public class MatchResultTests : BunitContext
         
         Services.AddSingleton(_localizer);
         Services.AddSingleton<NavigationManager>(new TestNavigationManager());
+        TempoTestHelper.RegisterTempoServices(Services);
     }
 
     [Fact]

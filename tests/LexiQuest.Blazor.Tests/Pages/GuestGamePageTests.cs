@@ -233,8 +233,8 @@ public class GuestGamePageTests : BunitContext
     public void GuestGamePage_BackButton_NavigatesToHome()
     {
         // Arrange
-        var navigationManager = Substitute.For<NavigationManager>();
-        Services.AddSingleton(navigationManager);
+        var navigationManager = new TestNavigationManager();
+        Services.AddSingleton<NavigationManager>(navigationManager);
 
         var cut = Render<GuestGame>();
 
@@ -242,7 +242,7 @@ public class GuestGamePageTests : BunitContext
         cut.Find("[data-testid='btn-back']").Click();
 
         // Assert
-        navigationManager.Received(1).NavigateTo("/");
+        navigationManager.Uri.Should().Be("https://localhost/");
     }
 
     [Fact]

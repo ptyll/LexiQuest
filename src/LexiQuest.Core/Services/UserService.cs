@@ -6,6 +6,7 @@ using LexiQuest.Core.Interfaces.Services;
 using LexiQuest.Core.Models;
 using LexiQuest.Shared.DTOs.Auth;
 using LexiQuest.Shared.DTOs.Users;
+using LexiQuest.Shared.Enums;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Localization;
 
@@ -190,7 +191,7 @@ public class UserService : IUserService
             },
             Preferences = new UserPreferencesDto
             {
-                Theme = user.Preferences?.Theme ?? "light",
+                Theme = user.Preferences?.Theme ?? AppTheme.Light,
                 Language = user.Preferences?.Language ?? "cs",
                 AnimationsEnabled = user.Preferences?.AnimationsEnabled ?? true,
                 SoundsEnabled = user.Preferences?.SoundsEnabled ?? true,

@@ -5,6 +5,7 @@ using LexiQuest.Api;
 using LexiQuest.Infrastructure.Persistence;
 using LexiQuest.Shared.DTOs.Auth;
 using LexiQuest.Shared.DTOs.Users;
+using LexiQuest.Shared.Enums;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
@@ -18,7 +19,7 @@ public class UserSettingsEndpointsTests : IDisposable
 
     public UserSettingsEndpointsTests()
     {
-        _factory = new CustomWebApplicationFactory("TestDb_UserSettings");
+        _factory = new CustomWebApplicationFactory($"TestDb_UserSettings_{Guid.NewGuid()}");
 
         // Ensure database is created
         using var scope = _factory.Services.CreateScope();
@@ -44,7 +45,10 @@ public class UserSettingsEndpointsTests : IDisposable
         };
 
         var registerResponse = await client.PostAsJsonAsync("/api/v1/users/register", registerRequest);
-        registerResponse.StatusCode.Should().BeOneOf(HttpStatusCode.Created, HttpStatusCode.Conflict);
+        var registerBody = await registerResponse.Content.ReadAsStringAsync();
+        registerResponse.StatusCode.Should().BeOneOf(
+            new[] { HttpStatusCode.Created, HttpStatusCode.Conflict },
+            $"Register failed with body: {registerBody}");
 
         var loginRequest = new LoginRequest
         {
@@ -53,10 +57,16 @@ public class UserSettingsEndpointsTests : IDisposable
         };
 
         var loginResponse = await client.PostAsJsonAsync("/api/v1/users/login", loginRequest);
+        var loginBody = await loginResponse.Content.ReadAsStringAsync();
+        loginResponse.StatusCode.Should().Be(HttpStatusCode.OK,
+            $"Login failed with body: {loginBody}");
+
         var authResponse = await loginResponse.Content.ReadFromJsonAsync<AuthResponse>();
-        
-        client.DefaultRequestHeaders.Authorization = 
-            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", authResponse!.AccessToken);
+        authResponse.Should().NotBeNull("AuthResponse deserialization failed");
+        authResponse!.AccessToken.Should().NotBeNullOrEmpty("AccessToken was empty");
+
+        client.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", authResponse.AccessToken);
     }
 
     [Fact]
@@ -176,7 +186,7 @@ public class UserSettingsEndpointsTests : IDisposable
         await AuthenticateAsync(client);
         var request = new UserPreferencesDto
         {
-            Theme = "dark",
+            Theme = AppTheme.Dark,
             Language = "cs",
             AnimationsEnabled = true,
             SoundsEnabled = false

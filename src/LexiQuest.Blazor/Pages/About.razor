@@ -1,0 +1,85 @@
+@page "/about"
+@inject IStringLocalizer<About> L
+
+<PageTitle>@L["About_PageTitle"]</PageTitle>
+
+<div class="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
+    <div class="max-w-4xl mx-auto px-4">
+        <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-8">@L["About_Title"]</h1>
+
+        <div class="space-y-8">
+            <!-- App Description -->
+            <TmCard Variant="CardVariant.Elevated" Class="p-6">
+                <div class="flex items-center gap-3 mb-4">
+                    <TmIcon Name="book-open" Class="text-blue-500" />
+                    <h2 class="text-xl font-semibold text-gray-900 dark:text-white">@L["About_WhatIsTitle"]</h2>
+                </div>
+                <p class="text-gray-600 dark:text-gray-300 leading-relaxed">@L["About_WhatIsDescription"]</p>
+            </TmCard>
+
+            <!-- Features -->
+            <TmCard Variant="CardVariant.Elevated" Class="p-6">
+                <div class="flex items-center gap-3 mb-4">
+                    <TmIcon Name="layers" Class="text-green-500" />
+                    <h2 class="text-xl font-semibold text-gray-900 dark:text-white">@L["About_FeaturesTitle"]</h2>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="flex items-start gap-3">
+                        <TmIcon Name="map" Class="text-blue-400 mt-1" />
+                        <div>
+                            <h3 class="font-medium text-gray-900 dark:text-white">@L["About_Feature_Paths"]</h3>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">@L["About_Feature_PathsDesc"]</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <TmIcon Name="calendar" Class="text-orange-400 mt-1" />
+                        <div>
+                            <h3 class="font-medium text-gray-900 dark:text-white">@L["About_Feature_Daily"]</h3>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">@L["About_Feature_DailyDesc"]</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <TmIcon Name="trophy" Class="text-yellow-400 mt-1" />
+                        <div>
+                            <h3 class="font-medium text-gray-900 dark:text-white">@L["About_Feature_Leagues"]</h3>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">@L["About_Feature_LeaguesDesc"]</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <TmIcon Name="users" Class="text-purple-400 mt-1" />
+                        <div>
+                            <h3 class="font-medium text-gray-900 dark:text-white">@L["About_Feature_Multiplayer"]</h3>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">@L["About_Feature_MultiplayerDesc"]</p>
+                        </div>
+                    </div>
+                </div>
+            </TmCard>
+
+            <!-- Mission -->
+            <TmCard Variant="CardVariant.Elevated" Class="p-6">
+                <div class="flex items-center gap-3 mb-4">
+                    <TmIcon Name="heart" Class="text-red-500" />
+                    <h2 class="text-xl font-semibold text-gray-900 dark:text-white">@L["About_MissionTitle"]</h2>
+                </div>
+                <p class="text-gray-600 dark:text-gray-300 leading-relaxed">@L["About_MissionDescription"]</p>
+            </TmCard>
+
+            <!-- Team -->
+            <TmCard Variant="CardVariant.Elevated" Class="p-6">
+                <div class="flex items-center gap-3 mb-4">
+                    <TmIcon Name="users" Class="text-indigo-500" />
+                    <h2 class="text-xl font-semibold text-gray-900 dark:text-white">@L["About_TeamTitle"]</h2>
+                </div>
+                <p class="text-gray-600 dark:text-gray-300 leading-relaxed">@L["About_TeamDescription"]</p>
+            </TmCard>
+
+            <!-- Version -->
+            <TmCard Variant="CardVariant.Elevated" Class="p-6">
+                <div class="flex items-center justify-between">
+                    <span class="text-gray-500 dark:text-gray-400">@L["About_Version"]</span>
+                    <TmBadge Variant="BadgeVariant.Info">v1.0.0</TmBadge>
+                </div>
+            </TmCard>
+        </div>
+    </div>
+</div>

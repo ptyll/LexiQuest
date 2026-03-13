@@ -22,7 +22,8 @@ public interface IMatchClient
     Task RoomExpired();
     Task RematchRequested(Guid playerId);
     Task LobbyMessage(LobbyMessageDto message);
-    
+    Task ChatError(string error);
+
     // Common
     Task CountdownTick(int secondsRemaining);
     Task RoundStarted(MultiplayerRoundDto round);

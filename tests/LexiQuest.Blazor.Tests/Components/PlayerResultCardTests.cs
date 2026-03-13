@@ -5,6 +5,7 @@ using LexiQuest.Shared.DTOs.Multiplayer;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
 using NSubstitute;
+using LexiQuest.Blazor.Tests.Helpers;
 using Xunit;
 
 namespace LexiQuest.Blazor.Tests.Components;
@@ -19,6 +20,7 @@ public class PlayerResultCardTests : BunitContext
         _localizer["Score_Correct"].Returns(new LocalizedString("Score_Correct", "Správně"));
         
         Services.AddSingleton(_localizer);
+        TempoTestHelper.RegisterTempoServices(Services);
     }
 
     [Fact]

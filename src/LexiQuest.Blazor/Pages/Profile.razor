@@ -1,0 +1,133 @@
+@page "/profile"
+@using LexiQuest.Shared.DTOs.Users
+@inject IStringLocalizer<Profile> L
+@inject IUserService UserService
+
+<PageTitle>@L["Profile_PageTitle"]</PageTitle>
+
+<div class="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
+    <div class="max-w-4xl mx-auto px-4">
+        <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-8">@L["Profile_Title"]</h1>
+
+        @if (_isLoading)
+        {
+            <div class="space-y-6">
+                <TmSkeleton Type="Rectangle" Height="200px" />
+                <TmSkeleton Type="Rectangle" Height="300px" />
+            </div>
+        }
+        else if (_profile == null)
+        {
+            <TmEmptyState
+                Icon="alert-circle"
+                Title="@L["Profile_LoadError"]"
+                Description="@L["Profile_LoadErrorDescription"]" />
+        }
+        else
+        {
+            <div class="space-y-8">
+                <!-- User Info Section -->
+                <TmCard Variant="CardVariant.Elevated" Class="p-6">
+                    <div class="flex items-center gap-6">
+                        <TmAvatar Src="@_profile.AvatarUrl" Alt="@_profile.Username" Size="AvatarSize.Lg" />
+                        <div>
+                            <h2 class="text-2xl font-bold text-gray-900 dark:text-white">@_profile.Username</h2>
+                            <p class="text-gray-500 dark:text-gray-400">@_profile.Email</p>
+                            <p class="text-sm text-gray-400 dark:text-gray-500 mt-1">
+                                @L["Profile_MemberSince", _profile.CreatedAt.ToString("dd.MM.yyyy")]
+                            </p>
+                        </div>
+                    </div>
+                </TmCard>
+
+                <!-- Stats Section -->
+                <TmCard Variant="CardVariant.Elevated" Class="p-6">
+                    <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-6">@L["Profile_StatsTitle"]</h2>
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-6">
+                        <div class="text-center">
+                            <div class="flex justify-center mb-2">
+                                <TmIcon Name="star" Class="text-yellow-500" />
+                            </div>
+                            <div class="text-2xl font-bold text-gray-900 dark:text-white">@_profile.Stats.Level</div>
+                            <div class="text-sm text-gray-500">@L["Profile_Level"]</div>
+                        </div>
+
+                        <div class="text-center">
+                            <div class="flex justify-center mb-2">
+                                <TmIcon Name="zap" Class="text-blue-500" />
+                            </div>
+                            <div class="text-2xl font-bold text-gray-900 dark:text-white">@_profile.Stats.TotalXP.ToString("N0")</div>
+                            <div class="text-sm text-gray-500">@L["Profile_TotalXP"]</div>
+                        </div>
+
+                        <div class="text-center">
+                            <div class="flex justify-center mb-2">
+                                <TmIcon Name="book-open" Class="text-green-500" />
+                            </div>
+                            <div class="text-2xl font-bold text-gray-900 dark:text-white">@_profile.Stats.WordsSolved.ToString("N0")</div>
+                            <div class="text-sm text-gray-500">@L["Profile_WordsSolved"]</div>
+                        </div>
+
+                        <div class="text-center">
+                            <div class="flex justify-center mb-2">
+                                <TmIcon Name="flame" Class="text-orange-500" />
+                            </div>
+                            <div class="text-2xl font-bold text-gray-900 dark:text-white">@_profile.Stats.CurrentStreak</div>
+                            <div class="text-sm text-gray-500">@L["Profile_CurrentStreak"]</div>
+                        </div>
+
+                        <div class="text-center">
+                            <div class="flex justify-center mb-2">
+                                <TmIcon Name="trophy" Class="text-purple-500" />
+                            </div>
+                            <div class="text-2xl font-bold text-gray-900 dark:text-white">@_profile.Stats.LongestStreak</div>
+                            <div class="text-sm text-gray-500">@L["Profile_LongestStreak"]</div>
+                        </div>
+
+                        <div class="text-center">
+                            <div class="flex justify-center mb-2">
+                                <TmIcon Name="target" Class="text-red-500" />
+                            </div>
+                            <div class="text-2xl font-bold text-gray-900 dark:text-white">@(_profile.Stats.Accuracy.ToString("P0"))</div>
+                            <div class="text-sm text-gray-500">@L["Profile_Accuracy"]</div>
+                        </div>
+                    </div>
+                </TmCard>
+
+                <!-- Achievements Section -->
+                <TmCard Variant="CardVariant.Elevated" Class="p-6">
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-xl font-semibold text-gray-900 dark:text-white">@L["Profile_AchievementsTitle"]</h2>
+                        <TmBadge Variant="BadgeVariant.Info">
+                            @L["Profile_AchievementsCount"]
+                        </TmBadge>
+                    </div>
+                    <p class="text-gray-500 dark:text-gray-400 mt-2">@L["Profile_AchievementsDescription"]</p>
+                </TmCard>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    private bool _isLoading = true;
+    private UserProfileDto? _profile;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadProfileAsync();
+    }
+
+    private async Task LoadProfileAsync()
+    {
+        _isLoading = true;
+        try
+        {
+            _profile = await UserService.GetProfileAsync();
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+}

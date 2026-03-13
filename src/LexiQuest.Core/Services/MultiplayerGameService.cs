@@ -1,9 +1,9 @@
-using System.Collections.Concurrent;
 using LexiQuest.Core.Domain.Entities;
 using LexiQuest.Core.Interfaces.Repositories;
 using LexiQuest.Core.Interfaces.Services;
 using LexiQuest.Shared.DTOs.Multiplayer;
 using LexiQuest.Shared.Enums;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace LexiQuest.Core.Services;
 
@@ -13,13 +13,18 @@ namespace LexiQuest.Core.Services;
 public class MultiplayerGameService : IMultiplayerGameService
 {
     private readonly IWordRepository _wordRepository;
-    private readonly ConcurrentDictionary<Guid, MultiplayerMatch> _matches = new();
+    private readonly IMemoryCache _cache;
     private readonly Random _random = new();
 
-    public MultiplayerGameService(IWordRepository wordRepository)
+    private static readonly TimeSpan MatchExpiration = TimeSpan.FromHours(2);
+
+    public MultiplayerGameService(IWordRepository wordRepository, IMemoryCache cache)
     {
         _wordRepository = wordRepository;
+        _cache = cache;
     }
+
+    private static string GetMatchKey(Guid matchId) => $"mp_match:{matchId}";
 
     public async Task<Guid> CreateMatchAsync(Guid player1Id, Guid player2Id, bool isPrivateRoom = false, RoomSettingsDto? settings = null, CancellationToken cancellationToken = default)
     {
@@ -52,13 +57,13 @@ public class MultiplayerGameService : IMultiplayerGameService
             IsActive = true
         };
 
-        _matches.TryAdd(matchId, match);
+        _cache.Set(GetMatchKey(matchId), match, MatchExpiration);
         return matchId;
     }
 
     public Task<MultiplayerRoundDto> StartMatchAsync(Guid matchId, CancellationToken cancellationToken = default)
     {
-        if (!_matches.TryGetValue(matchId, out var match))
+        if (!_cache.TryGetValue(GetMatchKey(matchId), out MultiplayerMatch? match) || match == null)
         {
             throw new InvalidOperationException("Match not found");
         }
@@ -66,18 +71,20 @@ public class MultiplayerGameService : IMultiplayerGameService
         match.StartedAt = DateTime.UtcNow;
         match.CurrentRound = 1;
 
+        var seq = ++match.SequenceNumber;
         var word = match.Words[0];
         return Task.FromResult(new MultiplayerRoundDto(
             RoundNumber: 1,
             ScrambledWord: word.Scrambled,
             WordLength: word.Original.Length,
-            TimeLimit: match.TimeLimitMinutes * 60
+            TimeLimit: match.TimeLimitMinutes * 60,
+            SequenceNumber: seq
         ));
     }
 
     public Task<(bool IsCorrect, int Score, bool IsMatchComplete)> SubmitAnswerAsync(Guid matchId, Guid playerId, string answer, int timeSpentMs, CancellationToken cancellationToken = default)
     {
-        if (!_matches.TryGetValue(matchId, out var match))
+        if (!_cache.TryGetValue(GetMatchKey(matchId), out MultiplayerMatch? match) || match == null)
         {
             throw new InvalidOperationException("Match not found");
         }
@@ -121,7 +128,7 @@ public class MultiplayerGameService : IMultiplayerGameService
 
     public Task ForfeitAsync(Guid matchId, Guid playerId, CancellationToken cancellationToken = default)
     {
-        if (!_matches.TryGetValue(matchId, out var match))
+        if (!_cache.TryGetValue(GetMatchKey(matchId), out MultiplayerMatch? match) || match == null)
         {
             throw new InvalidOperationException("Match not found");
         }
@@ -133,7 +140,7 @@ public class MultiplayerGameService : IMultiplayerGameService
 
     public Task<MatchStateDto?> GetMatchStateAsync(Guid matchId, CancellationToken cancellationToken = default)
     {
-        if (!_matches.TryGetValue(matchId, out var match))
+        if (!_cache.TryGetValue(GetMatchKey(matchId), out MultiplayerMatch? match) || match == null)
         {
             return Task.FromResult<MatchStateDto?>(null);
         }
@@ -161,7 +168,7 @@ public class MultiplayerGameService : IMultiplayerGameService
 
     public Task<MatchResultDto> EndMatchAsync(Guid matchId, CancellationToken cancellationToken = default)
     {
-        if (!_matches.TryGetValue(matchId, out var match))
+        if (!_cache.TryGetValue(GetMatchKey(matchId), out MultiplayerMatch? match) || match == null)
         {
             throw new InvalidOperationException("Match not found");
         }
@@ -254,7 +261,7 @@ public class MultiplayerGameService : IMultiplayerGameService
 
     public Task<OpponentProgressDto> GetOpponentProgressAsync(Guid matchId, Guid playerId, CancellationToken cancellationToken = default)
     {
-        if (!_matches.TryGetValue(matchId, out var match))
+        if (!_cache.TryGetValue(GetMatchKey(matchId), out MultiplayerMatch? match) || match == null)
         {
             throw new InvalidOperationException("Match not found");
         }
@@ -262,16 +269,18 @@ public class MultiplayerGameService : IMultiplayerGameService
         var opponentId = playerId == match.Player1Id ? match.Player2Id : match.Player1Id;
         var opponentProgress = match.GetOrCreatePlayerProgress(opponentId);
 
+        var seq = ++match.SequenceNumber;
         return Task.FromResult(new OpponentProgressDto(
             CorrectCount: opponentProgress.CorrectCount,
             TotalAnswered: opponentProgress.TotalAnswered,
-            ComboCount: opponentProgress.CurrentCombo
+            ComboCount: opponentProgress.CurrentCombo,
+            SequenceNumber: seq
         ));
     }
 
     public Task<bool> IsMatchActiveAsync(Guid matchId, CancellationToken cancellationToken = default)
     {
-        if (!_matches.TryGetValue(matchId, out var match))
+        if (!_cache.TryGetValue(GetMatchKey(matchId), out MultiplayerMatch? match) || match == null)
         {
             return Task.FromResult(false);
         }
@@ -288,7 +297,7 @@ public class MultiplayerGameService : IMultiplayerGameService
 
     public Task HandleDisconnectAsync(Guid matchId, Guid playerId, CancellationToken cancellationToken = default)
     {
-        if (!_matches.TryGetValue(matchId, out var match))
+        if (!_cache.TryGetValue(GetMatchKey(matchId), out MultiplayerMatch? match) || match == null)
         {
             return Task.CompletedTask;
         }
@@ -301,7 +310,7 @@ public class MultiplayerGameService : IMultiplayerGameService
 
     public Task FinalizeDisconnectAsync(Guid matchId, Guid playerId, CancellationToken cancellationToken = default)
     {
-        if (!_matches.TryGetValue(matchId, out var match))
+        if (!_cache.TryGetValue(GetMatchKey(matchId), out MultiplayerMatch? match) || match == null)
         {
             return Task.CompletedTask;
         }
@@ -318,7 +327,7 @@ public class MultiplayerGameService : IMultiplayerGameService
 
     public Task<bool> HandleReconnectAsync(Guid matchId, Guid playerId, CancellationToken cancellationToken = default)
     {
-        if (!_matches.TryGetValue(matchId, out var match))
+        if (!_cache.TryGetValue(GetMatchKey(matchId), out MultiplayerMatch? match) || match == null)
         {
             return Task.FromResult(false);
         }
@@ -362,6 +371,7 @@ public class MultiplayerGameService : IMultiplayerGameService
         public Guid? ForfeitedBy { get; set; }
         public Guid? DisconnectedPlayerId { get; set; }
         public DateTime? DisconnectedAt { get; set; }
+        public int SequenceNumber { get; set; }
 
         public PlayerProgress Player1Progress { get; set; } = new();
         public PlayerProgress Player2Progress { get; set; } = new();

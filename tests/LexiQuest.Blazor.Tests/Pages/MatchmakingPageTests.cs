@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
 using NSubstitute;
+using LexiQuest.Blazor.Tests.Helpers;
 using Xunit;
 
 namespace LexiQuest.Blazor.Tests.Pages;
@@ -40,6 +41,8 @@ public class MatchmakingPageTests : TestContext
         Services.AddSingleton(_matchHubClient);
         Services.AddSingleton(_localizer);
         Services.AddSingleton<NavigationManager>(new TestNavigationManager());
+        Services.AddSingleton(Substitute.For<LexiQuest.Blazor.Services.IAuthService>());
+        TempoTestHelper.RegisterTempoServices(Services);
     }
 
     [Fact]

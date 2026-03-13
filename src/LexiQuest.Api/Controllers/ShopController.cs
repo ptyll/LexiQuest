@@ -1,3 +1,4 @@
+using LexiQuest.Api.Extensions;
 using LexiQuest.Core.Domain.Enums;
 using LexiQuest.Core.Interfaces.Services;
 using LexiQuest.Shared.DTOs.Shop;
@@ -51,7 +52,7 @@ public class ShopController : ControllerBase
     [HttpGet("items/{id:guid}")]
     public async Task<ActionResult<ShopItemDetailDto>> GetItem(Guid id, CancellationToken cancellationToken)
     {
-        var userId = GetUserId();
+        var userId = User.GetUserId();
         var item = await _inventoryService.GetShopItemAsync(id, cancellationToken);
 
         if (item == null)
@@ -94,7 +95,7 @@ public class ShopController : ControllerBase
         [FromBody] PurchaseRequest request,
         CancellationToken cancellationToken)
     {
-        var userId = GetUserId();
+        var userId = User.GetUserId();
         var result = await _inventoryService.PurchaseItemAsync(userId, request.ShopItemId, cancellationToken);
 
         if (!result.Success)
@@ -120,7 +121,7 @@ public class ShopController : ControllerBase
         [FromBody] EquipItemRequest request,
         CancellationToken cancellationToken)
     {
-        var userId = GetUserId();
+        var userId = User.GetUserId();
         var result = await _inventoryService.EquipItemAsync(userId, request.InventoryItemId, cancellationToken);
 
         if (!result.Success)
@@ -134,7 +135,7 @@ public class ShopController : ControllerBase
         [FromBody] EquipItemRequest request,
         CancellationToken cancellationToken)
     {
-        var userId = GetUserId();
+        var userId = User.GetUserId();
         var result = await _inventoryService.UnequipItemAsync(userId, request.InventoryItemId, cancellationToken);
 
         if (!result.Success)
@@ -146,7 +147,7 @@ public class ShopController : ControllerBase
     [HttpGet("inventory")]
     public async Task<ActionResult<IEnumerable<InventoryItemDto>>> GetInventory(CancellationToken cancellationToken)
     {
-        var userId = GetUserId();
+        var userId = User.GetUserId();
         var items = await _inventoryService.GetUserInventoryAsync(userId, cancellationToken);
 
         // TODO: Load shop item details for each inventory item
@@ -168,14 +169,9 @@ public class ShopController : ControllerBase
     [HttpGet("coins")]
     public async Task<ActionResult<CoinBalanceDto>> GetCoinBalance(CancellationToken cancellationToken)
     {
-        var userId = GetUserId();
+        var userId = User.GetUserId();
         var balance = await _inventoryService.GetCoinBalanceAsync(userId, cancellationToken);
         return Ok(new CoinBalanceDto(balance));
     }
 
-    private Guid GetUserId()
-    {
-        var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-        return Guid.Parse(userIdClaim!);
-    }
 }

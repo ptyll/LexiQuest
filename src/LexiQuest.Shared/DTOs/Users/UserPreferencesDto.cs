@@ -1,3 +1,5 @@
+using LexiQuest.Shared.Enums;
+
 namespace LexiQuest.Shared.DTOs.Users;
 
 /// <summary>
@@ -5,7 +7,7 @@ namespace LexiQuest.Shared.DTOs.Users;
 /// </summary>
 public class UserPreferencesDto
 {
-    public string Theme { get; set; } = "light";
+    public AppTheme Theme { get; set; } = AppTheme.Light;
     public string Language { get; set; } = "cs";
     public bool AnimationsEnabled { get; set; } = true;
     public bool SoundsEnabled { get; set; } = true;

@@ -1,8 +1,10 @@
+using LexiQuest.Shared.Enums;
+
 namespace LexiQuest.Core.Domain.ValueObjects;
 
 public class UserPreferences
 {
-    public string Theme { get; set; } = "light";
+    public AppTheme Theme { get; set; } = AppTheme.Light;
     public string Language { get; set; } = "cs";
     public bool AnimationsEnabled { get; set; } = true;
     public bool SoundsEnabled { get; set; } = true;
@@ -19,7 +21,7 @@ public class UserPreferences
     {
         return new UserPreferences
         {
-            Theme = "light",
+            Theme = AppTheme.Light,
             Language = "cs",
             AnimationsEnabled = true,
             SoundsEnabled = true,

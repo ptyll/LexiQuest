@@ -45,12 +45,11 @@ public class GuestFlowTests
     }
 
     /// <summary>
-    /// GuestSessionService is registered as Scoped, so its in-memory session dictionary
-    /// is per-request. A session created in one request is not available in the next.
-    /// This causes the answer endpoint to return 400 (session not found).
+    /// GuestSessionService uses IMemoryCache (singleton), so sessions persist across requests.
+    /// A session created in one request is available in subsequent requests.
     /// </summary>
     [Fact]
-    public async Task GuestAnswer_SessionFromPreviousRequest_Returns400DueToScopedService()
+    public async Task GuestAnswer_SessionFromPreviousRequest_ReturnsOk()
     {
         // Arrange
         var factory = CreateFactory();
@@ -73,8 +72,11 @@ public class GuestFlowTests
         );
         var response = await client.PostAsJsonAsync("/api/v1/game/guest/answer", answerRequest);
 
-        // Assert - Session not found because GuestSessionService is Scoped (per-request)
-        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        // Assert - Session found because IMemoryCache is singleton
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var result = await response.Content.ReadFromJsonAsync<GuestAnswerResponse>();
+        result.Should().NotBeNull();
+        result!.IsCorrect.Should().BeFalse();
     }
 
     [Fact]

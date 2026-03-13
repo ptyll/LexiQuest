@@ -129,8 +129,8 @@ public class MatchHubClient : IMatchHubClient
         // Common game events
         _hubConnection.On<int>("CountdownTick", s => OnCountdownTick?.Invoke(this, s));
         _hubConnection.On<MultiplayerRoundDto>("RoundStarted", r => OnRoundStarted?.Invoke(this, r));
-        _hubConnection.On<int, int>("OpponentProgress", (correct, total) => 
-            OnOpponentProgress?.Invoke(this, new OpponentProgressDto(correct, total, 0)));
+        _hubConnection.On<OpponentProgressDto>("OpponentAnswered", progress =>
+            OnOpponentProgress?.Invoke(this, progress));
         _hubConnection.On<MatchResultDto>("MatchEnded", r => OnMatchEnded?.Invoke(this, r));
         _hubConnection.On("OpponentDisconnected", () => OnOpponentDisconnected?.Invoke(this, EventArgs.Empty));
         

@@ -1,5 +1,6 @@
 @page "/settings"
 @using LexiQuest.Shared.DTOs.Users
+@using LexiQuest.Shared.Enums
 @inject IStringLocalizer<Settings> L
 @inject IUserService UserService
 @inject NavigationManager NavigationManager
@@ -275,11 +276,11 @@
     private UserPreferencesDto _preferences = new();
     private PrivacySettingsDto _privacy = new();
 
-    private List<RadioOption<string>> _themeOptions = new()
+    private List<RadioOption<AppTheme>> _themeOptions = new()
     {
-        new RadioOption<string>("light", "Light"),
-        new RadioOption<string>("dark", "Dark"),
-        new RadioOption<string>("auto", "Auto")
+        new RadioOption<AppTheme>("Light", AppTheme.Light),
+        new RadioOption<AppTheme>("Dark", AppTheme.Dark),
+        new RadioOption<AppTheme>("Auto", AppTheme.Auto)
     };
 
     private List<RadioOption<ProfileVisibility>> _visibilityOptions = new()

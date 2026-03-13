@@ -7,6 +7,7 @@ using LexiQuest.Shared.Enums;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
 using NSubstitute;
+using LexiQuest.Blazor.Tests.Helpers;
 
 namespace LexiQuest.Blazor.Tests.Pages;
 
@@ -24,6 +25,7 @@ public class PathsPageTests : BunitContext
 
         Services.AddSingleton(_pathService);
         Services.AddSingleton(_localizer);
+        TempoTestHelper.RegisterTempoServices(Services);
     }
 
     private void SetupLocalizer()

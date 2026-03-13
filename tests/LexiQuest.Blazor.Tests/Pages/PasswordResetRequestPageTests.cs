@@ -5,6 +5,7 @@ using LexiQuest.Blazor.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
 using NSubstitute;
+using LexiQuest.Blazor.Tests.Helpers;
 
 namespace LexiQuest.Blazor.Tests.Pages;
 
@@ -22,6 +23,7 @@ public class PasswordResetRequestPageTests : BunitContext
 
         Services.AddSingleton(_authService);
         Services.AddSingleton(_localizer);
+        TempoTestHelper.RegisterTempoServices(Services);
     }
 
     private void SetupLocalizer()

@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
 using NSubstitute;
+using LexiQuest.Blazor.Tests.Helpers;
 
 namespace LexiQuest.Blazor.Tests.Pages;
 
@@ -30,6 +31,7 @@ public class LoginPageTests : BunitContext
         Services.AddSingleton(_localizer);
         Services.AddSingleton(_validatorLocalizer);
         Services.AddTransient<LoginModelValidator>();
+        TempoTestHelper.RegisterTempoServices(Services);
     }
 
     private void SetupLocalizer()

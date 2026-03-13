@@ -1,8 +1,12 @@
 @page "/dictionaries"
 @using LexiQuest.Shared.DTOs.Dictionaries
+@using LexiQuest.Blazor.Services
+@using LexiQuest.Shared.Enums
 @inject IStringLocalizer<Dictionaries> L
 @inject IToastService ToastService
 @inject NavigationManager NavigationManager
+@inject IDictionaryService DictionaryService
+@inject IJSRuntime JSRuntime
 
 <PageTitle>@L["Page_Title"] - LexiQuest</PageTitle>
 
@@ -79,8 +83,8 @@
             {
                 <div class="empty-state">
                     <TmIcon Name="@IconNames.AlertCircle" Class="empty-icon" />
-                    <h3>Žádné veřejné slovníky</h3>
-                    <p>Zatím nejsou k dispozici žádné veřejné slovníky</p>
+                    <h3>@L["EmptyState_NoPublicDictionaries"]</h3>
+                    <p>@L["EmptyState_NoPublicDictionaries_Description"]</p>
                 </div>
             }
             else
@@ -114,7 +118,7 @@
     <div class="form-group">
         <label for="dict-name">@L["Label_Name"]</label>
         <TmTextInput Id="dict-name" @bind-Value="NewDictionary.Name" 
-                     Placeholder="@L["Label_Name"]" MaxLength="100" />
+                     Placeholder="@L["Label_Name"]" maxlength="100" />
         @if (!string.IsNullOrEmpty(NameError))
         {
             <span class="validation-message">@NameError</span>
@@ -123,7 +127,7 @@
     <div class="form-group">
         <label for="dict-description">@L["Label_Description"]</label>
         <TmTextArea Id="dict-description" @bind-Value="NewDictionary.Description"
-                    Placeholder="@L["Label_Description"]" MaxLength="500" Rows="3" />
+                    Placeholder="@L["Label_Description"]" maxlength="500" Rows="3" />
     </div>
     <div class="form-group checkbox-group">
         <TmCheckbox Id="dict-public" @bind-Value="NewDictionary.IsPublic" />
@@ -144,7 +148,7 @@
     <div class="form-group">
         <label for="word-text">@L["Label_Word"]</label>
         <TmTextInput Id="word-text" @bind-Value="NewWord.Word"
-                     Placeholder="@L["Label_Word"]" MaxLength="100" />
+                     Placeholder="@L["Label_Word"]" maxlength="100" />
         @if (!string.IsNullOrEmpty(WordError))
         {
             <span class="validation-message">@WordError</span>
@@ -187,7 +191,7 @@
     @if (!string.IsNullOrEmpty(ImportPreview))
     {
         <div class="import-preview">
-            <h4>Náhled:</h4>
+            <h4>@L["Label_Preview"]</h4>
             <pre>@ImportPreview</pre>
         </div>
     }
@@ -236,13 +240,12 @@
     {
         try
         {
-            // TODO: Call API to load dictionaries
-            // MyDictionaries = await DictionaryService.GetMyDictionariesAsync();
-            // PublicDictionaries = await DictionaryService.GetPublicDictionariesAsync();
+            MyDictionaries = await DictionaryService.GetMyDictionariesAsync();
+            PublicDictionaries = await DictionaryService.GetPublicDictionariesAsync();
         }
         catch (Exception ex)
         {
-            ToastService.ShowError($"Chyba při načítání slovníků: {ex.Message}");
+            ToastService.ShowError(string.Format(L["Error_LoadingDictionaries"], ex.Message));
         }
     }
 
@@ -264,16 +267,15 @@
         IsCreating = true;
         try
         {
-            // TODO: Call API to create dictionary
-            // await DictionaryService.CreateDictionaryAsync(new CreateDictionaryRequest(
-            //     NewDictionary.Name, NewDictionary.Description));
+            await DictionaryService.CreateDictionaryAsync(new CreateDictionaryRequest(
+                NewDictionary.Name, NewDictionary.Description));
             ToastService.ShowSuccess(L["Message_DictionaryCreated"]);
             IsCreateDialogVisible = false;
             await LoadDictionaries();
         }
         catch (Exception ex)
         {
-            ToastService.ShowError($"Chyba při vytváření slovníku: {ex.Message}");
+            ToastService.ShowError(string.Format(L["Error_CreatingDictionary"], ex.Message));
         }
         finally
         {
@@ -300,16 +302,15 @@
         IsAddingWord = true;
         try
         {
-            // TODO: Call API to add word
-            // await DictionaryService.AddWordAsync(SelectedDictionaryId, 
-            //     new AddWordRequest(NewWord.Word, Enum.Parse<DifficultyLevel>(NewWord.Difficulty)));
+            await DictionaryService.AddWordAsync(SelectedDictionaryId,
+                new AddWordRequest(NewWord.Word, Enum.Parse<DifficultyLevel>(NewWord.Difficulty)));
             ToastService.ShowSuccess(L["Message_WordAdded"]);
             IsAddWordDialogVisible = false;
             await LoadDictionaries();
         }
         catch (Exception ex)
         {
-            ToastService.ShowError($"Chyba při přidávání slova: {ex.Message}");
+            ToastService.ShowError(string.Format(L["Error_AddingWord"], ex.Message));
         }
         finally
         {
@@ -348,24 +349,23 @@
     {
         if (string.IsNullOrWhiteSpace(ImportContent))
         {
-            ToastService.ShowWarning("Vyberte soubor pro import");
+            ToastService.ShowWarning(L["Warning_SelectFileForImport"]);
             return;
         }
 
         IsImporting = true;
         try
         {
-            // TODO: Call API to import words
-            // var result = ImportFile?.Name.EndsWith(".csv") == true
-            //     ? await DictionaryService.ImportCsvAsync(SelectedDictionaryId, ImportContent)
-            //     : await DictionaryService.ImportTxtAsync(SelectedDictionaryId, ImportContent);
-            // ToastService.ShowSuccess(string.Format(L["Message_ImportSuccess"], result.ImportedCount, result.SkippedCount));
+            var result = ImportFile?.Name.EndsWith(".csv", StringComparison.OrdinalIgnoreCase) == true
+                ? await DictionaryService.ImportCsvAsync(SelectedDictionaryId, ImportContent)
+                : await DictionaryService.ImportTxtAsync(SelectedDictionaryId, ImportContent);
+            ToastService.ShowSuccess(string.Format(L["Message_ImportSuccess"], result.ImportedCount, result.SkippedCount));
             IsImportDialogVisible = false;
             await LoadDictionaries();
         }
         catch (Exception ex)
         {
-            ToastService.ShowError($"Chyba při importu: {ex.Message}");
+            ToastService.ShowError(string.Format(L["Error_ImportingWords"], ex.Message));
         }
         finally
         {
@@ -379,21 +379,19 @@
 
         try
         {
-            // TODO: Call API to delete dictionary
-            // await DictionaryService.DeleteDictionaryAsync(id);
+            await DictionaryService.DeleteDictionaryAsync(id);
             ToastService.ShowSuccess(L["Message_DictionaryDeleted"]);
             await LoadDictionaries();
         }
         catch (Exception ex)
         {
-            ToastService.ShowError($"Chyba při mazání slovníku: {ex.Message}");
+            ToastService.ShowError(string.Format(L["Error_DeletingDictionary"], ex.Message));
         }
     }
 
     private async Task<bool> ConfirmDelete()
     {
-        // TODO: Show confirmation dialog
-        return true;
+        return await JSRuntime.InvokeAsync<bool>("confirm", L["Confirm_DeleteDictionary"].Value);
     }
 
     private class CreateDictionaryModel

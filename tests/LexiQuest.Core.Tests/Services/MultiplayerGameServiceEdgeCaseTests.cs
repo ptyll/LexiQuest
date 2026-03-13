@@ -4,6 +4,7 @@ using LexiQuest.Core.Interfaces.Repositories;
 using LexiQuest.Core.Services;
 using LexiQuest.Shared.DTOs.Multiplayer;
 using LexiQuest.Shared.Enums;
+using Microsoft.Extensions.Caching.Memory;
 using NSubstitute;
 using Xunit;
 
@@ -35,7 +36,7 @@ public class MultiplayerGameServiceEdgeCaseTests
                 return testWords.Take(count).ToList();
             });
 
-        _sut = new MultiplayerGameService(_wordRepository);
+        _sut = new MultiplayerGameService(_wordRepository, new MemoryCache(new MemoryCacheOptions()));
     }
 
     private async Task<Guid> CreateAndStartMatch(Guid player1Id, Guid player2Id, int wordCount = 15, int timeLimitMinutes = 3)

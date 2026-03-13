@@ -4,6 +4,7 @@ using LexiQuest.Core.Interfaces.Repositories;
 using LexiQuest.Core.Interfaces.Services;
 using LexiQuest.Core.Services;
 using LexiQuest.Shared.Enums;
+using Microsoft.Extensions.Caching.Memory;
 using NSubstitute;
 using Xunit;
 
@@ -17,7 +18,7 @@ public class GuestSessionServiceTests
     public GuestSessionServiceTests()
     {
         _wordRepository = Substitute.For<IWordRepository>();
-        _service = new GuestSessionService(_wordRepository);
+        _service = new GuestSessionService(_wordRepository, new MemoryCache(new MemoryCacheOptions()));
 
         // Setup default mock for any call
         var beginnerWords = new List<Word>

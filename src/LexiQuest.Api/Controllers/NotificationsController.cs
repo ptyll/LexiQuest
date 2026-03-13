@@ -1,3 +1,4 @@
+using LexiQuest.Api.Extensions;
 using LexiQuest.Core.Interfaces.Repositories;
 using LexiQuest.Core.Interfaces.Services;
 using LexiQuest.Shared.DTOs.Notifications;
@@ -31,7 +32,7 @@ public class NotificationsController : ControllerBase
         [FromQuery] int take = 20,
         CancellationToken cancellationToken = default)
     {
-        var userId = GetUserId();
+        var userId = User.GetUserId();
         var notifications = await _notificationService.GetByUserIdAsync(userId, skip, take, cancellationToken);
         return Ok(notifications);
     }
@@ -39,7 +40,7 @@ public class NotificationsController : ControllerBase
     [HttpGet("unread-count")]
     public async Task<ActionResult<int>> GetUnreadCount(CancellationToken cancellationToken = default)
     {
-        var userId = GetUserId();
+        var userId = User.GetUserId();
         var count = await _notificationService.GetUnreadCountAsync(userId, cancellationToken);
         return Ok(count);
     }
@@ -47,7 +48,7 @@ public class NotificationsController : ControllerBase
     [HttpPost("{id:guid}/read")]
     public async Task<IActionResult> MarkRead(Guid id, CancellationToken cancellationToken = default)
     {
-        var userId = GetUserId();
+        var userId = User.GetUserId();
         await _notificationService.MarkReadAsync(id, userId, cancellationToken);
         return NoContent();
     }
@@ -55,7 +56,7 @@ public class NotificationsController : ControllerBase
     [HttpPost("read-all")]
     public async Task<IActionResult> MarkAllRead(CancellationToken cancellationToken = default)
     {
-        var userId = GetUserId();
+        var userId = User.GetUserId();
         await _notificationService.MarkAllReadAsync(userId, cancellationToken);
         return NoContent();
     }
@@ -63,7 +64,7 @@ public class NotificationsController : ControllerBase
     [HttpGet("preferences")]
     public async Task<ActionResult<NotificationPreferenceDto>> GetPreferences(CancellationToken cancellationToken = default)
     {
-        var userId = GetUserId();
+        var userId = User.GetUserId();
         var preferences = await _notificationService.GetPreferencesAsync(userId, cancellationToken);
         return Ok(preferences);
     }
@@ -73,7 +74,7 @@ public class NotificationsController : ControllerBase
         [FromBody] UpdatePreferencesRequest request,
         CancellationToken cancellationToken = default)
     {
-        var userId = GetUserId();
+        var userId = User.GetUserId();
         await _notificationService.UpdatePreferencesAsync(userId, request, cancellationToken);
         return NoContent();
     }
@@ -83,7 +84,7 @@ public class NotificationsController : ControllerBase
         [FromBody] PushSubscriptionDto request,
         CancellationToken cancellationToken = default)
     {
-        var userId = GetUserId();
+        var userId = User.GetUserId();
 
         var existing = await _pushSubscriptionRepository.GetByEndpointAsync(request.Endpoint, cancellationToken);
         if (existing != null)
@@ -102,9 +103,4 @@ public class NotificationsController : ControllerBase
         return NoContent();
     }
 
-    private Guid GetUserId()
-    {
-        var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-        return Guid.Parse(userIdClaim!);
-    }
 }

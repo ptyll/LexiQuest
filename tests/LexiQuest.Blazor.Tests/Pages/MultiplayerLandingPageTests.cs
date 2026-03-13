@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
 using NSubstitute;
+using LexiQuest.Blazor.Tests.Helpers;
 using Xunit;
 
 namespace LexiQuest.Blazor.Tests.Pages;
@@ -23,6 +24,8 @@ public class MultiplayerLandingPageTests : BunitContext
         _navigationManager = new TestNavigationManager();
         Services.AddSingleton(_localizer);
         Services.AddSingleton(_navigationManager);
+        Services.AddSingleton(Substitute.For<LexiQuest.Blazor.Services.IMatchHubClient>());
+        TempoTestHelper.RegisterTempoServices(Services);
     }
 
     private void SetupLocalizer()

@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Security.Claims;
 using LexiQuest.Core.Interfaces.Services;
 using LexiQuest.Shared.DTOs.Multiplayer;
@@ -17,8 +18,11 @@ public class MatchHub : Hub<IMatchClient>, IMatchHub
     private readonly IUserService _userService;
     private readonly IRoomService _roomService;
     private readonly ILobbyChatService _lobbyChatService;
-    private static readonly Dictionary<string, Guid> _connectionToMatch = new();
-    private static readonly Dictionary<string, string> _connectionToRoom = new();
+    private static readonly ConcurrentDictionary<string, Guid> _connectionToMatch = new();
+    private static readonly ConcurrentDictionary<string, string> _connectionToRoom = new();
+    private static readonly ConcurrentDictionary<string, Queue<DateTime>> _chatRateLimit = new();
+    private const int MaxChatMessages = 10;
+    private static readonly TimeSpan ChatRateWindow = TimeSpan.FromSeconds(10);
 
     public MatchHub(
         IMatchmakingService matchmakingService,
@@ -52,9 +56,9 @@ public class MatchHub : Hub<IMatchClient>, IMatchHub
             {
                 await _roomService.LeaveRoomAsync(userId, roomCode);
                 await Clients.OthersInGroup($"room:{roomCode}").PlayerLeftRoom();
-                _connectionToRoom.Remove(Context.ConnectionId);
+                _connectionToRoom.TryRemove(Context.ConnectionId, out _);
             }
-            
+
             // Handle disconnect from active match
             if (_connectionToMatch.TryGetValue(Context.ConnectionId, out var matchId))
             {
@@ -69,7 +73,7 @@ public class MatchHub : Hub<IMatchClient>, IMatchHub
                 }
             }
             
-            _connectionToMatch.Remove(Context.ConnectionId);
+            _connectionToMatch.TryRemove(Context.ConnectionId, out _);
         }
         
         await base.OnDisconnectedAsync(exception);
@@ -189,7 +193,7 @@ public class MatchHub : Hub<IMatchClient>, IMatchHub
         {
             await _roomService.LeaveRoomAsync(userId, roomCode);
             await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"room:{roomCode}");
-            _connectionToRoom.Remove(Context.ConnectionId);
+            _connectionToRoom.TryRemove(Context.ConnectionId, out _);
 
             // Notify others
             await Clients.OthersInGroup($"room:{roomCode}").PlayerLeftRoom();
@@ -282,9 +286,9 @@ public class MatchHub : Hub<IMatchClient>, IMatchHub
         // Get opponent's progress to broadcast
         var opponentProgress = await _gameService.GetOpponentProgressAsync(matchId, userId);
         
-        // Notify opponent about our progress
+        // Notify opponent about our progress (server-authoritative with sequence number)
         await Clients.OthersInGroup($"match:{matchId}")
-            .OpponentProgress(opponentProgress.CorrectCount, opponentProgress.TotalAnswered);
+            .OpponentAnswered(opponentProgress);
 
         // If match complete, notify both players
         if (result.IsMatchComplete)
@@ -313,11 +317,43 @@ public class MatchHub : Hub<IMatchClient>, IMatchHub
     public async Task SendLobbyMessage(string message)
     {
         var userId = GetUserId();
+        if (userId == Guid.Empty) return;
+
+        // Reject empty/whitespace-only messages
+        if (string.IsNullOrWhiteSpace(message)) return;
+
+        // Rate limiting: max 10 messages per 10 seconds per connection
+        var connectionId = Context.ConnectionId;
+        var timestamps = _chatRateLimit.GetOrAdd(connectionId, _ => new Queue<DateTime>());
+        lock (timestamps)
+        {
+            var now = DateTime.UtcNow;
+            while (timestamps.Count > 0 && now - timestamps.Peek() > ChatRateWindow)
+            {
+                timestamps.Dequeue();
+            }
+
+            if (timestamps.Count >= MaxChatMessages)
+            {
+                Clients.Caller.ChatError("You are sending messages too fast. Please wait a moment.");
+                return;
+            }
+
+            timestamps.Enqueue(now);
+        }
+
+        // HTML/XSS sanitization
+        var sanitized = System.Text.Encodings.Web.HtmlEncoder.Default.Encode(message);
+
+        // Truncate to 200 characters
+        if (sanitized.Length > 200)
+            sanitized = sanitized[..200];
+
         var user = await _userService.GetProfileAsync(userId);
-        
+
         var lobbyMessage = new LobbyMessageDto(
             SenderUsername: user?.Username ?? "Unknown",
-            Message: message.Length > 200 ? message[..200] : message,
+            Message: sanitized,
             SentAt: DateTime.UtcNow
         );
 

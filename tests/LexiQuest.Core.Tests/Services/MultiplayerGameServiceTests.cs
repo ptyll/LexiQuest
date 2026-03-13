@@ -4,6 +4,7 @@ using LexiQuest.Core.Interfaces.Repositories;
 using LexiQuest.Core.Interfaces.Services;
 using LexiQuest.Shared.DTOs.Multiplayer;
 using LexiQuest.Shared.Enums;
+using Microsoft.Extensions.Caching.Memory;
 using NSubstitute;
 using Xunit;
 
@@ -50,7 +51,7 @@ public class MultiplayerGameServiceTests
                 return testWords.Take(count).ToList();
             });
         
-        _sut = new Core.Services.MultiplayerGameService(_wordRepository);
+        _sut = new Core.Services.MultiplayerGameService(_wordRepository, new MemoryCache(new MemoryCacheOptions()));
     }
 
     [Fact]

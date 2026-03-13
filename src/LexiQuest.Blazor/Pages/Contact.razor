@@ -1,0 +1,101 @@
+@page "/contact"
+@inject IStringLocalizer<Contact> L
+@inject ToastService ToastService
+
+<PageTitle>@L["Contact_PageTitle"]</PageTitle>
+
+<div class="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
+    <div class="max-w-2xl mx-auto px-4">
+        <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-8">@L["Contact_Title"]</h1>
+
+        <TmCard Variant="CardVariant.Elevated" Class="p-6">
+            <p class="text-gray-600 dark:text-gray-300 mb-6">@L["Contact_Description"]</p>
+
+            <EditForm Model="@_model" OnValidSubmit="HandleSubmit" FormName="contactForm">
+                <DataAnnotationsValidator />
+
+                <div class="space-y-4">
+                    <TmFormField Label="@L["Contact_NameLabel"]" Required="true">
+                        <TmTextInput
+                            @bind-Value="_model.Name"
+                            Placeholder="@L["Contact_NamePlaceholder"]" />
+                        <ValidationMessage For="@(() => _model.Name)" />
+                    </TmFormField>
+
+                    <TmFormField Label="@L["Contact_EmailLabel"]" Required="true">
+                        <TmTextInput
+                            @bind-Value="_model.Email"
+                            Type="email"
+                            Placeholder="@L["Contact_EmailPlaceholder"]" />
+                        <ValidationMessage For="@(() => _model.Email)" />
+                    </TmFormField>
+
+                    <TmFormField Label="@L["Contact_SubjectLabel"]">
+                        <TmTextInput
+                            @bind-Value="_model.Subject"
+                            Placeholder="@L["Contact_SubjectPlaceholder"]" />
+                    </TmFormField>
+
+                    <TmFormField Label="@L["Contact_MessageLabel"]" Required="true">
+                        <TmTextArea
+                            @bind-Value="_model.Message"
+                            Placeholder="@L["Contact_MessagePlaceholder"]"
+                            Rows="6" />
+                        <ValidationMessage For="@(() => _model.Message)" />
+                    </TmFormField>
+
+                    <TmButton
+                        Type="ButtonType.Submit"
+                        Variant="ButtonVariant.Primary"
+                        Block="true"
+                        IsLoading="_isSubmitting"
+                        LoadingText="@L["Contact_Submitting"]">
+                        <TmIcon Name="send" Class="mr-2" />
+                        @L["Contact_SubmitButton"]
+                    </TmButton>
+                </div>
+            </EditForm>
+        </TmCard>
+    </div>
+</div>
+
+@code {
+    private ContactModel _model = new();
+    private bool _isSubmitting;
+
+    private async Task HandleSubmit()
+    {
+        _isSubmitting = true;
+        try
+        {
+            // Simulate sending the message
+            await Task.Delay(1000);
+
+            ToastService.ShowSuccess(L["Contact_SuccessMessage"]);
+            _model = new ContactModel();
+        }
+        catch
+        {
+            ToastService.ShowError(L["Contact_ErrorMessage"]);
+        }
+        finally
+        {
+            _isSubmitting = false;
+        }
+    }
+
+    private class ContactModel
+    {
+        [Required(ErrorMessage = "Required")]
+        public string Name { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Required")]
+        [EmailAddress(ErrorMessage = "InvalidEmail")]
+        public string Email { get; set; } = string.Empty;
+
+        public string Subject { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Required")]
+        public string Message { get; set; } = string.Empty;
+    }
+}

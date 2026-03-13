@@ -4,6 +4,7 @@ using LexiQuest.Blazor.Components.Paths;
 using LexiQuest.Shared.DTOs.Game;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
+using LexiQuest.Blazor.Tests.Helpers;
 using NSubstitute;
 
 namespace LexiQuest.Blazor.Tests.Components;
@@ -17,6 +18,7 @@ public class PathMapTests : BunitContext
         _localizer = Substitute.For<IStringLocalizer<PathMap>>();
         _localizer["Level"].Returns(new LocalizedString("Level", "Level"));
         Services.AddSingleton(_localizer);
+        TempoTestHelper.RegisterTempoServices(Services);
     }
 
     [Fact]

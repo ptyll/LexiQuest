@@ -2,8 +2,8 @@
 @inject IStringLocalizer<GameTimer> L
 @implements IAsyncDisposable
 
-<div class="game-timer @GetTimerClass()">
-    <div class="timer-bar-container">
+<div class="game-timer @GetTimerClass()" role="timer" aria-live="polite" aria-atomic="true">
+    <div class="timer-bar-container" role="progressbar" aria-valuenow="@RemainingSeconds" aria-valuemin="0" aria-valuemax="@TotalSeconds" aria-label="@L["TimeRemaining_Aria"]">
         <div class="timer-bar" style="width: @GetProgressPercentage()%"></div>
     </div>
     <div class="timer-text">

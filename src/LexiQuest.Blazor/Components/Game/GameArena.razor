@@ -3,7 +3,7 @@
 @using LexiQuest.Blazor.Services
 @inject IStringLocalizer<GameArena> L
 
-<div class="game-arena">
+<div class="game-arena" role="main" aria-label="@L["GameArena_Aria"]">
     <!-- Header -->
     <div class="game-header">
         <TmButton Variant="ButtonVariant.Ghost"
@@ -11,18 +11,18 @@
                   OnClick="OnBackClick"
                   Class="btn-back">
             <TmIcon Name="@IconNames.ArrowLeft" />
-            @L["Button.Back"]
+            @L["Button_Back"]
         </TmButton>
 
         <div class="level-info">
-            <span class="level-name">@string.Format(L["Level.Name"], CurrentRound)</span>
-            <span class="level-progress">@string.Format(L["Level.Progress"], CurrentRound, TotalRounds)</span>
+            <span class="level-name">@string.Format(L["Level_Name"], CurrentRound)</span>
+            <span class="level-progress">@string.Format(L["Level_Progress"], CurrentRound, TotalRounds)</span>
         </div>
 
         @if (ComboCount > 0)
         {
             <div class="combo-badge">
-                @string.Format(L["Combo.Multiplier"], ComboCount)
+                @string.Format(L["Combo_Multiplier"], ComboCount)
             </div>
         }
     </div>
@@ -42,12 +42,16 @@
 
     <!-- Answer Input -->
     <div class="answer-section">
-        <TmTextInput @bind-Value="CurrentAnswer"
-                     Placeholder="@L["Answer.Placeholder"]"
-                     Disabled="@IsSubmitting"
-                     Class="@GetInputClass()"
-                     OnKeyDown="HandleKeyDown"
-                     AutoFocus="true" />
+        <input type="text"
+               value="@CurrentAnswer"
+               @oninput="HandleInput"
+               placeholder="@L["Answer_Placeholder"]"
+               disabled="@IsSubmitting"
+               class="answer-input @GetInputClass()"
+               @onkeydown="HandleKeyDown"
+               aria-label="@L["Answer_Placeholder"]"
+               autocomplete="off"
+               autofocus />
 
         <div class="action-buttons">
             <TmButton Variant="ButtonVariant.Primary"
@@ -55,9 +59,9 @@
                       OnClick="SubmitAnswer"
                       Disabled="@(!CanSubmit || IsSubmitting)"
                       IsLoading="@IsSubmitting"
-                      LoadingText="@L["Button.Submitting"]"
+                      LoadingText="@L["Button_Submitting"]"
                       Class="btn-submit">
-                @L["Button.Submit"]
+                @L["Button_Submit"]
             </TmButton>
 
             <TmButton Variant="ButtonVariant.Outline"
@@ -65,7 +69,7 @@
                       OnClick="SkipRound"
                       Disabled="@IsSubmitting"
                       Class="btn-skip">
-                @L["Button.Skip"]
+                @L["Button_Skip"]
             </TmButton>
         </div>
     </div>
@@ -73,15 +77,15 @@
     <!-- Feedback -->
     @if (ShowFeedback)
     {
-        <div class="feedback @GetFeedbackClass()">
+        <div class="feedback @GetFeedbackClass()" role="status" aria-live="assertive">
             @if (LastResult?.IsCorrect == true)
             {
                 <div class="feedback-correct">
                     <TmIcon Name="@IconNames.Check" Class="feedback-icon" />
-                    <span>@string.Format(L["Feedback.Correct"], LastResult?.XPEarned)</span>
+                    <span>@string.Format(L["Feedback_Correct"], LastResult?.XPEarned)</span>
                     @if (LastResult?.SpeedBonus > 0)
                     {
-                        <span class="speed-bonus">+@LastResult?.SpeedBonus @L["SpeedBonus.Label"]</span>
+                        <span class="speed-bonus">+@LastResult?.SpeedBonus @L["SpeedBonus_Label"]</span>
                     }
                 </div>
             }
@@ -89,10 +93,10 @@
             {
                 <div class="feedback-wrong">
                     <TmIcon Name="@IconNames.X" Class="feedback-icon" />
-                    <span>@L["Feedback.Wrong"]</span>
+                    <span>@L["Feedback_Wrong"]</span>
                     @if (!string.IsNullOrEmpty(LastResult?.CorrectAnswer))
                     {
-                        <span class="correct-answer">@string.Format(L["CorrectAnswer.Was"], LastResult?.CorrectAnswer)</span>
+                        <span class="correct-answer">@string.Format(L["Correct_Answer_Was"], LastResult?.CorrectAnswer)</span>
                     }
                 </div>
             }
@@ -102,16 +106,16 @@
     <!-- Level Complete Overlay -->
     @if (IsLevelComplete)
     {
-        <div class="level-complete-overlay">
+        <div class="level-complete-overlay" role="dialog" aria-modal="true" aria-label="@L["LevelComplete_Title"]">
             <div class="level-complete-content">
                 <TmIcon Name="@IconNames.Trophy" Class="level-complete-icon" />
-                <h2>@L["LevelComplete.Title"]</h2>
-                <p>@string.Format(L["LevelComplete.XP"], TotalXPEarned)</p>
+                <h2>@L["LevelComplete_Title"]</h2>
+                <p>@string.Format(L["LevelComplete_XP"], TotalXPEarned)</p>
                 <TmButton Variant="ButtonVariant.Primary"
                           Size="ButtonSize.Lg"
                           OnClick="ContinueToNext"
                           Class="btn-continue">
-                    @L["Button.Continue"]
+                    @L["Button_Continue"]
                 </TmButton>
             </div>
         </div>
@@ -176,6 +180,11 @@
     private async Task OnBackClick()
     {
         await OnBack.InvokeAsync();
+    }
+
+    private void HandleInput(ChangeEventArgs e)
+    {
+        CurrentAnswer = e.Value?.ToString() ?? "";
     }
 
     private void HandleKeyDown(KeyboardEventArgs e)

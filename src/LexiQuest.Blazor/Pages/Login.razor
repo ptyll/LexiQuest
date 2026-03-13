@@ -17,16 +17,18 @@
 
         @if (!string.IsNullOrEmpty(errorMessage))
         {
-            <TmAlert Severity="AlertSeverity.Error"
-                     Title="@L["Alert.ErrorTitle"]"
-                     Dismissable="true"
-                     OnDismiss="ClearError"
-                     Class="login-alert">
-                @errorMessage
-            </TmAlert>
+            <div class="alert-error">
+                <TmAlert Severity="AlertSeverity.Error"
+                         Title="@L["Alert.ErrorTitle"]"
+                         Dismissable="true"
+                         OnDismiss="ClearError"
+                         Class="login-alert">
+                    @errorMessage
+                </TmAlert>
+            </div>
         }
 
-        <EditForm Model="@model" OnValidSubmit="HandleLogin" FormName="loginForm">
+        <EditForm Model="@model" OnValidSubmit="HandleLogin" OnInvalidSubmit="HandleInvalidSubmit" FormName="loginForm">
             <FluentValidationValidator />
 
             <div class="login-form-fields">
@@ -81,11 +83,9 @@
 
         <div class="login-register-prompt">
             <span>@L["Link.Register.Text"]</span>
-            <TmButton Variant="ButtonVariant.Link"
-                      OnClick="NavigateToRegister"
-                      Class="login-register-link">
+            <a href="/register" class="login-register-link">
                 @L["Link.Register"]
-            </TmButton>
+            </a>
         </div>
     </TmCard>
 </div>
@@ -139,6 +139,12 @@
     private void NavigateToRegister()
     {
         NavigationManager.NavigateTo("/register");
+    }
+
+    private void HandleInvalidSubmit()
+    {
+        errorMessage = L["Error.InvalidCredentials"];
+        StateHasChanged();
     }
 
     private void ClearError()

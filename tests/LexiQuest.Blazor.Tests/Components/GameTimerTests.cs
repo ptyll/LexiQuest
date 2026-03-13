@@ -3,6 +3,7 @@ using FluentAssertions;
 using LexiQuest.Blazor.Components.Game;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
+using LexiQuest.Blazor.Tests.Helpers;
 using NSubstitute;
 
 namespace LexiQuest.Blazor.Tests.Components;
@@ -17,6 +18,7 @@ public class GameTimerTests : BunitContext
         _localizer["TimeRemaining"].Returns(new LocalizedString("TimeRemaining", "Time: {0}"));
 
         Services.AddSingleton(_localizer);
+        TempoTestHelper.RegisterTempoServices(Services);
     }
 
     [Fact]

@@ -6,5 +6,6 @@ namespace LexiQuest.Shared.DTOs.Multiplayer;
 public record OpponentProgressDto(
     int CorrectCount,
     int TotalAnswered,
-    int ComboCount
+    int ComboCount,
+    int SequenceNumber = 0
 );

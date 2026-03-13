@@ -1,0 +1,51 @@
+@page "/privacy"
+@inject IStringLocalizer<Privacy> L
+
+<PageTitle>@L["Privacy_PageTitle"]</PageTitle>
+
+<div class="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
+    <div class="max-w-4xl mx-auto px-4">
+        <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-8">@L["Privacy_Title"]</h1>
+
+        <div class="space-y-6">
+            <!-- Data Collection -->
+            <TmCard Variant="CardVariant.Elevated" Class="p-6">
+                <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-3">@L["Privacy_DataCollectionTitle"]</h2>
+                <p class="text-gray-600 dark:text-gray-300 leading-relaxed">@L["Privacy_DataCollectionText"]</p>
+            </TmCard>
+
+            <!-- Data Usage -->
+            <TmCard Variant="CardVariant.Elevated" Class="p-6">
+                <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-3">@L["Privacy_DataUsageTitle"]</h2>
+                <p class="text-gray-600 dark:text-gray-300 leading-relaxed">@L["Privacy_DataUsageText"]</p>
+            </TmCard>
+
+            <!-- Data Storage -->
+            <TmCard Variant="CardVariant.Elevated" Class="p-6">
+                <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-3">@L["Privacy_DataStorageTitle"]</h2>
+                <p class="text-gray-600 dark:text-gray-300 leading-relaxed">@L["Privacy_DataStorageText"]</p>
+            </TmCard>
+
+            <!-- User Rights -->
+            <TmCard Variant="CardVariant.Elevated" Class="p-6">
+                <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-3">@L["Privacy_RightsTitle"]</h2>
+                <p class="text-gray-600 dark:text-gray-300 leading-relaxed">@L["Privacy_RightsText"]</p>
+            </TmCard>
+
+            <!-- Cookies -->
+            <TmCard Variant="CardVariant.Elevated" Class="p-6">
+                <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-3">@L["Privacy_CookiesTitle"]</h2>
+                <p class="text-gray-600 dark:text-gray-300 leading-relaxed">@L["Privacy_CookiesText"]</p>
+            </TmCard>
+
+            <!-- Contact -->
+            <TmCard Variant="CardVariant.Elevated" Class="p-6">
+                <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-3">@L["Privacy_ContactTitle"]</h2>
+                <p class="text-gray-600 dark:text-gray-300 leading-relaxed">
+                    @L["Privacy_ContactText"]
+                    <a href="/contact" class="text-blue-500 hover:underline">@L["Privacy_ContactLink"]</a>.
+                </p>
+            </TmCard>
+        </div>
+    </div>
+</div>

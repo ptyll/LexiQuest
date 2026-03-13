@@ -12,14 +12,19 @@
             <DataAnnotationsValidator />
             
             <TmFormField Label="@Localizer["Room_Code_Label"]">
-                <TmTextInput 
-                    @bind-Value="RoomCode"
-                    Placeholder="@Localizer["Room_Code_Placeholder"]"
-                    MaxLength="10"
-                    AutoFocus="true"
-                    Class="room-code-input"
+                <input type="text"
+                    value="@RoomCode"
+                    placeholder="@Localizer["Room_Code_Placeholder"]"
+                    maxlength="10"
+                    autofocus
+                    aria-label="@Localizer["Room_Code_Label"]"
+                    autocomplete="off"
+                    class="room-code-input tm-input"
                     @oninput="HandleInput" />
-                <ValidationMessage For="() => RoomCode" class="validation-message" />
+                @if (!string.IsNullOrEmpty(_validationMessage))
+                {
+                    <div class="validation-message">@_validationMessage</div>
+                }
             </TmFormField>
 
             @if (!string.IsNullOrEmpty(ErrorMessage))
@@ -32,21 +37,19 @@
     </ChildContent>
 
     <Footer>
-        <TmButton 
-            Variant="ButtonVariant.Primary" 
-            Size="ButtonSize.Lg"
-            Class="join-button"
-            IsLoading="IsLoading"
-            OnClick="HandleSubmit">
+        <button class="join-button tm-btn tm-btn-primary"
+                @onclick="HandleSubmit"
+                disabled="@IsLoading">
+            @if (IsLoading)
+            {
+                <span class="spinner"></span>
+            }
             @Localizer["Button_Join"]
-        </TmButton>
-        <TmButton 
-            Variant="ButtonVariant.Ghost" 
-            Size="ButtonSize.Lg"
-            Class="cancel-button"
-            OnClick="OnClose">
+        </button>
+        <button class="cancel-button tm-btn"
+                @onclick="OnClose">
             @Localizer["Button_Cancel"]
-        </TmButton>
+        </button>
     </Footer>
 </TmModal>
 
@@ -57,21 +60,26 @@
     [Parameter] public EventCallback OnClose { get; set; }
     [Parameter] public EventCallback<string> OnJoin { get; set; }
 
-    [Required(ErrorMessage = "Kód místnosti je povinný")]
-    [RegularExpression(@"^LEXIQ-[A-Z0-9]{4}$", ErrorMessage = "Kód musí být ve formátu LEXIQ-XXXX")]
     public string RoomCode { get; set; } = "";
+
+    private string? _validationMessage;
 
     private void HandleInput(ChangeEventArgs e)
     {
         var value = e.Value?.ToString() ?? "";
         // Auto uppercase and limit length
         RoomCode = value.ToUpperInvariant()[..Math.Min(value.Length, 10)];
+        _validationMessage = null;
     }
 
     private async Task HandleSubmit()
     {
+        _validationMessage = null;
+
         if (string.IsNullOrWhiteSpace(RoomCode))
         {
+            _validationMessage = Localizer["Validation_RoomCode_Required"];
+            StateHasChanged();
             return;
         }
 
@@ -79,6 +87,8 @@
         var regex = new System.Text.RegularExpressions.Regex(@"^LEXIQ-[A-Z0-9]{4}$");
         if (!regex.IsMatch(RoomCode))
         {
+            _validationMessage = Localizer["Validation_RoomCode_InvalidFormat"];
+            StateHasChanged();
             return;
         }
 

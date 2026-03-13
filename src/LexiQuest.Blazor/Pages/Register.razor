@@ -10,7 +10,7 @@
 <div class="register-page">
     <TmCard Variant="CardVariant.Elevated" Class="register-card">
         <div class="register-header">
-            <h1 class="register-brand">LexiQuest</h1>
+            <div class="register-logo">LexiQuest</div>
             <h2 class="register-title">@L["Title"]</h2>
             <p class="register-subtitle">@L["Subtitle"]</p>
         </div>
@@ -93,11 +93,9 @@
 
         <div class="register-login-prompt">
             <span>@L["Link.Login.Text"]</span>
-            <TmButton Variant="ButtonVariant.Link"
-                      OnClick="NavigateToLogin"
-                      Class="register-login-link">
+            <a href="/login" class="register-login-link">
                 @L["Link.Login"]
-            </TmButton>
+            </a>
         </div>
     </TmCard>
 </div>

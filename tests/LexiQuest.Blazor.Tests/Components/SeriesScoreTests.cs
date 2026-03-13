@@ -5,6 +5,7 @@ using LexiQuest.Blazor.Pages;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
 using NSubstitute;
+using LexiQuest.Blazor.Tests.Helpers;
 using Xunit;
 
 namespace LexiQuest.Blazor.Tests.Components;
@@ -19,6 +20,7 @@ public class SeriesScoreTests : BunitContext
         SetupLocalizer();
         
         Services.AddSingleton(_localizer);
+        TempoTestHelper.RegisterTempoServices(Services);
     }
 
     private void SetupLocalizer()

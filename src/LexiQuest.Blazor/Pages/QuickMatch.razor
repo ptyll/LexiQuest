@@ -1,20 +1,19 @@
 @page "/multiplayer/quick-match"
 @namespace LexiQuest.Blazor.Pages
-@attribute [Authorize]
 @inject IMatchHubClient MatchHubClient
 @inject IStringLocalizer<QuickMatch> L
 @inject NavigationManager NavigationManager
 @inject IAuthService AuthService
 @implements IAsyncDisposable
 
-@using Microsoft.AspNetCore.Authorization
 @using Tempo.Blazor.Components.Feedback
 @using Tempo.Blazor.Components.Avatars
 @using Tempo.Blazor.Components.Buttons
 @using Tempo.Blazor.Components.Layout
 @using LexiQuest.Shared.DTOs.Multiplayer
+@using LexiQuest.Blazor.Pages.Matchmaking
 
-<div class="matchmaking-page">
+<div class="matchmaking-page" role="main" aria-live="polite">
     @switch (_currentState)
     {
         case MatchmakingState.Searching:
@@ -88,12 +87,12 @@
                 _userLevel = 1;
             }
             
-            // Start timer
+            // Start timer (delayed start to avoid immediate re-render)
             _timer = new Timer(_ =>
             {
                 _elapsedSeconds++;
                 InvokeAsync(StateHasChanged);
-            }, null, TimeSpan.Zero, TimeSpan.FromSeconds(1));
+            }, null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
             
             // Setup event handlers
             MatchHubClient.OnMatchFound += OnMatchFound;

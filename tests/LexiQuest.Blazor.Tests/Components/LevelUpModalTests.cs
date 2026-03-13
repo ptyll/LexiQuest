@@ -4,6 +4,7 @@ using LexiQuest.Blazor.Components.Game;
 using LexiQuest.Shared.DTOs.Game;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
+using LexiQuest.Blazor.Tests.Helpers;
 using NSubstitute;
 
 namespace LexiQuest.Blazor.Tests.Components;
@@ -21,6 +22,7 @@ public class LevelUpModalTests : BunitContext
         _localizer["Unlocks.Title"].Returns(new LocalizedString("Unlocks.Title", "Unlocked:"));
         
         Services.AddSingleton(_localizer);
+        TempoTestHelper.RegisterTempoServices(Services);
     }
 
     [Fact]

@@ -49,7 +49,7 @@ public class WordRepository : IWordRepository
         if (count == 0)
             return null;
 
-        var randomIndex = new Random().Next(count);
+        var randomIndex = Random.Shared.Next(count);
         return await query.Skip(randomIndex).FirstOrDefaultAsync(cancellationToken);
     }
 
@@ -63,14 +63,22 @@ public class WordRepository : IWordRepository
         if (category.HasValue)
             query = query.Where(w => w.Category == category.Value);
 
-        var totalCount = await query.CountAsync(cancellationToken);
-        if (totalCount == 0)
+        // Load only the IDs matching the filter
+        var matchingIds = await query
+            .Select(w => w.Id)
+            .ToListAsync(cancellationToken);
+
+        if (matchingIds.Count == 0)
             return new List<Word>();
 
-        // Get random items using ORDER BY NEWID() equivalent for EF Core
-        var words = await query
-            .OrderBy(w => Guid.NewGuid())
-            .Take(Math.Min(count, totalCount))
+        // Shuffle in memory and take the requested count
+        Random.Shared.Shuffle(System.Runtime.InteropServices.CollectionsMarshal.AsSpan(matchingIds));
+        var selectedIds = matchingIds.Take(Math.Min(count, matchingIds.Count)).ToList();
+
+        // Load full entities for the selected IDs
+        var words = await _context.Words
+            .AsNoTracking()
+            .Where(w => selectedIds.Contains(w.Id))
             .ToListAsync(cancellationToken);
 
         return words;

@@ -7,6 +7,7 @@ using LexiQuest.Shared.Enums;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
 using NSubstitute;
+using LexiQuest.Blazor.Tests.Helpers;
 
 namespace LexiQuest.Blazor.Tests.Pages;
 
@@ -54,6 +55,7 @@ public class GamePageTests : BunitContext
         Services.AddSingleton(gameArenaLocalizer);
         Services.AddSingleton(gameTimerLocalizer);
         Services.AddSingleton(_gameService);
+        TempoTestHelper.RegisterTempoServices(Services);
     }
 
     [Fact]

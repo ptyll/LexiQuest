@@ -4,11 +4,11 @@
 @implements IDisposable
 
 <div class="notification-bell-container">
-    <TmButton Variant="ButtonVariant.Ghost" OnClick="ToggleDropdown" CssClass="bell-button">
+    <TmButton Variant="ButtonVariant.Ghost" OnClick="ToggleDropdown" Class="bell-button">
         <span class="bell-icon">&#128276;</span>
         @if (_unreadCount > 0)
         {
-            <TmBadge Color="BadgeColor.Danger" CssClass="unread-badge">@_unreadCount</TmBadge>
+            <TmBadge Variant="BadgeVariant.Danger" Class="unread-badge">@_unreadCount</TmBadge>
         }
     </TmButton>
 
@@ -19,7 +19,7 @@
                 <h3 class="dropdown-title">@Localizer["Title"]</h3>
                 @if (_unreadCount > 0)
                 {
-                    <TmButton Variant="ButtonVariant.Ghost" Size="ButtonSize.Sm" OnClick="HandleMarkAllRead" CssClass="mark-all-read-button">
+                    <TmButton Variant="ButtonVariant.Ghost" Size="ButtonSize.Sm" OnClick="HandleMarkAllRead" Class="mark-all-read-button">
                         @Localizer["MarkAllRead"]
                     </TmButton>
                 }
@@ -49,7 +49,7 @@
                                     </div>
                                     @if (!string.IsNullOrEmpty(notification.ActionUrl))
                                     {
-                                        <TmButton Variant="ButtonVariant.Ghost" Size="ButtonSize.Sm" OnClick="() => NavigateTo(notification.ActionUrl)" CssClass="notification-action">
+                                        <TmButton Variant="ButtonVariant.Ghost" Size="ButtonSize.Sm" OnClick="() => NavigateTo(notification.ActionUrl)" Class="notification-action">
                                             &#8594;
                                         </TmButton>
                                     }

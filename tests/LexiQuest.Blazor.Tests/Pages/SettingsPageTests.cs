@@ -3,6 +3,7 @@ using FluentAssertions;
 using LexiQuest.Blazor.Pages;
 using LexiQuest.Blazor.Services;
 using LexiQuest.Shared.DTOs.Users;
+using LexiQuest.Shared.Enums;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
@@ -168,7 +169,7 @@ public class SettingsPageTests : TestContext
             Stats = new LexiQuest.Shared.DTOs.Users.UserStatsDto { Level = 5, TotalXP = 1000 },
             Preferences = new UserPreferencesDto
             {
-                Theme = "light",
+                Theme = AppTheme.Light,
                 Language = "cs",
                 AnimationsEnabled = true,
                 SoundsEnabled = true,

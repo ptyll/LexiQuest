@@ -1,61 +1,38 @@
+@using Microsoft.Extensions.Localization
+@using LexiQuest.Blazor.Services
+@inherits Microsoft.AspNetCore.Components.ErrorBoundaryBase
 @inject IStringLocalizer<ErrorBoundary> L
+@inject IErrorLoggingService ErrorLogging
 
-<CascadingValue Value="this">
-    @ChildContent
-</CascadingValue>
-
-@if (_hasError)
+@if (CurrentException is not null)
 {
     <div class="error-boundary">
-        <TmCard Variant="CardVariant.Elevated" Class="p-8 text-center max-w-lg mx-auto mt-12">
-            <div class="text-6xl mb-4">😵</div>
-            <h2 class="text-2xl font-bold text-gray-800 mb-2">@L["Error_Title"]</h2>
-            <p class="text-gray-600 mb-6">@L["Error_Description"]</p>
-            
-            @if (!string.IsNullOrEmpty(_errorMessage) && ShowDetails)
-            {
-                <div class="bg-red-50 border border-red-200 rounded p-4 mb-6 text-left">
-                    <code class="text-sm text-red-700 break-all">@_errorMessage</code>
-                </div>
-            }
-
-            <div class="flex gap-4 justify-center">
-                <TmButton Variant="ButtonVariant.Outline" OnClick="GoHome">
-                    @L["Error_GoHome"]
-                </TmButton>
-                <TmButton Variant="ButtonVariant.Primary" OnClick="Recover">
-                    @L["Error_TryAgain"]
-                </TmButton>
-            </div>
-        </TmCard>
+        <div class="tm-alert tm-alert-error">
+            <div class="tm-alert-title">@L["Error.Title"]</div>
+            <div class="tm-alert-body">@L["Error.Message"]</div>
+            <button class="tm-btn tm-btn-primary" @onclick="Recover">
+                @L["Button.Retry"]
+            </button>
+        </div>
     </div>
+}
+else
+{
+    @ChildContent
 }
 
 @code {
-    [Parameter] public RenderFragment? ChildContent { get; set; }
-    [Parameter] public bool ShowDetails { get; set; } = false;
-
-    [Inject] private NavigationManager NavigationManager { get; set; } = default!;
-
-    private bool _hasError;
-    private string? _errorMessage;
-
-    public void ProcessError(Exception ex)
+    protected override async Task OnErrorAsync(Exception exception)
     {
-        _hasError = true;
-        _errorMessage = ex.Message;
-        StateHasChanged();
+        await ErrorLogging.LogErrorAsync(
+            exception.Message,
+            exception.StackTrace,
+            nameof(ErrorBoundary),
+            null);
     }
 
-    private void Recover()
+    public new void Recover()
     {
-        _hasError = false;
-        _errorMessage = null;
-        StateHasChanged();
-    }
-
-    private void GoHome()
-    {
-        NavigationManager.NavigateTo("/dashboard");
+        base.Recover();
     }
 }

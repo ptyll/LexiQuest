@@ -15,12 +15,13 @@ public class InventoryServiceEdgeCaseTests
     private readonly IShopItemRepository _shopItemRepository = Substitute.For<IShopItemRepository>();
     private readonly IUserInventoryRepository _inventoryRepository = Substitute.For<IUserInventoryRepository>();
     private readonly IPremiumFeatureService _premiumFeatureService = Substitute.For<IPremiumFeatureService>();
+    private readonly IUserRepository _userRepository = Substitute.For<IUserRepository>();
     private readonly IUnitOfWork _unitOfWork = Substitute.For<IUnitOfWork>();
     private readonly InventoryService _sut;
 
     public InventoryServiceEdgeCaseTests()
     {
-        _sut = new InventoryService(_shopItemRepository, _inventoryRepository, _premiumFeatureService, _unitOfWork);
+        _sut = new InventoryService(_shopItemRepository, _inventoryRepository, _premiumFeatureService, _userRepository, _unitOfWork);
     }
 
     // --- Purchasing already owned item ---

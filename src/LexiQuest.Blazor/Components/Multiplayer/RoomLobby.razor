@@ -1,7 +1,7 @@
 @inject IStringLocalizer<Pages.Multiplayer> Localizer
 @inject IJSRuntime JSRuntime
 
-<div class="room-lobby">
+<div class="room-lobby" role="region" aria-label="@Localizer["Room_Lobby_Title"]">
     @if (IsExpired)
     {
         <div class="expired-state">
@@ -24,10 +24,9 @@
                     <span class="code-label">@Localizer["Room_Code_Label"]</span>
                     <div class="room-code-display">
                         <code class="room-code">@RoomStatus.RoomCode</code>
-                        <TmCopyButton 
-                            Text="@RoomStatus.RoomCode"
-                            OnCopy="OnCopyCode"
-                            Class="copy-code-button" />
+                        <button class="copy-code-button tm-btn" @onclick="OnCopyCode" aria-label="@Localizer["Room_Code_Copy"]">
+                            📋
+                        </button>
                     </div>
                     <p class="share-text">@string.Format(Localizer["Room_Code_ShareText"], RoomStatus.RoomCode)</p>
                     <TmProgressBar 
@@ -152,11 +151,12 @@
                     }
                 </div>
                 <div class="chat-input-section">
-                    <TmTextInput 
-                        @bind-Value="_currentMessage"
-                        Placeholder="@Localizer["Room_Lobby_Chat_Placeholder"]"
-                        MaxLength="200"
-                        Class="chat-input"
+                    <input type="text"
+                        value="@_currentMessage"
+                        @oninput="HandleChatInput"
+                        placeholder="@Localizer["Room_Lobby_Chat_Placeholder"]"
+                        maxlength="200"
+                        class="chat-input tm-input"
                         @onkeyup="HandleChatKeyUp" />
                     <TmButton 
                         Variant="ButtonVariant.Primary" 
@@ -207,6 +207,11 @@
         return Math.Clamp(progress, 0, 100);
     }
 
+    private void HandleChatInput(ChangeEventArgs e)
+    {
+        _currentMessage = e.Value?.ToString() ?? "";
+    }
+
     private async Task SendMessage()
     {
         if (string.IsNullOrWhiteSpace(_currentMessage)) return;
@@ -226,7 +231,14 @@
 
     private async Task ScrollToBottom()
     {
-        await JSRuntime.InvokeVoidAsync("scrollToBottom", _chatMessagesRef);
+        try
+        {
+            await JSRuntime.InvokeVoidAsync("scrollToBottom", _chatMessagesRef);
+        }
+        catch
+        {
+            // JS interop may not be available in test/SSR context
+        }
     }
 
     protected override async Task OnParametersSetAsync()

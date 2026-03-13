@@ -7,5 +7,6 @@ public record MultiplayerRoundDto(
     int RoundNumber,
     string ScrambledWord,
     int WordLength,
-    int TimeLimit
+    int TimeLimit,
+    int SequenceNumber = 0
 );

@@ -5,6 +5,7 @@ using LexiQuest.Shared.DTOs.Shop;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
 using NSubstitute;
+using LexiQuest.Blazor.Tests.Helpers;
 using Tempo.Blazor.Localization;
 using Tempo.Blazor.Components.DataDisplay;
 using Tempo.Blazor.Components.Feedback;
@@ -35,6 +36,7 @@ public class ShopItemCardTests : BunitContext
         Services.AddSingleton(_localizer);
         Services.AddSingleton(_tmLocalizer);
         Services.AddSingleton(_localizer);
+        TempoTestHelper.RegisterTempoServices(Services);
     }
 
     [Fact]
