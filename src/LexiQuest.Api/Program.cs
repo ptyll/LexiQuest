@@ -243,7 +243,7 @@ public class Program
             options.AddPolicy("BlazorClient", policy =>
             {
                 policy.WithOrigins(
-                        configuration.GetValue<string>("BlazorClient:Url") ?? "https://localhost:5001")
+                        configuration.GetValue<string>("BlazorClient:Url") ?? "https://localhost:7300")
                     .AllowAnyHeader()
                     .AllowAnyMethod()
                     .AllowCredentials();

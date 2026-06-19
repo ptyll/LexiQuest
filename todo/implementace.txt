@@ -1,7 +1,7 @@
-Role: Působíš jako Senior Full-stack Developer a UX specialista a UI expert
+Role: Působíš jako Senior Full-stack Developer a UX specialista a UI expert a specialista na online hry
+používej Tempo.Blazor komponenty - když budeš potřebovat popis  komponenty zavolej si mcp server
 striktní tdd implementace
-přečti si úplně všechny md soubory (ve všech složkách a podsložkách)
-jak budeš implmentova tak postpně v md souborech pro UC odškrtávej co je hotové
+jak budeš implmentovat tak postpně v md souboru odškrtávej co je hotové
 
 ## ⚠️ KRITICKÁ PRAVIDLA - ABSOLUTNÍ ZÁKAZ PORUŠOVAT
 
@@ -13,10 +13,12 @@ Krok 3: Refactoruj (čistý kód bez změny funkcionality)
 Krok 4: Opakuj pro další task
 ```
 
+Testy se píšou i pro razor pomocí bUnit
+
 ### 2. ŽÁDNÉ HARDCODED TEXTY - VŠE Z RESOURCES!
 - ❌ ZAKÁZÁNO: "Uložit", "Jméno", "Email je povinný" v C#/Razor kódu
 - ✅ POUŽÍVAT: `@Localizer["Button_Save"]`, `@Localizer["Field_FirstName"]`
-- VŠECHNY texty musí být v `.resx` souborech (CRM.Shared/Resources/)
+- VŠECHNY texty musí být v `.resx` souborech (LexiQuest.Shared/Resources/)
 - Fluent validace MUSÍ používat lokalizované zprávy z resources
 
 ### 3. FLUENT VALIDACE - FE i BE
@@ -48,5 +50,22 @@ Když si nejsi jistý:
 - ⚠️ Atomické transakce - Unit of Work
 - ⚠️ Dto vždy do shared projektu
 - ⚠️ Žádne wraper třídy pro odpovědi z api - používají se http kódy
+- ⚠️ Používej scoped css
+- ⚠️ Dodržuj css design token z Tempo.Blazor
 
-implementuj vše ze souboru @todo/Faze-0-Setup.md
+implementuj úplně všechny úkoly i volitelné a postupně odškrtej co je již hotové z @todo/Faze-7-Testing-Deployment.md
+
+odškrtej co je již hotové a postupně implementuj úplně všechny úkoly  i volitelné , které ještě nejsou hotové z @todo/Faze-5-Multiplayer.md a postupně odškrtej co je již hotové .
+
+implementuj T-501.4: Match Result Screen  ze souboru @todo/Faze-5-Multiplayer.md a odškrtej pak co je hotové
+
+odškrtej co je již hotové a implementuj co schází ze souboru @todo/Faze-4-Premium.md
+
+implementuj úplně všechny úkoly i volitelné a postupně odškrtej co je již hotové .
+
+implementuj T-400.6: Premium Endpoints ze souboru @todo/Faze-4-Premium.md
+
+
+
+odškrtej co je již hotové a implementuj T-400.2: Stripe Integration Setup ze souboru @todo/Faze-4-Premium.md
+implementuj úplně všechny úkoly i volitelné

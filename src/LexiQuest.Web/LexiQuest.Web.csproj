@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="10.0.5" />
+    <PackageReference Include="Tempo.Blazor" Version="1.1.0" />
+    <PackageReference Include="Tempo.Blazor.FluentValidation" Version="1.1.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\LexiQuest.Blazor.Client\LexiQuest.Blazor.Client.csproj" />
+    <ProjectReference Include="..\LexiQuest.Shared\LexiQuest.Shared.csproj" />
+  </ItemGroup>
+
+</Project>

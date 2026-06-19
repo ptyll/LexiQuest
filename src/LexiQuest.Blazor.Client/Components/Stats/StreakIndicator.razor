@@ -29,7 +29,7 @@
     @if (ShieldProtection != null)
     {
         <div class="shield-management">
-            <!-- Active Shield -->
+            @* Active Shield *@
             @if (ShieldProtection.HasActiveShield)
             {
                 <div class="shield-active">
@@ -37,26 +37,26 @@
                     <span class="shield-text">@L["ShieldActive"]</span>
                 </div>
             }
-            <!-- Available Shields -->
             else if (ShieldProtection.ShieldsRemaining > 0)
             {
+                @* Available Shields *@
                 <div class="shield-available">
                     <span class="shield-icon">🛡️</span>
                     <span class="shield-count">@ShieldProtection.ShieldsRemaining @L["ShieldsRemaining"]</span>
                 </div>
             }
-            <!-- Free Shield Available -->
             else if (ShieldProtection.CanActivateFreeShield)
             {
+                @* Free Shield Available *@
                 <button class="shield-activate-btn tm-btn tm-btn--primary tm-btn--sm" @onclick="OnActivateShield">
                     <span>🛡️</span>
                     <span>@L["ActivateShield"]</span>
                     <span class="shield-badge">@L["FreeShieldAvailable"]</span>
                 </button>
             }
-            <!-- Premium Shield Available (for premium users) -->
             else if (IsPremium && ShieldProtection.NextShieldAvailableAt.HasValue)
             {
+                @* Premium Shield Available *@
                 @if (GetDaysUntilNextShield() <= 0)
                 {
                     <button class="shield-activate-btn tm-btn tm-btn--primary tm-btn--sm" @onclick="OnActivateShield">
@@ -73,9 +73,9 @@
                     </div>
                 }
             }
-            <!-- Buy Shields Option -->
             else if (OnBuyShields.HasDelegate)
             {
+                @* Buy Shields Option *@
                 <button class="buy-shields-btn tm-btn tm-btn--outline tm-btn--sm" @onclick="OnBuyShields">
                     <span>🛡️</span>
                     <span>@L["BuyShields"]</span>

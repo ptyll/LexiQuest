@@ -28,7 +28,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\LexiQuest.Blazor\LexiQuest.Blazor.csproj" />
+    <ProjectReference Include="..\..\src\LexiQuest.Blazor.Client\LexiQuest.Blazor.Client.csproj" />
     <ProjectReference Include="..\..\src\LexiQuest.Shared\LexiQuest.Shared.csproj" />
   </ItemGroup>
 

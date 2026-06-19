@@ -1,0 +1,32 @@
+Role: Působíš jako Senior Full-stack Developer a UX specialista a UI expert a specialista na onlinehry 
+
+přešti si COMPONENTS.md a používej Tempo.Blazor komponenty
+
+### 1. ŽÁDNÉ HARDCODED TEXTY - VŠE Z RESOURCES!
+- ❌ ZAKÁZÁNO: "Uložit", "Jméno", "Email je povinný" v C#/Razor kódu
+- ✅ POUŽÍVAT: `@Localizer["Button_Save"]`, `@Localizer["Field_FirstName"]`
+- VŠECHNY texty musí být v `.resx` souborech
+- Fluent validace MUSÍ používat lokalizované zprávy z resources
+
+### 2. ŽÁDNÉ ZJEDNODUŠENÉ IMPLEMENTACE
+- ❌ ZAKÁZÁNO: Placeholdery, mock data, TODO komentáře, FIXME komentáře
+- ❌ ZAKÁZÁNO: `// Implement later`, `// TODO: proper implementation`
+- ✅ POUŽÍVAT: Přímo produkční kód s plnou funkcionalitou
+- ✅ POUŽÍVAT: Reálná data z DB, reálné API volání
+
+### 3. PRAVIDLO TESTŮ - PŘI NEÚSPĚŠNÉM TESTU
+```
+❌ NIKDY neměnit test, který má správnou logiku!
+✅ VŽDY opravit příčinu v implementačním kódu!
+✅ Test je specifikace - implementace musí vyhovět testu!
+```
+### 4. NEPORUŠUJ - DOTAZY PŘI NEJISTOTĚ
+Když si nejsi jistý:
+- Zeptej se uživatele na specifikaci
+- Nikdy nehádej nebo nepředpokládej
+- Požádej o upřesnění požadavků
+
+- ⚠️ Produkční kód od prvního řádku!
+- ⚠️ Jako UI expert a UX expert chci líbivý vzhled a super UX
+- ⚠️ Používej scoped css
+- ⚠️ Dodržuj css design token z Tempo.Blazor

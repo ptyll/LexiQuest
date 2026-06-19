@@ -10,30 +10,23 @@
     <link rel="manifest" href="manifest.json" />
     <link rel="apple-touch-icon" sizes="192x192" href="icon-192.png" />
     <link rel="apple-touch-icon" sizes="512x512" href="icon-512.png" />
-    <link rel="preload" id="webassembly" />
     <link rel="stylesheet" href="_content/Tempo.Blazor/css/tempo-blazor.css" />
     <link rel="stylesheet" href="css/app.css" />
     <link rel="stylesheet" href="css/animations.css" />
     <link rel="stylesheet" href="css/responsive.css" />
-    <link href="LexiQuest.Blazor.styles.css" rel="stylesheet" />
-    <script type="importmap"></script>
+    <link href="LexiQuest.Blazor.Client.styles.css" rel="stylesheet" />
+    <HeadOutlet @rendermode="InteractiveAuto" />
 </head>
 
 <body>
-    <div id="app">
-        <svg class="loading-progress">
-            <circle r="40%" cx="50%" cy="50%" />
-            <circle r="40%" cx="50%" cy="50%" />
-        </svg>
-        <div class="loading-progress-text"></div>
-    </div>
+    <Routes @rendermode="@(new InteractiveAutoRenderMode(prerender: false))" />
 
     <div id="blazor-error-ui">
         An unhandled error has occurred.
         <a href="." class="reload">Reload</a>
         <span class="dismiss">&#x1F5D9;</span>
     </div>
-    <script src="_framework/blazor.webassembly#[.{fingerprint}].js"></script>
+    <script src="_framework/blazor.web.js"></script>
     <script>
         window.lexiQuestPwa = {
             _connectivityRef: null,

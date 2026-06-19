@@ -1,0 +1,11 @@
+--- a/todo/Faze-5-Multiplayer.md
++++ b/todo/Faze-5-Multiplayer.md
+@@ -221,7 +221,7 @@
+   - Rewards
+   - `TmButton` "Další zápas" / `TmButton` "Domů"
+ 
+-- [ ] **GREEN:** Testy procházejí
++- [x] **GREEN:** Testy procházejí (8/8)
+ 
+ ### T-501.5: Match History
+ - [ ] Vytvořit `GET /api/v1/multiplayer/history` endpoint (s filtrací: all/quick-match/private-room)

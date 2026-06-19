@@ -108,13 +108,13 @@ public class WebhookController : ControllerBase
         var invoice = stripeEvent.Data.Object as Stripe.Invoice;
         if (invoice == null) return;
 
-        var subscriptionId = invoice.SubscriptionId;
-        
+        var subscriptionId = invoice.Parent?.SubscriptionDetails?.SubscriptionId;
+
         _logger.LogInformation("Processing invoice.paid for subscription {SubscriptionId}", subscriptionId);
-        
+
         // Calculate new expiration date based on subscription interval
         var expiresAt = CalculateExpirationDate(invoice);
-        
+
         await _subscriptionService.HandleInvoicePaidAsync(subscriptionId, expiresAt);
         _logger.LogInformation("Successfully processed invoice.paid for subscription {SubscriptionId}", subscriptionId);
     }
@@ -124,7 +124,7 @@ public class WebhookController : ControllerBase
         var invoice = stripeEvent.Data.Object as Stripe.Invoice;
         if (invoice == null) return;
 
-        var subscriptionId = invoice.SubscriptionId;
+        var subscriptionId = invoice.Parent?.SubscriptionDetails?.SubscriptionId;
         
         _logger.LogWarning("Processing invoice.payment_failed for subscription {SubscriptionId}", subscriptionId);
         

@@ -1,10 +1,11 @@
 <Solution>
   <Folder Name="/src/">
     <Project Path="src/LexiQuest.Api/LexiQuest.Api.csproj" />
-    <Project Path="src/LexiQuest.Blazor/LexiQuest.Blazor.csproj" />
+    <Project Path="src/LexiQuest.Blazor.Client/LexiQuest.Blazor.Client.csproj" />
     <Project Path="src/LexiQuest.Core/LexiQuest.Core.csproj" />
     <Project Path="src/LexiQuest.Infrastructure/LexiQuest.Infrastructure.csproj" />
     <Project Path="src/LexiQuest.Shared/LexiQuest.Shared.csproj" />
+    <Project Path="src/LexiQuest.Web/LexiQuest.Web.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/LexiQuest.Api.Tests/LexiQuest.Api.Tests.csproj" />
