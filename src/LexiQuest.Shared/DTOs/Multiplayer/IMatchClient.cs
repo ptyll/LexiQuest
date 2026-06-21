@@ -21,12 +21,14 @@ public interface IMatchClient
     Task RoomStateReset(IReadOnlyList<PlayerReadyStateDto> readyStates);
     Task RoomExpired();
     Task RematchRequested(Guid playerId);
+    Task RematchDeclined(Guid playerId);
     Task LobbyMessage(LobbyMessageDto message);
     Task ChatError(string error);
 
     // Common
     Task CountdownTick(int secondsRemaining);
     Task RoundStarted(MultiplayerRoundDto round);
+    Task PlayerProgressUpdated(OpponentProgressDto progress);
     Task OpponentAnswered(OpponentProgressDto progress);
     Task OpponentProgress(int correctCount, int totalAnswered);
     Task MatchEnded(MatchResultDto result);

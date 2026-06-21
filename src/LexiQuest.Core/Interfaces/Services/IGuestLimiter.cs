@@ -42,4 +42,9 @@ public interface IGuestLimiter
     /// Gets current limit status for the IP address.
     /// </summary>
     GuestLimitStatus GetStatus(string ipAddress);
+
+    /// <summary>
+    /// Resets tracked guest usage for the IP address.
+    /// </summary>
+    void Reset(string ipAddress);
 }

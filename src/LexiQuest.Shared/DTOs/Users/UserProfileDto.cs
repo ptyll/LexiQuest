@@ -10,6 +10,9 @@ public class UserProfileDto
     public string Email { get; set; } = string.Empty;
     public string? AvatarUrl { get; set; }
     public DateTime CreatedAt { get; set; }
+    public bool IsPremium { get; set; }
+    public string? PremiumPlan { get; set; }
+    public DateTime? PremiumExpiresAt { get; set; }
     public UserStatsDto Stats { get; set; } = new();
     public UserPreferencesDto Preferences { get; set; } = new();
     public PrivacySettingsDto Privacy { get; set; } = new();

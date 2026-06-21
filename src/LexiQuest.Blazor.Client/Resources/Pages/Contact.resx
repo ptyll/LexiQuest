@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Contact_PageTitle" xml:space="preserve">
+    <value>Kontakt</value>
+  </data>
+  <data name="Contact_Title" xml:space="preserve">
+    <value>Kontakt</value>
+  </data>
+  <data name="Contact_Description" xml:space="preserve">
+    <value>Máš otázku, nápad nebo jsi narazil na problém? Napiš nám a ozveme se zpět.</value>
+  </data>
+  <data name="Contact_NameLabel" xml:space="preserve">
+    <value>Jméno</value>
+  </data>
+  <data name="Contact_NamePlaceholder" xml:space="preserve">
+    <value>Tvoje jméno</value>
+  </data>
+  <data name="Contact_EmailLabel" xml:space="preserve">
+    <value>Email</value>
+  </data>
+  <data name="Contact_EmailPlaceholder" xml:space="preserve">
+    <value>vas@email.cz</value>
+  </data>
+  <data name="Contact_SubjectLabel" xml:space="preserve">
+    <value>Předmět</value>
+  </data>
+  <data name="Contact_SubjectPlaceholder" xml:space="preserve">
+    <value>Čeho se zpráva týká?</value>
+  </data>
+  <data name="Contact_MessageLabel" xml:space="preserve">
+    <value>Zpráva</value>
+  </data>
+  <data name="Contact_MessagePlaceholder" xml:space="preserve">
+    <value>Napiš zprávu...</value>
+  </data>
+  <data name="Contact_Submitting" xml:space="preserve">
+    <value>Odesílám...</value>
+  </data>
+  <data name="Contact_SubmitButton" xml:space="preserve">
+    <value>Odeslat zprávu</value>
+  </data>
+  <data name="Contact_SuccessMessage" xml:space="preserve">
+    <value>Zpráva byla odeslána.</value>
+  </data>
+  <data name="Contact_ErrorMessage" xml:space="preserve">
+    <value>Zprávu se nepodařilo odeslat. Zkus to prosím znovu.</value>
+  </data>
+</root>

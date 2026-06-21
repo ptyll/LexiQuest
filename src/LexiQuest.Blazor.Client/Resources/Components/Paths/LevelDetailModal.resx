@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" msdata:Ordinal="0" />
+              <xsd:attribute name="xml:space" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Title" xml:space="preserve">
+    <value>Detail úrovně</value>
+  </data>
+  <data name="Label.Status" xml:space="preserve">
+    <value>Stav</value>
+  </data>
+  <data name="Label.Boss" xml:space="preserve">
+    <value>Boss úroveň</value>
+  </data>
+  <data name="Preview.Text" xml:space="preserve">
+    <value>Slova v této úrovni mají {0}-{1} písmen a odpovídají obtížnosti vybrané cesty.</value>
+  </data>
+  <data name="Section.Info" xml:space="preserve">
+    <value>Informace o úrovni</value>
+  </data>
+  <data name="Section.Rewards" xml:space="preserve">
+    <value>Odměny</value>
+  </data>
+  <data name="Label.WordCount" xml:space="preserve">
+    <value>Počet slov</value>
+  </data>
+  <data name="Label.TimePerWord" xml:space="preserve">
+    <value>Čas na slovo</value>
+  </data>
+  <data name="Label.Hints" xml:space="preserve">
+    <value>Nápovědy</value>
+  </data>
+  <data name="Label.Lives" xml:space="preserve">
+    <value>Životy</value>
+  </data>
+  <data name="Value.Words" xml:space="preserve">
+    <value>{0} slov</value>
+  </data>
+  <data name="Value.Seconds" xml:space="preserve">
+    <value>{0} s</value>
+  </data>
+  <data name="Value.Hints" xml:space="preserve">
+    <value>{0} nápovědy</value>
+  </data>
+  <data name="Value.Lives" xml:space="preserve">
+    <value>{0} životů</value>
+  </data>
+  <data name="Value.XpReward" xml:space="preserve">
+    <value>{0} XP</value>
+  </data>
+  <data name="Button.Close" xml:space="preserve">
+    <value>Zavřít</value>
+  </data>
+  <data name="Button.Start" xml:space="preserve">
+    <value>Spustit úroveň</value>
+  </data>
+  <data name="Status.Completed" xml:space="preserve">
+    <value>Dokončeno</value>
+  </data>
+  <data name="Status.Perfect" xml:space="preserve">
+    <value>Perfektní</value>
+  </data>
+  <data name="Status.Current" xml:space="preserve">
+    <value>Aktuální</value>
+  </data>
+  <data name="Status.Locked" xml:space="preserve">
+    <value>Zamčeno</value>
+  </data>
+  <data name="Status.Unknown" xml:space="preserve">
+    <value>Neznámý stav</value>
+  </data>
+</root>

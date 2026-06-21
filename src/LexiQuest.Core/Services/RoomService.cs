@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using LexiQuest.Core.Domain.Entities;
 using LexiQuest.Core.Domain.ValueObjects;
 using LexiQuest.Core.Interfaces.Services;
+using LexiQuest.Core.Validators;
 using LexiQuest.Shared.DTOs.Multiplayer;
 using LexiQuest.Shared.Enums;
 
@@ -15,9 +16,17 @@ public class RoomService : IRoomService
     // In-memory storage for rooms
     private readonly ConcurrentDictionary<string, Room> _rooms = new();
     private readonly ConcurrentDictionary<Guid, string> _userToRoomCode = new();
+    private static readonly RoomSettingsValidator SettingsValidator = new();
 
     public Task<(Room? Room, string? Error)> CreateRoomAsync(Guid userId, string username, RoomSettingsDto settings, CancellationToken cancellationToken = default)
     {
+        var validationResult = SettingsValidator.Validate(settings);
+        if (!validationResult.IsValid)
+        {
+            var error = string.Join(" ", validationResult.Errors.Select(e => e.ErrorMessage));
+            return Task.FromResult<(Room?, string?)>((null, error));
+        }
+
         // Check if user already has an active room
         if (_userToRoomCode.TryGetValue(userId, out var existingRoomCode))
         {

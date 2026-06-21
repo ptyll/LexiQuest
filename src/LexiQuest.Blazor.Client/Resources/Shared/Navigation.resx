@@ -33,7 +33,7 @@
     <value>Domů</value>
   </data>
   <data name="Dashboard" xml:space="preserve">
-    <value>Dashboard</value>
+    <value>Přehled</value>
   </data>
   <data name="Game" xml:space="preserve">
     <value>Hra</value>
@@ -45,7 +45,7 @@
     <value>Ligy</value>
   </data>
   <data name="Achievements" xml:space="preserve">
-    <value>Achievementy</value>
+    <value>Úspěchy</value>
   </data>
   <data name="Profile" xml:space="preserve">
     <value>Profil</value>

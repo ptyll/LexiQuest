@@ -55,14 +55,19 @@ public class StripeSubscriptionService : ISubscriptionService
         if (IsTestApiKey(_settings.ApiKey))
         {
             _logger.LogDebug("Using test mode - returning mock checkout URL");
-            // In test mode, set a mock customer ID if not already set
             if (string.IsNullOrEmpty(user.StripeCustomerId))
             {
                 user.SetStripeCustomerId($"cus_test_{Guid.NewGuid():N}");
                 _userRepository.Update(user);
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
             }
-            return $"https://checkout.stripe.com/pay/cs_test_{Guid.NewGuid():N}";
+
+            var sessionId = $"cs_test_{Guid.NewGuid():N}";
+            return BuildConfiguredUrl(
+                _settings.SuccessUrl,
+                $"https://checkout.stripe.com/pay/{sessionId}",
+                sessionId,
+                plan);
         }
 
         // Initialize Stripe with API key
@@ -85,8 +90,12 @@ public class StripeSubscriptionService : ISubscriptionService
                 }
             },
             Mode = plan == SubscriptionPlan.Lifetime ? "payment" : "subscription",
-            SuccessUrl = $"https://localhost:5001/premium/success?session_id={{CHECKOUT_SESSION_ID}}",
-            CancelUrl = $"https://localhost:5001/premium/cancel",
+            SuccessUrl = string.IsNullOrWhiteSpace(_settings.SuccessUrl)
+                ? "https://localhost:5001/premium/success?session_id={CHECKOUT_SESSION_ID}"
+                : _settings.SuccessUrl,
+            CancelUrl = string.IsNullOrWhiteSpace(_settings.CancelUrl)
+                ? "https://localhost:5001/premium/cancel"
+                : _settings.CancelUrl,
             Metadata = new Dictionary<string, string>
             {
                 { "UserId", userId.ToString() },
@@ -101,6 +110,16 @@ public class StripeSubscriptionService : ISubscriptionService
             session.Id, userId);
 
         return session.Url;
+    }
+
+    private static string BuildConfiguredUrl(string configuredUrl, string fallbackUrl, string sessionId, SubscriptionPlan plan)
+    {
+        if (string.IsNullOrWhiteSpace(configuredUrl))
+            return fallbackUrl;
+
+        return configuredUrl
+            .Replace("{CHECKOUT_SESSION_ID}", Uri.EscapeDataString(sessionId), StringComparison.Ordinal)
+            .Replace("{PLAN}", Uri.EscapeDataString(plan.ToString()), StringComparison.Ordinal);
     }
 
     private static bool IsTestApiKey(string apiKey)
@@ -153,18 +172,56 @@ public class StripeSubscriptionService : ISubscriptionService
         DateTime expiresAt,
         CancellationToken cancellationToken = default)
     {
-        var subscription = Core.Domain.Entities.Subscription.Create(
-            Guid.NewGuid(), // V produkci bychom získali UserId z mapování stripeCustomerId
-            plan,
-            stripeSubscriptionId,
-            startedAt,
-            expiresAt);
+        var user = await _userRepository.FindByStripeCustomerIdAsync(stripeCustomerId, cancellationToken);
+        if (user == null)
+        {
+            _logger.LogWarning("User not found for Stripe customer {CustomerId}", stripeCustomerId);
+            return;
+        }
 
-        await _subscriptionRepository.AddAsync(subscription);
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        await ActivateSubscriptionForUserAsync(user.Id, stripeSubscriptionId, plan, startedAt, expiresAt, cancellationToken);
 
         _logger.LogInformation("Activated subscription {SubscriptionId} for Stripe customer {CustomerId}",
             stripeSubscriptionId, stripeCustomerId);
+    }
+
+    public async Task<Core.Domain.Entities.Subscription> ActivateSubscriptionForUserAsync(
+        Guid userId,
+        string stripeSubscriptionId,
+        SubscriptionPlan plan,
+        DateTime startedAt,
+        DateTime expiresAt,
+        CancellationToken cancellationToken = default)
+    {
+        var user = await _userRepository.GetByIdAsync(userId, cancellationToken);
+        if (user == null)
+            throw new InvalidOperationException("User not found");
+
+        var subscription = await _subscriptionRepository.GetByUserIdAsync(userId);
+        if (subscription == null)
+        {
+            subscription = Core.Domain.Entities.Subscription.Create(
+                userId,
+                plan,
+                stripeSubscriptionId,
+                startedAt,
+                expiresAt);
+
+            await _subscriptionRepository.AddAsync(subscription);
+        }
+        else
+        {
+            subscription.Reactivate(plan, stripeSubscriptionId, startedAt, expiresAt);
+            _subscriptionRepository.Update(subscription);
+        }
+
+        user.Premium.Activate(plan.ToString(), expiresAt);
+        _userRepository.Update(user);
+
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation("Activated subscription {SubscriptionId} for user {UserId}", stripeSubscriptionId, userId);
+        return subscription;
     }
 
     public async Task CancelSubscriptionAsync(Guid userId, CancellationToken cancellationToken = default)
@@ -175,6 +232,14 @@ public class StripeSubscriptionService : ISubscriptionService
 
         subscription.Cancel(DateTime.UtcNow);
         _subscriptionRepository.Update(subscription);
+
+        var user = await _userRepository.GetByIdAsync(userId, cancellationToken);
+        if (user != null)
+        {
+            user.Premium.Deactivate();
+            _userRepository.Update(user);
+        }
+
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation("Cancelled subscription for user {UserId}", userId);
@@ -184,6 +249,11 @@ public class StripeSubscriptionService : ISubscriptionService
     {
         var subscription = await _subscriptionRepository.GetByUserIdAsync(userId);
         return subscription?.IsActive == true ? subscription : null;
+    }
+
+    public Task<Core.Domain.Entities.Subscription?> GetSubscriptionAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        return _subscriptionRepository.GetByUserIdAsync(userId);
     }
 
     public async Task<bool> IsPremiumAsync(Guid userId, CancellationToken cancellationToken = default)
@@ -199,6 +269,14 @@ public class StripeSubscriptionService : ISubscriptionService
         {
             subscription.MarkAsExpired();
             _subscriptionRepository.Update(subscription);
+
+            var user = await _userRepository.GetByIdAsync(subscription.UserId, cancellationToken);
+            if (user != null)
+            {
+                user.Premium.Deactivate();
+                _userRepository.Update(user);
+            }
+
             _logger.LogInformation("Marked subscription {SubscriptionId} as expired", subscription.Id);
         }
         await _unitOfWork.SaveChangesAsync(cancellationToken);
@@ -218,15 +296,12 @@ public class StripeSubscriptionService : ISubscriptionService
             ? DateTime.UtcNow.AddYears(100)
             : DateTime.UtcNow.AddMonths(plan == SubscriptionPlan.Yearly ? 12 : 1);
 
-        var subscription = Core.Domain.Entities.Subscription.Create(
+        await ActivateSubscriptionForUserAsync(
             user.Id,
-            plan,
             stripeSubscriptionId,
+            plan,
             DateTime.UtcNow,
             expiresAt);
-
-        await _subscriptionRepository.AddAsync(subscription);
-        await _unitOfWork.SaveChangesAsync();
 
         _logger.LogInformation("Handled checkout completed for user {UserId}", user.Id);
     }
@@ -240,8 +315,16 @@ public class StripeSubscriptionService : ISubscriptionService
             return;
         }
 
-        subscription.Extend(newExpiresAt);
+        subscription.Reactivate(subscription.Plan, stripeSubscriptionId, subscription.StartedAt, newExpiresAt);
         _subscriptionRepository.Update(subscription);
+
+        var user = await _userRepository.GetByIdAsync(subscription.UserId);
+        if (user != null)
+        {
+            user.Premium.Activate(subscription.Plan.ToString(), newExpiresAt);
+            _userRepository.Update(user);
+        }
+
         await _unitOfWork.SaveChangesAsync();
 
         _logger.LogInformation("Extended subscription {SubscriptionId} until {ExpiresAt}", 
@@ -259,6 +342,14 @@ public class StripeSubscriptionService : ISubscriptionService
 
         subscription.MarkAsPastDue();
         _subscriptionRepository.Update(subscription);
+
+        var user = await _userRepository.GetByIdAsync(subscription.UserId);
+        if (user != null)
+        {
+            user.Premium.Deactivate();
+            _userRepository.Update(user);
+        }
+
         await _unitOfWork.SaveChangesAsync();
 
         _logger.LogWarning("Marked subscription {SubscriptionId} as past due", stripeSubscriptionId);
@@ -275,6 +366,14 @@ public class StripeSubscriptionService : ISubscriptionService
 
         subscription.Cancel(DateTime.UtcNow);
         _subscriptionRepository.Update(subscription);
+
+        var user = await _userRepository.GetByIdAsync(subscription.UserId);
+        if (user != null)
+        {
+            user.Premium.Deactivate();
+            _userRepository.Update(user);
+        }
+
         await _unitOfWork.SaveChangesAsync();
 
         _logger.LogInformation("Cancelled subscription {SubscriptionId}", stripeSubscriptionId);

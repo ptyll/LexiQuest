@@ -1,0 +1,80 @@
+.path-map {
+    width: 100%;
+}
+
+.path-levels {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    overflow-x: auto;
+    padding: 0.5rem 0.25rem;
+}
+
+.level-node {
+    position: relative;
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #334155;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.level-node:disabled {
+    cursor: not-allowed;
+}
+
+.level-current {
+    border-color: #2563eb;
+    background: #eff6ff;
+    color: #1d4ed8;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14);
+}
+
+.level-completed {
+    border-color: #16a34a;
+    background: #ecfdf5;
+    color: #15803d;
+}
+
+.level-perfect {
+    border-color: #f59e0b;
+    background: #fffbeb;
+    color: #92400e;
+}
+
+.level-locked {
+    background: #f8fafc;
+    color: #94a3b8;
+}
+
+.level-boss {
+    border-color: #dc2626;
+}
+
+.level-icon {
+    position: absolute;
+    top: -0.55rem;
+    right: -0.35rem;
+    font-size: 0.9rem;
+}
+
+.level-connector {
+    flex: 0 0 24px;
+    height: 2px;
+    border-radius: 999px;
+}
+
+.connector-completed {
+    background: #16a34a;
+}
+
+.connector-locked {
+    background: #cbd5e1;
+}

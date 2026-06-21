@@ -7,19 +7,75 @@
 
 <PageTitle>@L["Title"] - LexiQuest</PageTitle>
 
-<div class="admin-users-page">
+<div class="admin-users-page" data-testid="admin-users-page">
     <div class="admin-header">
-        <h1>@L["Title"]</h1>
-        <p>@L["Subtitle"]</p>
+        <div>
+            <h1>@L["Title"]</h1>
+            <p>@L["Subtitle"]</p>
+        </div>
     </div>
 
-    <div class="search-bar">
-        <TmFormField Label="@L["Search.Label"]">
-            <TmTextInput @bind-Value="_searchText"
-                         Placeholder="@L["Search.Placeholder"]"
-                         OnChange="OnSearchChanged" />
-        </TmFormField>
-    </div>
+    <section class="filters-panel" data-testid="admin-user-filters">
+        <div data-testid="admin-user-search">
+            <TmFormField Label="@L["Search.Label"]">
+                <TmTextInput @bind-Value="_searchText"
+                             Placeholder="@L["Search.Placeholder"]"
+                             OnChange="ApplyFiltersAsync" />
+            </TmFormField>
+        </div>
+        <div data-testid="admin-user-filter-status">
+            <TmFormField Label="@L["Filter.Status"]">
+                <label class="select-label-wrapper">
+                    <span class="visually-hidden">@L["Filter.Status"]</span>
+                    <TmSelect @bind-Value="_statusFilter" Options="StatusFilterOptions" />
+                </label>
+            </TmFormField>
+        </div>
+        <div data-testid="admin-user-filter-premium">
+            <TmFormField Label="@L["Filter.Premium"]">
+                <label class="select-label-wrapper">
+                    <span class="visually-hidden">@L["Filter.Premium"]</span>
+                    <TmSelect @bind-Value="_premiumFilter" Options="PremiumFilterOptions" />
+                </label>
+            </TmFormField>
+        </div>
+        <div data-testid="admin-user-filter-min-level">
+            <TmFormField Label="@L["Filter.MinLevel"]">
+                <input class="tm-input"
+                       type="number"
+                       min="1"
+                       placeholder="1"
+                       value="@_minLevelText"
+                       @oninput="OnMinLevelInput" />
+            </TmFormField>
+        </div>
+        <div data-testid="admin-user-filter-max-level">
+            <TmFormField Label="@L["Filter.MaxLevel"]">
+                <input class="tm-input"
+                       type="number"
+                       min="1"
+                       placeholder="20"
+                       value="@_maxLevelText"
+                       @oninput="OnMaxLevelInput" />
+            </TmFormField>
+        </div>
+        <div class="filter-actions">
+            <span data-testid="admin-user-apply-filters">
+                <TmButton Variant="ButtonVariant.Primary"
+                          OnClick="ApplyFiltersAsync"
+                          Icon="@IconNames.Search">
+                    @L["Button.ApplyFilters"]
+                </TmButton>
+            </span>
+            <span data-testid="admin-user-reset-filters">
+                <TmButton Variant="ButtonVariant.Outline"
+                          OnClick="ResetFiltersAsync"
+                          Icon="@IconNames.Refresh">
+                    @L["Button.ResetFilters"]
+                </TmButton>
+            </span>
+        </div>
+    </section>
 
     @if (_isLoading)
     {
@@ -27,7 +83,7 @@
     }
     else if (_users != null && _users.Items.Count > 0)
     {
-        <div class="table-container">
+        <div class="table-container" data-testid="admin-user-table">
             <table class="data-table">
                 <thead>
                     <tr>
@@ -42,47 +98,44 @@
                 <tbody>
                     @foreach (var user in _users.Items)
                     {
-                        <tr>
-                            <td class="username-cell">@user.Username</td>
-                            <td>@user.Email</td>
-                            <td>@user.Level</td>
-                            <td>@user.StreakDays</td>
-                            <td>
-                                @if (user.IsSuspended)
-                                {
-                                    <TmBadge Variant="BadgeVariant.Danger">
-                                        @L["Status.Suspended"]
-                                    </TmBadge>
-                                }
-                                else if (user.IsPremium)
-                                {
-                                    <TmBadge Variant="BadgeVariant.Warning">
-                                        @L["Status.Premium"]
-                                    </TmBadge>
-                                }
-                                else
-                                {
-                                    <TmBadge Variant="BadgeVariant.Success">
-                                        @L["Status.Active"]
-                                    </TmBadge>
-                                }
+                        <tr data-testid="admin-user-row" data-user-email="@user.Email">
+                            <td class="username-cell" data-testid="admin-user-cell-username">@user.Username</td>
+                            <td data-testid="admin-user-cell-email">@user.Email</td>
+                            <td data-testid="admin-user-cell-level">@user.Level</td>
+                            <td data-testid="admin-user-cell-streak">@user.StreakDays</td>
+                            <td data-testid="admin-user-cell-status">
+                                @UserStatusBadge(user)
                             </td>
-                            <td>
-                                @if (user.IsSuspended)
-                                {
+                            <td class="row-actions">
+                                <span data-testid="admin-user-detail">
                                     <TmButton Variant="ButtonVariant.Secondary"
                                               Size="ButtonSize.Sm"
-                                              OnClick="() => UnsuspendUser(user.Id)">
-                                        @L["Button.Unsuspend"]
+                                              OnClick="() => ShowDetailDrawer(user)"
+                                              Icon="@IconNames.User">
+                                        @L["Button.Detail"]
                                     </TmButton>
+                                </span>
+                                @if (user.IsSuspended)
+                                {
+                                    <span data-testid="admin-user-unsuspend">
+                                        <TmButton Variant="ButtonVariant.Outline"
+                                                  Size="ButtonSize.Sm"
+                                                  OnClick="() => UnsuspendUser(user.Id)"
+                                                  Icon="@IconNames.Refresh">
+                                            @L["Button.Unsuspend"]
+                                        </TmButton>
+                                    </span>
                                 }
                                 else
                                 {
-                                    <TmButton Variant="ButtonVariant.Danger"
-                                              Size="ButtonSize.Sm"
-                                              OnClick="() => SuspendUser(user.Id)">
-                                        @L["Button.Suspend"]
-                                    </TmButton>
+                                    <span data-testid="admin-user-suspend">
+                                        <TmButton Variant="ButtonVariant.Danger"
+                                                  Size="ButtonSize.Sm"
+                                                  OnClick="() => SuspendUser(user.Id)"
+                                                  Icon="@IconNames.Lock">
+                                            @L["Button.Suspend"]
+                                        </TmButton>
+                                    </span>
                                 }
                             </td>
                         </tr>
@@ -91,40 +144,167 @@
             </table>
         </div>
 
-        <div class="pagination">
-            <TmButton Variant="ButtonVariant.Outline"
-                      Size="ButtonSize.Sm"
-                      Disabled="_currentPage <= 1"
-                      OnClick="PreviousPage">
-                @L["Pagination.Previous"]
-            </TmButton>
-            <span class="page-info">@string.Format(L["Pagination.Info"], _currentPage, TotalPages)</span>
-            <TmButton Variant="ButtonVariant.Outline"
-                      Size="ButtonSize.Sm"
-                      Disabled="_currentPage >= TotalPages"
-                      OnClick="NextPage">
-                @L["Pagination.Next"]
-            </TmButton>
+        <div class="pagination" data-testid="admin-user-pagination">
+            <span data-testid="admin-user-pagination-prev">
+                <TmButton Variant="ButtonVariant.Outline"
+                          Size="ButtonSize.Sm"
+                          Disabled="_currentPage <= 1"
+                          OnClick="PreviousPage"
+                          Icon="@IconNames.ChevronLeft">
+                    @L["Pagination.Previous"]
+                </TmButton>
+            </span>
+            <span class="page-info" data-testid="admin-user-page-info">
+                @string.Format(L["Pagination.Info"], _currentPage, TotalPages)
+            </span>
+            <span data-testid="admin-user-pagination-next">
+                <TmButton Variant="ButtonVariant.Outline"
+                          Size="ButtonSize.Sm"
+                          Disabled="_currentPage >= TotalPages"
+                          OnClick="NextPage"
+                          Icon="@IconNames.ChevronRight">
+                    @L["Pagination.Next"]
+                </TmButton>
+            </span>
         </div>
     }
     else
     {
-        <TmEmptyState Icon="@IconNames.Users"
-                      Title="@L["Empty.Title"]"
-                      Description="@L["Empty.Description"]" />
+        <div data-testid="admin-user-empty">
+            <TmEmptyState Icon="@IconNames.Users"
+                          Title="@L["Empty.Title"]"
+                          Description="@L["Empty.Description"]" />
+        </div>
     }
 </div>
 
+@if (_showDetailDrawer)
+{
+    <div class="drawer-backdrop" @onclick="CloseDetailDrawer"></div>
+    <aside class="detail-drawer" data-testid="admin-user-detail-drawer">
+        <div class="drawer-header">
+            <h2>@L["Detail.Title"]</h2>
+            <span data-testid="admin-user-detail-close">
+                <TmButton Variant="ButtonVariant.Ghost"
+                          Size="ButtonSize.Sm"
+                          OnClick="CloseDetailDrawer"
+                          Icon="@IconNames.X">
+                    @L["Button.Close"]
+                </TmButton>
+            </span>
+        </div>
+
+        @if (_isLoadingDetail)
+        {
+            <TmSkeleton Variant="SkeletonVariant.Rect" Height="220px" />
+        }
+        else if (_selectedUser != null)
+        {
+            <div class="user-summary">
+                <div>
+                    <div class="summary-name" data-testid="admin-user-detail-username">@_selectedUser.Username</div>
+                    <div class="summary-email" data-testid="admin-user-detail-email">@_selectedUser.Email</div>
+                </div>
+                <div data-testid="admin-user-detail-status">
+                    @UserStatusBadge(_selectedUser)
+                </div>
+            </div>
+
+            <dl class="detail-list">
+                <div>
+                    <dt>@L["Detail.Level"]</dt>
+                    <dd data-testid="admin-user-detail-level">@_selectedUser.Level</dd>
+                </div>
+                <div>
+                    <dt>@L["Detail.Xp"]</dt>
+                    <dd data-testid="admin-user-detail-xp">@_selectedUser.XP</dd>
+                </div>
+                <div>
+                    <dt>@L["Detail.Streak"]</dt>
+                    <dd data-testid="admin-user-detail-streak">@_selectedUser.StreakDays</dd>
+                </div>
+                <div>
+                    <dt>@L["Detail.RegisteredAt"]</dt>
+                    <dd data-testid="admin-user-detail-registered">@FormatDate(_selectedUser.RegisteredAt)</dd>
+                </div>
+                <div>
+                    <dt>@L["Detail.LastLoginAt"]</dt>
+                    <dd data-testid="admin-user-detail-last-login">@FormatDate(_selectedUser.LastLoginAt)</dd>
+                </div>
+            </dl>
+
+            <div class="drawer-actions">
+                @if (_selectedUser.IsSuspended)
+                {
+                    <span data-testid="admin-user-detail-unsuspend">
+                        <TmButton Variant="ButtonVariant.Outline"
+                                  OnClick="() => UnsuspendUser(_selectedUser.Id)"
+                                  Icon="@IconNames.Refresh">
+                            @L["Button.Unsuspend"]
+                        </TmButton>
+                    </span>
+                }
+                else
+                {
+                    <span data-testid="admin-user-detail-suspend">
+                        <TmButton Variant="ButtonVariant.Danger"
+                                  OnClick="() => SuspendUser(_selectedUser.Id)"
+                                  Icon="@IconNames.Lock">
+                            @L["Button.Suspend"]
+                        </TmButton>
+                    </span>
+                }
+                <span data-testid="admin-user-detail-reset-password">
+                    <TmButton Variant="ButtonVariant.Outline"
+                              OnClick="() => ResetUserPassword(_selectedUser.Id)"
+                              Icon="@IconNames.Lock">
+                        @L["Button.ResetPassword"]
+                    </TmButton>
+                </span>
+            </div>
+
+            @if (_passwordResetSent)
+            {
+                <div class="drawer-feedback" data-testid="admin-user-reset-password-result">
+                    @L["Success.PasswordResetSent"]
+                </div>
+            }
+        }
+    </aside>
+}
+
 @code {
     private PaginatedResult<AdminUserDto>? _users;
+    private AdminUserDto? _selectedUser;
     private bool _isLoading = true;
+    private bool _isLoadingDetail;
+    private bool _showDetailDrawer;
+    private bool _passwordResetSent;
     private string _searchText = string.Empty;
+    private string _statusFilter = string.Empty;
+    private string _premiumFilter = string.Empty;
+    private string _minLevelText = string.Empty;
+    private string _maxLevelText = string.Empty;
     private int _currentPage = 1;
     private const int PageSize = 25;
 
     private int TotalPages => _users == null || _users.TotalCount == 0
         ? 1
         : (int)Math.Ceiling((double)_users.TotalCount / PageSize);
+
+    private IReadOnlyList<SelectOption<string>> StatusFilterOptions =>
+    [
+        SelectOption<string>.From(string.Empty, L["Filter.AllStatuses"].Value),
+        SelectOption<string>.From("active", L["Status.Active"].Value),
+        SelectOption<string>.From("suspended", L["Status.Suspended"].Value)
+    ];
+
+    private IReadOnlyList<SelectOption<string>> PremiumFilterOptions =>
+    [
+        SelectOption<string>.From(string.Empty, L["Filter.AllPremium"].Value),
+        SelectOption<string>.From("true", L["Status.Premium"].Value),
+        SelectOption<string>.From("false", L["Status.Free"].Value)
+    ];
 
     protected override async Task OnInitializedAsync()
     {
@@ -146,11 +326,21 @@
         try
         {
             var request = new AdminUserListRequest(
-                Search: string.IsNullOrWhiteSpace(_searchText) ? null : _searchText,
-                IsSuspended: null,
-                IsPremium: null,
-                MinLevel: null,
-                MaxLevel: null,
+                Search: string.IsNullOrWhiteSpace(_searchText) ? null : _searchText.Trim(),
+                IsSuspended: _statusFilter switch
+                {
+                    "active" => false,
+                    "suspended" => true,
+                    _ => null
+                },
+                IsPremium: _premiumFilter switch
+                {
+                    "true" => true,
+                    "false" => false,
+                    _ => null
+                },
+                MinLevel: ParseLevel(_minLevelText),
+                MaxLevel: ParseLevel(_maxLevelText),
                 Page: _currentPage,
                 PageSize: PageSize);
             _users = await AdminService.GetUsersAsync(request);
@@ -166,8 +356,19 @@
         }
     }
 
-    private async Task OnSearchChanged()
+    private async Task ApplyFiltersAsync()
     {
+        _currentPage = 1;
+        await LoadUsersAsync();
+    }
+
+    private async Task ResetFiltersAsync()
+    {
+        _searchText = string.Empty;
+        _statusFilter = string.Empty;
+        _premiumFilter = string.Empty;
+        _minLevelText = string.Empty;
+        _maxLevelText = string.Empty;
         _currentPage = 1;
         await LoadUsersAsync();
     }
@@ -190,20 +391,49 @@
         }
     }
 
+    private async Task ShowDetailDrawer(AdminUserDto user)
+    {
+        _selectedUser = user;
+        _showDetailDrawer = true;
+        _isLoadingDetail = true;
+        _passwordResetSent = false;
+        StateHasChanged();
+
+        try
+        {
+            _selectedUser = await AdminService.GetUserAsync(user.Id) ?? user;
+        }
+        catch
+        {
+            ToastService.ShowError(L["Error.DetailFailed"]);
+        }
+        finally
+        {
+            _isLoadingDetail = false;
+            StateHasChanged();
+        }
+    }
+
+    private void CloseDetailDrawer()
+    {
+        _showDetailDrawer = false;
+        _selectedUser = null;
+        _passwordResetSent = false;
+    }
+
     private async Task SuspendUser(Guid userId)
     {
         try
         {
             var success = await AdminService.SuspendUserAsync(userId);
-            if (success)
-            {
-                ToastService.ShowSuccess(L["Success.UserSuspended"]);
-                await LoadUsersAsync();
-            }
-            else
+            if (!success)
             {
                 ToastService.ShowError(L["Error.SuspendFailed"]);
+                return;
             }
+
+            ToastService.ShowSuccess(L["Success.UserSuspended"]);
+            await RefreshAfterUserActionAsync(userId);
         }
         catch
         {
@@ -216,19 +446,91 @@
         try
         {
             var success = await AdminService.UnsuspendUserAsync(userId);
-            if (success)
-            {
-                ToastService.ShowSuccess(L["Success.UserUnsuspended"]);
-                await LoadUsersAsync();
-            }
-            else
+            if (!success)
             {
                 ToastService.ShowError(L["Error.UnsuspendFailed"]);
+                return;
             }
+
+            ToastService.ShowSuccess(L["Success.UserUnsuspended"]);
+            await RefreshAfterUserActionAsync(userId);
         }
         catch
         {
             ToastService.ShowError(L["Error.UnsuspendFailed"]);
         }
     }
+
+    private async Task ResetUserPassword(Guid userId)
+    {
+        try
+        {
+            var success = await AdminService.ResetUserPasswordAsync(userId);
+            if (!success)
+            {
+                ToastService.ShowError(L["Error.ResetPasswordFailed"]);
+                return;
+            }
+
+            ToastService.ShowSuccess(L["Success.PasswordResetSent"]);
+            _passwordResetSent = true;
+        }
+        catch
+        {
+            ToastService.ShowError(L["Error.ResetPasswordFailed"]);
+        }
+    }
+
+    private async Task RefreshAfterUserActionAsync(Guid userId)
+    {
+        await LoadUsersAsync();
+
+        if (_showDetailDrawer && _selectedUser?.Id == userId)
+        {
+            _selectedUser = await AdminService.GetUserAsync(userId) ?? _selectedUser;
+        }
+    }
+
+    private void OnMinLevelInput(ChangeEventArgs args)
+    {
+        _minLevelText = args.Value?.ToString() ?? string.Empty;
+    }
+
+    private void OnMaxLevelInput(ChangeEventArgs args)
+    {
+        _maxLevelText = args.Value?.ToString() ?? string.Empty;
+    }
+
+    private static int? ParseLevel(string value)
+    {
+        return int.TryParse(value, out var level) && level > 0
+            ? level
+            : null;
+    }
+
+    private string FormatDate(DateTime? dateTime)
+    {
+        return dateTime.HasValue
+            ? dateTime.Value.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
+            : L["Detail.Never"];
+    }
+
+    private RenderFragment UserStatusBadge(AdminUserDto user) => builder =>
+    {
+        builder.OpenComponent<TmBadge>(0);
+        builder.AddAttribute(1, "Variant", user.IsSuspended
+            ? BadgeVariant.Danger
+            : user.IsPremium
+                ? BadgeVariant.Warning
+                : BadgeVariant.Success);
+        builder.AddAttribute(2, "ChildContent", (RenderFragment)(contentBuilder =>
+        {
+            contentBuilder.AddContent(0, user.IsSuspended
+                ? L["Status.Suspended"]
+                : user.IsPremium
+                    ? L["Status.Premium"]
+                    : L["Status.Active"]);
+        }));
+        builder.CloseComponent();
+    };
 }

@@ -16,9 +16,9 @@ public class ErrorBoundaryTests : BunitContext
     public ErrorBoundaryTests()
     {
         var localizer = Substitute.For<IStringLocalizer<ErrorBoundary>>();
-        localizer["Error.Title"].Returns(new LocalizedString("Error.Title", "Nastala chyba"));
-        localizer["Error.Message"].Returns(new LocalizedString("Error.Message", "Něco se pokazilo. Zkuste to znovu."));
-        localizer["Button.Retry"].Returns(new LocalizedString("Button.Retry", "Zkusit znovu"));
+        localizer["Error_Title"].Returns(new LocalizedString("Error_Title", "Nastala chyba"));
+        localizer["Error_Description"].Returns(new LocalizedString("Error_Description", "Omlouváme se, ale něco se pokazilo. Zkuste to prosím znovu."));
+        localizer["Error_TryAgain"].Returns(new LocalizedString("Error_TryAgain", "Zkusit znovu"));
         localizer[Arg.Any<string>()].Returns(ci => new LocalizedString(ci.Arg<string>(), ci.Arg<string>()));
         Services.AddSingleton(localizer);
         Services.AddSingleton(Substitute.For<IErrorLoggingService>());

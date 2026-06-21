@@ -36,4 +36,14 @@ public interface IUserService
     /// Checks if username is available.
     /// </summary>
     Task<bool> IsUsernameAvailableAsync(string username, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Deactivates current user account.
+    /// </summary>
+    Task<bool> DeactivateAccountAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Deletes current user account.
+    /// </summary>
+    Task<bool> DeleteAccountAsync(CancellationToken cancellationToken = default);
 }

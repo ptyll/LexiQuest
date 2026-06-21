@@ -29,6 +29,33 @@
   <resheader name="version"><value>2.0</value></resheader>
   <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
   <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Loading" xml:space="preserve">
+    <value>Načítám hru...</value>
+  </data>
+  <data name="Welcome" xml:space="preserve">
+    <value>Vyber režim hry</value>
+  </data>
+  <data name="SelectMode" xml:space="preserve">
+    <value>Procvičuj bez tlaku, nebo si pusť rychlou výzvu na čas.</value>
+  </data>
+  <data name="Mode_Training" xml:space="preserve">
+    <value>Trénink</value>
+  </data>
+  <data name="Mode_TimeAttack" xml:space="preserve">
+    <value>Na čas</value>
+  </data>
+  <data name="Retry" xml:space="preserve">
+    <value>Zkusit znovu</value>
+  </data>
+  <data name="Error_StartingGame" xml:space="preserve">
+    <value>Hru se nepodařilo spustit.</value>
+  </data>
+  <data name="Error_LoadingGame" xml:space="preserve">
+    <value>Hru se nepodařilo načíst.</value>
+  </data>
+  <data name="Error_GameNotFound" xml:space="preserve">
+    <value>Hra nebyla nalezena.</value>
+  </data>
   <data name="Timer.Label" xml:space="preserve">
     <value>Čas</value>
   </data>
@@ -67,5 +94,17 @@
   </data>
   <data name="LevelComplete.Title" xml:space="preserve">
     <value>Level dokončen!</value>
+  </data>
+  <data name="OfflineTraining" xml:space="preserve">
+    <value>Offline trénink</value>
+  </data>
+  <data name="AchievementUnlocked.Title" xml:space="preserve">
+    <value>Úspěch odemčen</value>
+  </data>
+  <data name="AchievementUnlocked.Continue" xml:space="preserve">
+    <value>Pokračovat</value>
+  </data>
+  <data name="AchievementUnlocked.Toast" xml:space="preserve">
+    <value>Úspěch odemčen: {0}</value>
   </data>
 </root>

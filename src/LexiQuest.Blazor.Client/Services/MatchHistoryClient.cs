@@ -49,4 +49,16 @@ public class MatchHistoryClient : IMatchHistoryClient
             QuickMatchStats: new MatchTypeStats(0, 0, 0, 0, 0),
             PrivateRoomStats: new MatchTypeStats(0, 0, 0, 0, 0));
     }
+
+    public async Task<MatchResultDto?> GetMatchResultAsync(Guid matchId, CancellationToken cancellationToken = default)
+    {
+        var response = await _httpClient.GetAsync($"api/v1/multiplayer/matches/{matchId}/result", cancellationToken);
+        if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+        {
+            return null;
+        }
+
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<MatchResultDto>(cancellationToken);
+    }
 }

@@ -16,6 +16,11 @@ public interface IMultiplayerGameService
     /// Starts the match and returns the first round.
     /// </summary>
     Task<MultiplayerRoundDto> StartMatchAsync(Guid matchId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets the currently active round without resetting match state.
+    /// </summary>
+    Task<MultiplayerRoundDto?> GetCurrentRoundAsync(Guid matchId, CancellationToken cancellationToken = default);
     
     /// <summary>
     /// Submits an answer for a player.
@@ -41,6 +46,11 @@ public interface IMultiplayerGameService
     /// Gets the opponent's progress.
     /// </summary>
     Task<OpponentProgressDto> GetOpponentProgressAsync(Guid matchId, Guid playerId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets the selected player's progress.
+    /// </summary>
+    Task<OpponentProgressDto> GetPlayerProgressAsync(Guid matchId, Guid playerId, CancellationToken cancellationToken = default);
     
     /// <summary>
     /// Checks if a match exists and is active.

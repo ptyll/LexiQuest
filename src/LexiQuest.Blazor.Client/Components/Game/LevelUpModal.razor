@@ -3,9 +3,9 @@
 
 @if (IsVisible && XpEvent?.LeveledUp == true)
 {
-    <div class="levelup-modal-overlay">
-        <div class="levelup-modal">
-            <h2 class="levelup-title">@L["Title"]</h2>
+    <div class="levelup-modal-overlay" data-testid="level-up-modal">
+        <div class="levelup-modal" role="dialog" aria-modal="true" aria-labelledby="levelup-title">
+            <h2 id="levelup-title" class="levelup-title">@L["Title"]</h2>
             
             <div class="levelup-level">
                 @L["NewLevel", XpEvent.NewLevel]
@@ -18,14 +18,14 @@
                     @foreach (var unlock in XpEvent.Unlocks)
                     {
                         <div class="unlock-item">
-                            <span class="unlock-name">@unlock.Name</span>
-                            <span class="unlock-description">@unlock.Description</span>
+                            <span class="unlock-name">@GetUnlockName(unlock)</span>
+                            <span class="unlock-description">@GetUnlockDescription(unlock)</span>
                         </div>
                     }
                 </div>
             }
             
-            <button class="levelup-continue-btn" @onclick="OnContinue">
+            <button type="button" class="levelup-continue-btn" data-testid="level-up-continue" @onclick="OnContinue">
                 @L["Continue"]
             </button>
         </div>
@@ -41,4 +41,20 @@
     
     [Parameter]
     public EventCallback OnContinue { get; set; }
+
+    private string GetUnlockName(UnlockableReward unlock)
+    {
+        var localized = L[$"Unlock.{unlock.Type}.{unlock.Name}.Name"];
+        return localized is null || localized.ResourceNotFound
+            ? unlock.Name
+            : localized.Value;
+    }
+
+    private string GetUnlockDescription(UnlockableReward unlock)
+    {
+        var localized = L[$"Unlock.{unlock.Type}.{unlock.Name}.Description"];
+        return localized is null || localized.ResourceNotFound
+            ? unlock.Description
+            : localized.Value;
+    }
 }

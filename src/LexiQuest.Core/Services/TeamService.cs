@@ -11,6 +11,9 @@ namespace LexiQuest.Core.Services;
 /// </summary>
 public class TeamService : ITeamService
 {
+    private const int TeamCreationCoinCost = 1000;
+    private const int TeamMaxMembers = 20;
+
     private readonly ITeamRepository _teamRepository;
     private readonly IUserRepository _userRepository;
     private readonly IUnitOfWork _unitOfWork;
@@ -24,9 +27,14 @@ public class TeamService : ITeamService
 
     public async Task<TeamDto?> CreateTeamAsync(Guid userId, CreateTeamRequest request, CancellationToken cancellationToken = default)
     {
-        // Check if user can create team (premium or has enough coins)
-        var canCreate = await CanUserCreateTeamAsync(userId, cancellationToken);
-        if (!canCreate)
+        var user = await _userRepository.GetByIdAsync(userId, cancellationToken);
+        if (user == null)
+        {
+            return null;
+        }
+
+        var isPremium = user.Premium != null && user.Premium.IsActive(DateTime.UtcNow);
+        if (!isPremium && user.CoinBalance < TeamCreationCoinCost)
         {
             return null;
         }
@@ -62,6 +70,19 @@ public class TeamService : ITeamService
         if (!string.IsNullOrWhiteSpace(request.Description))
         {
             team.UpdateDetails(request.Name, request.Description, request.LogoUrl);
+        }
+
+        if (!isPremium)
+        {
+            var transaction = user.AddCoinTransaction(
+                -TeamCreationCoinCost,
+                CoinTransactionType.TeamCreation.ToString(),
+                "Vytvoření týmu");
+
+            if (transaction == null)
+            {
+                return null;
+            }
         }
 
         await _teamRepository.AddAsync(team, cancellationToken);
@@ -187,6 +208,26 @@ public class TeamService : ITeamService
         return true;
     }
 
+    public async Task<bool> InviteMemberByUsernameAsync(Guid teamId, Guid inviterId, InviteMemberByUsernameRequest request, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(request.Username))
+        {
+            throw new InvalidOperationException("Username is required.");
+        }
+
+        var user = await _userRepository.GetByUsernameAsync(request.Username.Trim(), cancellationToken);
+        if (user == null)
+        {
+            throw new InvalidOperationException("User not found.");
+        }
+
+        return await InviteMemberAsync(
+            teamId,
+            inviterId,
+            new InviteMemberRequest(user.Id),
+            cancellationToken);
+    }
+
     public async Task<bool> AcceptInviteAsync(Guid inviteId, Guid userId, CancellationToken cancellationToken = default)
     {
         var invite = await _teamRepository.GetInviteByIdAsync(inviteId, cancellationToken);
@@ -204,7 +245,8 @@ public class TeamService : ITeamService
             return false;
         }
 
-        team.AddMember(userId, TeamRole.Member);
+        EnsureCanAddMember(team, userId);
+        await _teamRepository.AddMemberAsync(TeamMember.Create(userId, team.Id, TeamRole.Member), cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return true;
@@ -378,8 +420,8 @@ public class TeamService : ITeamService
 
         joinRequest.Approve();
 
-        // Add user to team
-        team.AddMember(joinRequest.UserId, TeamRole.Member);
+        EnsureCanAddMember(team, joinRequest.UserId);
+        await _teamRepository.AddMemberAsync(TeamMember.Create(joinRequest.UserId, team.Id, TeamRole.Member), cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return true;
@@ -528,7 +570,7 @@ public class TeamService : ITeamService
         }
 
         // Non-premium users need 1000 coins
-        return user.CoinBalance >= 1000;
+        return user.CoinBalance >= TeamCreationCoinCost;
     }
 
     public async Task<bool> CanUserJoinTeamAsync(Guid userId, CancellationToken cancellationToken = default)
@@ -556,5 +598,18 @@ public class TeamService : ITeamService
                 team.Members.Sum(m => m.Wins),
                 0, // MatchesPlayed not tracked yet
                 0)); // WinRatePercentage not tracked yet
+    }
+
+    private static void EnsureCanAddMember(Team team, Guid userId)
+    {
+        if (team.Members.Count >= TeamMaxMembers)
+        {
+            throw new InvalidOperationException($"Team has reached the maximum member limit of {TeamMaxMembers}.");
+        }
+
+        if (team.HasMember(userId))
+        {
+            throw new InvalidOperationException("User is already a member of this team.");
+        }
     }
 }

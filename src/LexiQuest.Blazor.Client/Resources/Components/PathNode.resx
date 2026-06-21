@@ -30,7 +30,7 @@
   <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
   <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
   <data name="Level" xml:space="preserve">
-    <value>Level {0}</value>
+    <value>Úroveň {0}</value>
   </data>
   <data name="Stars" xml:space="preserve">
     <value>{0}/3</value>

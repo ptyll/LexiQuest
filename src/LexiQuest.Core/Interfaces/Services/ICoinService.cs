@@ -16,6 +16,7 @@ public enum CoinTransactionType
     DailyChallenge,
     Achievement,
     ShopPurchase,
+    TeamCreation,
     ShieldPurchase,
     EmergencyShield,
     Refund

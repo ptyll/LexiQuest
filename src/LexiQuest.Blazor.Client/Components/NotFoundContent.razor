@@ -1,0 +1,13 @@
+@using LexiQuest.Blazor.Pages
+@inject IStringLocalizer<NotFound> L
+
+<main class="not-found-page" data-testid="not-found-page">
+    <section class="not-found-content">
+        <p class="not-found-code">404</p>
+        <h1>@L["Title"]</h1>
+        <p>@L["Message"]</p>
+        <a class="tm-btn tm-btn-primary" href="/">
+            @L["Button.Home"]
+        </a>
+    </section>
+</main>

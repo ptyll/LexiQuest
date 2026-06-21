@@ -6,32 +6,77 @@
 @inject IToastService ToastService
 @inject NavigationManager NavigationManager
 @inject IDictionaryService DictionaryService
+@inject IPremiumService PremiumService
 @inject IJSRuntime JSRuntime
 
 <PageTitle>@L["Page_Title"] - LexiQuest</PageTitle>
 
-<div class="dictionaries-page">
+<div class="dictionaries-page" data-testid="dictionaries-page">
     <div class="page-header">
         <div class="header-content">
             <h1 class="page-title">@L["Page_Title"]</h1>
             <p class="page-subtitle">@L["Page_Description"]</p>
         </div>
-        <TmButton Variant="ButtonVariant.Primary" Icon="@IconNames.Plus" OnClick="ShowCreateDialog">
-            @L["Button_CreateDictionary"]
-        </TmButton>
+        @if (IsPremium)
+        {
+            <button type="button" class="primary-action" data-testid="dictionaries-create" @onclick="ShowCreateDialog">
+                @L["Button_CreateDictionary"]
+            </button>
+        }
     </div>
 
-    <TmTabs @bind-ActiveTabId="ActiveTab" Variant="TabVariant.Line" Class="dictionaries-tabs">
-        <TmTabPanel Id="my" Title="@L["Tab_MyDictionaries"]">
+    @if (!IsPremium)
+    {
+        <section class="premium-gate" data-testid="dictionaries-premium-gate">
+            <TmIcon Name="@IconNames.Lock" Class="premium-gate-icon" />
+            <h2>@L["Premium_Gate_Title"]</h2>
+            <p>@L["Premium_Gate_Description"]</p>
+            <button type="button" class="primary-action" @onclick='() => NavigationManager.NavigateTo("/premium")'>
+                @L["Premium_Gate_Button"]
+            </button>
+        </section>
+    }
+    else
+    {
+        <nav class="dictionary-tabs" aria-label="@L["Page_Title"]">
+            <button type="button" class="@GetTabClass("my")" data-testid="dictionaries-tab-my" @onclick='() => ActiveTab = "my"'>
+                @L["Tab_MyDictionaries"]
+            </button>
+            <button type="button" class="@GetTabClass("public")" data-testid="dictionaries-tab-public" @onclick='() => ActiveTab = "public"'>
+                @L["Tab_PublicDictionaries"]
+            </button>
+        </nav>
+
+        @if (LastImportResult is not null)
+        {
+            <section class="import-result" data-testid="dictionary-import-result" role="status">
+                <div>
+                    <strong>@L["Message_ImportResult_Title"]</strong>
+                    <p>@string.Format(L["Message_ImportSuccess"], LastImportResult.ImportedCount, LastImportResult.SkippedCount)</p>
+                </div>
+                @if (LastImportResult.Errors.Count > 0)
+                {
+                    <ul>
+                        @foreach (var error in LastImportResult.Errors.Take(3))
+                        {
+                            <li>@error</li>
+                        }
+                    </ul>
+                }
+            </section>
+        }
+
+        @if (ActiveTab == "my")
+        {
             @if (MyDictionaries.Count == 0)
             {
-                <div class="empty-state">
+                <div class="empty-state" data-testid="dictionaries-empty">
                     <TmIcon Name="@IconNames.AlertCircle" Class="empty-icon" />
                     <h3>@L["EmptyState_NoDictionaries"]</h3>
                     <p>@L["EmptyState_CreateFirst"]</p>
-                    <TmButton Variant="ButtonVariant.Primary" OnClick="ShowCreateDialog">
+                    <button type="button" class="primary-action" @onclick="ShowCreateDialog">
                         @L["Button_CreateDictionary"]
-                    </TmButton>
+                    </button>
                 </div>
             }
             else
@@ -39,49 +84,49 @@
                 <div class="dictionaries-grid">
                     @foreach (var dictionary in MyDictionaries)
                     {
-                        <TmCard Class="dictionary-card">
+                        <article class="dictionary-card" data-testid="dictionary-card">
                             <div class="dictionary-header">
                                 <h3 class="dictionary-name">@dictionary.Name</h3>
                                 @if (dictionary.IsPublic)
                                 {
-                                    <TmBadge Variant="BadgeVariant.Success" Icon="@IconNames.Eye">
+                                    <span class="status-badge public" data-testid="dictionary-public-badge">
                                         @L["Label_IsPublic"]
-                                    </TmBadge>
+                                    </span>
                                 }
                             </div>
                             <p class="dictionary-description">@dictionary.Description</p>
                             <div class="dictionary-stats">
-                                <TmBadge Variant="BadgeVariant.Info" Icon="@IconNames.List">
+                                <span class="status-badge count" data-testid="dictionary-word-count">
                                     @dictionary.WordCount @L["Label_WordCount"]
-                                </TmBadge>
+                                </span>
                                 <span class="created-date">
                                     @L["Label_CreatedAt"]: @dictionary.CreatedAt.ToString("d")
                                 </span>
                             </div>
                             <div class="dictionary-actions">
-                                <TmButton Variant="ButtonVariant.Secondary"
-                                          Icon="@IconNames.Plus" OnClick="() => ShowAddWordDialog(dictionary.Id)">
+                                <button type="button" class="secondary-action" data-testid="dictionary-detail" @onclick="() => ShowDetailDialog(dictionary.Id)">
+                                    @L["Button_Detail"]
+                                </button>
+                                <button type="button" class="secondary-action" data-testid="dictionary-add-word" @onclick="() => ShowAddWordDialog(dictionary.Id)">
                                     @L["Button_AddWord"]
-                                </TmButton>
-                                <TmButton Variant="ButtonVariant.Secondary"
-                                          Icon="@IconNames.Plus" OnClick="() => ShowImportDialog(dictionary.Id)">
+                                </button>
+                                <button type="button" class="secondary-action" data-testid="dictionary-import" @onclick="() => ShowImportDialog(dictionary.Id)">
                                     @L["Button_ImportWords"]
-                                </TmButton>
-                                <TmButton Variant="ButtonVariant.Danger"
-                                          Icon="@IconNames.X" OnClick="() => DeleteDictionary(dictionary.Id)">
+                                </button>
+                                <button type="button" class="danger-action" data-testid="dictionary-delete" @onclick="() => DeleteDictionary(dictionary.Id)">
                                     @L["Button_Delete"]
-                                </TmButton>
+                                </button>
                             </div>
-                        </TmCard>
+                        </article>
                     }
                 </div>
             }
-        </TmTabPanel>
-
-        <TmTabPanel Id="public" Title="@L["Tab_PublicDictionaries"]">
+        }
+        else
+        {
             @if (PublicDictionaries.Count == 0)
             {
-                <div class="empty-state">
+                <div class="empty-state" data-testid="dictionaries-public-empty">
                     <TmIcon Name="@IconNames.AlertCircle" Class="empty-icon" />
                     <h3>@L["EmptyState_NoPublicDictionaries"]</h3>
                     <p>@L["EmptyState_NoPublicDictionaries_Description"]</p>
@@ -92,140 +137,228 @@
                 <div class="dictionaries-grid">
                     @foreach (var dictionary in PublicDictionaries)
                     {
-                        <TmCard Class="dictionary-card">
+                        <article class="dictionary-card" data-testid="dictionary-card">
                             <div class="dictionary-header">
                                 <h3 class="dictionary-name">@dictionary.Name</h3>
-                                <TmBadge Variant="BadgeVariant.Success" Icon="@IconNames.Eye">
+                                <span class="status-badge public" data-testid="dictionary-public-badge">
                                     @L["Label_IsPublic"]
-                                </TmBadge>
+                                </span>
                             </div>
                             <p class="dictionary-description">@dictionary.Description</p>
                             <div class="dictionary-stats">
-                                <TmBadge Variant="BadgeVariant.Info" Icon="@IconNames.List">
+                                <span class="status-badge count" data-testid="dictionary-word-count">
                                     @dictionary.WordCount @L["Label_WordCount"]
-                                </TmBadge>
+                                </span>
                             </div>
-                        </TmCard>
+                            <div class="dictionary-actions">
+                                <button type="button" class="secondary-action" data-testid="dictionary-detail" @onclick="() => ShowDetailDialog(dictionary.Id)">
+                                    @L["Button_Detail"]
+                                </button>
+                            </div>
+                        </article>
                     }
                 </div>
             }
-        </TmTabPanel>
-    </TmTabs>
+        }
+    }
 </div>
 
-<!-- Create Dictionary Dialog -->
-<TmDialog @bind-IsVisible="IsCreateDialogVisible" Title="@L["Dialog_CreateDictionary_Title"]" Size="DialogSize.Medium">
-    <div class="form-group">
-        <label for="dict-name">@L["Label_Name"]</label>
-        <TmTextInput Id="dict-name" @bind-Value="NewDictionary.Name" 
-                     Placeholder="@L["Label_Name"]" maxlength="100" />
-        @if (!string.IsNullOrEmpty(NameError))
-        {
-            <span class="validation-message">@NameError</span>
-        }
-    </div>
-    <div class="form-group">
-        <label for="dict-description">@L["Label_Description"]</label>
-        <TmTextArea Id="dict-description" @bind-Value="NewDictionary.Description"
-                    Placeholder="@L["Label_Description"]" maxlength="500" Rows="3" />
-    </div>
-    <div class="form-group checkbox-group">
-        <TmCheckbox Id="dict-public" @bind-Value="NewDictionary.IsPublic" />
-        <label for="dict-public">@L["Label_IsPublic"]</label>
-    </div>
-    <div class="dialog-actions">
-        <TmButton Variant="ButtonVariant.Secondary" OnClick="() => IsCreateDialogVisible = false">
-            @L["Button_Cancel"]
-        </TmButton>
-        <TmButton Variant="ButtonVariant.Primary" OnClick="CreateDictionary" IsLoading="IsCreating">
-            @L["Button_Save"]
-        </TmButton>
-    </div>
-</TmDialog>
-
-<!-- Add Word Dialog -->
-<TmDialog @bind-IsVisible="IsAddWordDialogVisible" Title="@L["Dialog_AddWord_Title"]" Size="DialogSize.Medium">
-    <div class="form-group">
-        <label for="word-text">@L["Label_Word"]</label>
-        <TmTextInput Id="word-text" @bind-Value="NewWord.Word"
-                     Placeholder="@L["Label_Word"]" maxlength="100" />
-        @if (!string.IsNullOrEmpty(WordError))
-        {
-            <span class="validation-message">@WordError</span>
-        }
-    </div>
-    <div class="form-group">
-        <label for="word-difficulty">@L["Label_Difficulty"]</label>
-        <TmSelect Id="word-difficulty" @bind-Value="NewWord.Difficulty">
-            <option value="Beginner">@L["Difficulty_Beginner"]</option>
-            <option value="Intermediate">@L["Difficulty_Intermediate"]</option>
-            <option value="Advanced">@L["Difficulty_Advanced"]</option>
-            <option value="Expert">@L["Difficulty_Expert"]</option>
-        </TmSelect>
-    </div>
-    <div class="dialog-actions">
-        <TmButton Variant="ButtonVariant.Secondary" OnClick="() => IsAddWordDialogVisible = false">
-            @L["Button_Cancel"]
-        </TmButton>
-        <TmButton Variant="ButtonVariant.Primary" OnClick="AddWord" IsLoading="IsAddingWord">
-            @L["Button_AddWord"]
-        </TmButton>
-    </div>
-</TmDialog>
-
-<!-- Import Dialog -->
-<TmDialog @bind-IsVisible="IsImportDialogVisible" Title="@L["Dialog_Import_Title"]" Size="DialogSize.Large">
-    <TmTabs Variant="TabVariant.Pill" Size="TabSize.Small">
-        <TmTabPanel Id="csv" Title="CSV">
-            <p class="import-hint">@L["Import_Format_CSV"]</p>
-        </TmTabPanel>
-        <TmTabPanel Id="txt" Title="TXT">
-            <p class="import-hint">@L["Import_Format_TXT"]</p>
-        </TmTabPanel>
-    </TmTabs>
-    
-    <div class="import-area">
-        <InputFile OnChange="OnImportFileSelected" accept=".csv,.txt" />
-    </div>
-    
-    @if (!string.IsNullOrEmpty(ImportPreview))
-    {
-        <div class="import-preview">
-            <h4>@L["Label_Preview"]</h4>
-            <pre>@ImportPreview</pre>
+@if (IsCreateDialogVisible)
+{
+    <div class="modal-backdrop">
+        <section class="dictionary-modal" data-testid="dictionary-create-dialog" role="dialog" aria-modal="true" aria-labelledby="create-dictionary-title">
+            <h2 id="create-dictionary-title">@L["Dialog_CreateDictionary_Title"]</h2>
+        <div class="form-group">
+            <label for="dict-name">@L["Label_Name"]</label>
+            <input id="dict-name" data-testid="dictionary-name-input" class="form-control" @bind="NewDictionary.Name" maxlength="100" />
+            @if (!string.IsNullOrEmpty(NameError))
+            {
+                <span class="validation-message" data-testid="dictionary-name-error">@NameError</span>
+            }
         </div>
-    }
-    
-    <div class="dialog-actions">
-        <TmButton Variant="ButtonVariant.Secondary" OnClick="() => IsImportDialogVisible = false">
-            @L["Button_Cancel"]
-        </TmButton>
-        <TmButton Variant="ButtonVariant.Primary" OnClick="ImportWords" IsLoading="IsImporting">
-            @L["Button_ImportWords"]
-        </TmButton>
+        <div class="form-group">
+            <label for="dict-description">@L["Label_Description"]</label>
+            <textarea id="dict-description" data-testid="dictionary-description-input" class="form-control" @bind="NewDictionary.Description" maxlength="500" rows="3"></textarea>
+        </div>
+        <div class="form-group checkbox-group">
+            <input id="dict-public" data-testid="dictionary-public-toggle" type="checkbox" @bind="NewDictionary.IsPublic" />
+            <label for="dict-public">@L["Label_IsPublic"]</label>
+        </div>
+        <div class="dialog-actions">
+            <button type="button" class="secondary-action" @onclick="() => IsCreateDialogVisible = false">
+                @L["Button_Cancel"]
+            </button>
+            <button type="button" class="primary-action" data-testid="dictionary-create-save" @onclick="CreateDictionary" disabled="@IsCreating">
+                @L["Button_Save"]
+            </button>
+        </div>
+        </section>
     </div>
-</TmDialog>
+}
+
+@if (IsAddWordDialogVisible)
+{
+    <div class="modal-backdrop">
+        <section class="dictionary-modal" data-testid="dictionary-add-word-dialog" role="dialog" aria-modal="true" aria-labelledby="add-word-title">
+            <h2 id="add-word-title">@L["Dialog_AddWord_Title"]</h2>
+        <div class="form-group">
+            <label for="word-text">@L["Label_Word"]</label>
+            <input id="word-text" data-testid="dictionary-word-input" class="form-control" @bind="NewWord.Word" maxlength="20" />
+            @if (!string.IsNullOrEmpty(WordError))
+            {
+                <span class="validation-message" data-testid="dictionary-word-error">@WordError</span>
+            }
+        </div>
+        <div class="form-group">
+            <label for="word-difficulty">@L["Label_Difficulty"]</label>
+            <select id="word-difficulty" data-testid="dictionary-word-difficulty" class="form-control" @bind="NewWord.Difficulty">
+                <option value="Beginner">@L["Difficulty_Beginner"]</option>
+                <option value="Intermediate">@L["Difficulty_Intermediate"]</option>
+                <option value="Advanced">@L["Difficulty_Advanced"]</option>
+                <option value="Expert">@L["Difficulty_Expert"]</option>
+            </select>
+        </div>
+        <div class="dialog-actions">
+            <button type="button" class="secondary-action" @onclick="() => IsAddWordDialogVisible = false">
+                @L["Button_Cancel"]
+            </button>
+            <button type="button" class="primary-action" data-testid="dictionary-word-save" @onclick="AddWord" disabled="@IsAddingWord">
+                @L["Button_AddWord"]
+            </button>
+        </div>
+        </section>
+    </div>
+}
+
+@if (IsImportDialogVisible)
+{
+    <div class="modal-backdrop">
+        <section class="dictionary-modal dictionary-modal-large" data-testid="dictionary-import-dialog" role="dialog" aria-modal="true" aria-labelledby="import-title">
+            <h2 id="import-title">@L["Dialog_Import_Title"]</h2>
+        <p class="import-hint">@L["Import_Format_CSV"]</p>
+        <p class="import-hint">@L["Import_Format_TXT"]</p>
+
+        <div class="import-area">
+            <InputFile data-testid="dictionary-import-file" OnChange="OnImportFileSelected" accept=".csv,.txt" />
+        </div>
+
+        @if (!string.IsNullOrEmpty(ImportError))
+        {
+            <p class="validation-message" data-testid="dictionary-import-error">@ImportError</p>
+        }
+
+        @if (!string.IsNullOrEmpty(ImportPreview))
+        {
+            <div class="import-preview" data-testid="dictionary-import-preview">
+                <h4>@L["Label_Preview"]</h4>
+                <pre>@ImportPreview</pre>
+            </div>
+        }
+
+        <div class="dialog-actions">
+            <button type="button" class="secondary-action" @onclick="() => IsImportDialogVisible = false">
+                @L["Button_Cancel"]
+            </button>
+            <button type="button" class="primary-action" data-testid="dictionary-import-save" @onclick="ImportWords" disabled="@(IsImporting || !string.IsNullOrWhiteSpace(ImportError))">
+                @L["Button_ImportWords"]
+            </button>
+        </div>
+        </section>
+    </div>
+}
+
+@if (IsDetailDialogVisible)
+{
+    <div class="modal-backdrop">
+        <section class="dictionary-modal dictionary-modal-large" data-testid="dictionary-detail-dialog" role="dialog" aria-modal="true" aria-labelledby="dictionary-detail-title">
+            <div class="modal-title-row">
+                <h2 id="dictionary-detail-title">@(SelectedDictionaryDetail?.Name ?? L["Dialog_Detail_Title"].Value)</h2>
+                <button type="button" class="icon-action" data-testid="dictionary-detail-close" aria-label="@L["Button_Cancel"]" @onclick="CloseDetailDialog">
+                    ×
+                </button>
+            </div>
+
+            @if (IsLoadingDetail)
+            {
+                <p class="detail-loading">@L["Detail_Loading"]</p>
+            }
+            else if (!string.IsNullOrWhiteSpace(DetailError))
+            {
+                <p class="validation-message">@DetailError</p>
+            }
+            else if (SelectedDictionaryDetail is not null)
+            {
+                <div class="detail-summary">
+                    <span class="status-badge @(SelectedDictionaryDetail.IsPublic ? "public" : "private")" data-testid="dictionary-detail-status">
+                        @(SelectedDictionaryDetail.IsPublic ? L["Label_IsPublic"] : L["Label_IsPrivate"])
+                    </span>
+                    <span class="status-badge count">@SelectedDictionaryDetail.WordCount @L["Label_WordCount"]</span>
+                    <span class="created-date">@L["Label_CreatedAt"]: @SelectedDictionaryDetail.CreatedAt.ToString("d")</span>
+                </div>
+
+                @if (!string.IsNullOrWhiteSpace(SelectedDictionaryDetail.Description))
+                {
+                    <p class="detail-description">@SelectedDictionaryDetail.Description</p>
+                }
+
+                <section class="detail-words">
+                    <h3>@L["Detail_Words_Title"]</h3>
+                    @if (SelectedDictionaryDetail.Words.Count == 0)
+                    {
+                        <p class="detail-empty">@L["Detail_NoWords"]</p>
+                    }
+                    else
+                    {
+                        <ul data-testid="dictionary-detail-word-list">
+                            @foreach (var word in SelectedDictionaryDetail.Words)
+                            {
+                                <li>
+                                    <span>@word.Word</span>
+                                    <span>@GetDifficultyLabel(word.Difficulty)</span>
+                                </li>
+                            }
+                        </ul>
+                    }
+                </section>
+            }
+        </section>
+    </div>
+}
 
 @code {
+    private const long MaxImportFileSize = 1024 * 1024;
+    private static readonly HashSet<string> AllowedImportExtensions = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ".csv",
+        ".txt"
+    };
+
     private List<DictionaryDto> MyDictionaries { get; set; } = new();
     private List<DictionaryDto> PublicDictionaries { get; set; } = new();
     private string ActiveTab { get; set; } = "my";
+    private bool IsPremium { get; set; }
     
     // Dialog states
     private bool IsCreateDialogVisible { get; set; }
     private bool IsAddWordDialogVisible { get; set; }
     private bool IsImportDialogVisible { get; set; }
+    private bool IsDetailDialogVisible { get; set; }
     private bool IsCreating { get; set; }
     private bool IsAddingWord { get; set; }
     private bool IsImporting { get; set; }
+    private bool IsLoadingDetail { get; set; }
     
     // Form data
     private CreateDictionaryModel NewDictionary { get; set; } = new();
     private AddWordModel NewWord { get; set; } = new();
     private Guid SelectedDictionaryId { get; set; }
+    private DictionaryDto? SelectedDictionaryDetail { get; set; }
+    private ImportResultDto? LastImportResult { get; set; }
     private IBrowserFile? ImportFile { get; set; }
     private string ImportPreview { get; set; } = "";
     private string ImportContent { get; set; } = "";
+    private string ImportError { get; set; } = "";
+    private string DetailError { get; set; } = "";
     
     // Validation errors
     private string NameError { get; set; } = "";
@@ -233,7 +366,11 @@
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadDictionaries();
+        IsPremium = await PremiumService.IsPremiumAsync();
+        if (IsPremium)
+        {
+            await LoadDictionaries();
+        }
     }
 
     private async Task LoadDictionaries()
@@ -253,6 +390,7 @@
     {
         NewDictionary = new CreateDictionaryModel();
         NameError = "";
+        LastImportResult = null;
         IsCreateDialogVisible = true;
     }
 
@@ -268,7 +406,7 @@
         try
         {
             await DictionaryService.CreateDictionaryAsync(new CreateDictionaryRequest(
-                NewDictionary.Name, NewDictionary.Description));
+                NewDictionary.Name, NewDictionary.Description, NewDictionary.IsPublic));
             ToastService.ShowSuccess(L["Message_DictionaryCreated"]);
             IsCreateDialogVisible = false;
             await LoadDictionaries();
@@ -288,6 +426,7 @@
         SelectedDictionaryId = dictionaryId;
         NewWord = new AddWordModel { Difficulty = "Intermediate" };
         WordError = "";
+        LastImportResult = null;
         IsAddWordDialogVisible = true;
     }
 
@@ -324,7 +463,34 @@
         ImportFile = null;
         ImportPreview = "";
         ImportContent = "";
+        ImportError = "";
+        LastImportResult = null;
         IsImportDialogVisible = true;
+    }
+
+    private async Task ShowDetailDialog(Guid dictionaryId)
+    {
+        IsDetailDialogVisible = true;
+        IsLoadingDetail = true;
+        SelectedDictionaryDetail = null;
+        DetailError = "";
+
+        try
+        {
+            SelectedDictionaryDetail = await DictionaryService.GetDictionaryAsync(dictionaryId);
+            if (SelectedDictionaryDetail is null)
+            {
+                DetailError = L["Error_LoadingDictionaryDetail"];
+            }
+        }
+        catch (Exception ex)
+        {
+            DetailError = string.Format(L["Error_LoadingDictionaryDetailWithMessage"], ex.Message);
+        }
+        finally
+        {
+            IsLoadingDetail = false;
+        }
     }
 
     private async Task OnImportFileSelected(InputFileChangeEventArgs e)
@@ -332,11 +498,38 @@
         ImportFile = e.File;
         if (ImportFile == null) return;
 
-        using var stream = ImportFile.OpenReadStream(1048576);
-        using var reader = new StreamReader(stream);
-        ImportContent = await reader.ReadToEndAsync();
+        ImportPreview = "";
+        ImportContent = "";
+        ImportError = "";
+
+        if (!AllowedImportExtensions.Contains(Path.GetExtension(ImportFile.Name)))
+        {
+            ImportFile = null;
+            ImportError = L["Error_ImportInvalidType"];
+            return;
+        }
+
+        if (ImportFile.Size > MaxImportFileSize)
+        {
+            ImportFile = null;
+            ImportError = L["Error_ImportTooLarge"];
+            return;
+        }
+
+        try
+        {
+            using var stream = ImportFile.OpenReadStream(MaxImportFileSize);
+            using var reader = new StreamReader(stream);
+            ImportContent = await reader.ReadToEndAsync();
+        }
+        catch
+        {
+            ImportFile = null;
+            ImportContent = "";
+            ImportError = L["Error_ImportReadFailed"];
+            return;
+        }
         
-        // Show preview (first 10 lines)
         var lines = ImportContent.Split('\n').Take(10);
         ImportPreview = string.Join('\n', lines);
         if (ImportContent.Split('\n').Length > 10)
@@ -359,6 +552,7 @@
             var result = ImportFile?.Name.EndsWith(".csv", StringComparison.OrdinalIgnoreCase) == true
                 ? await DictionaryService.ImportCsvAsync(SelectedDictionaryId, ImportContent)
                 : await DictionaryService.ImportTxtAsync(SelectedDictionaryId, ImportContent);
+            LastImportResult = result;
             ToastService.ShowSuccess(string.Format(L["Message_ImportSuccess"], result.ImportedCount, result.SkippedCount));
             IsImportDialogVisible = false;
             await LoadDictionaries();
@@ -381,6 +575,7 @@
         {
             await DictionaryService.DeleteDictionaryAsync(id);
             ToastService.ShowSuccess(L["Message_DictionaryDeleted"]);
+            LastImportResult = null;
             await LoadDictionaries();
         }
         catch (Exception ex)
@@ -392,6 +587,13 @@
     private async Task<bool> ConfirmDelete()
     {
         return await JSRuntime.InvokeAsync<bool>("confirm", L["Confirm_DeleteDictionary"].Value);
+    }
+
+    private void CloseDetailDialog()
+    {
+        IsDetailDialogVisible = false;
+        SelectedDictionaryDetail = null;
+        DetailError = "";
     }
 
     private class CreateDictionaryModel
@@ -406,4 +608,15 @@
         public string Word { get; set; } = "";
         public string Difficulty { get; set; } = "Intermediate";
     }
+
+    private string GetTabClass(string tab) => ActiveTab == tab ? "dictionary-tab active" : "dictionary-tab";
+
+    private string GetDifficultyLabel(DifficultyLevel difficulty) => difficulty switch
+    {
+        DifficultyLevel.Beginner => L["Difficulty_Beginner"],
+        DifficultyLevel.Intermediate => L["Difficulty_Intermediate"],
+        DifficultyLevel.Advanced => L["Difficulty_Advanced"],
+        DifficultyLevel.Expert => L["Difficulty_Expert"],
+        _ => difficulty.ToString()
+    };
 }

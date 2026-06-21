@@ -74,10 +74,13 @@ public class InventoryServiceEdgeCaseTests
         // Arrange
         var userId = Guid.NewGuid();
         var shopItemId = Guid.NewGuid();
+        var user = User.Create("premium@test.local", "premiumuser");
+        user.SetId(userId);
         var shopItem = ShopItem.CreatePremiumOnly("Premium Avatar", "Desc", ShopCategory.Avatar, 0, ItemRarity.Legendary, "img.png");
         _shopItemRepository.GetByIdAsync(shopItemId).Returns(shopItem);
         _inventoryRepository.HasItemAsync(userId, shopItemId).Returns(false);
         _premiumFeatureService.IsPremiumAsync(userId).Returns(true);
+        _userRepository.GetByIdAsync(userId, Arg.Any<CancellationToken>()).Returns(user);
 
         // Act
         var result = await _sut.PurchaseItemAsync(userId, shopItemId);

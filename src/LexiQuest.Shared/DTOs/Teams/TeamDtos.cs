@@ -66,6 +66,12 @@ public record InviteMemberRequest(
     Guid UserId);
 
 /// <summary>
+/// Request to invite a member to a team by username.
+/// </summary>
+public record InviteMemberByUsernameRequest(
+    string Username);
+
+/// <summary>
 /// Request to create a join request.
 /// </summary>
 public record CreateJoinRequest(

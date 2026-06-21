@@ -10,23 +10,42 @@ namespace LexiQuest.Core.Services;
 
 public class DictionaryService : IDictionaryService
 {
+    private const int MaxDictionariesPerUser = 10;
+    private const int MaxWordsPerDictionary = 100;
+    private const string PremiumRequiredMessage = "Tato funkce vyžaduje Premium účet";
+    private const string DictionaryLimitMessage = "Můžete mít maximálně 10 slovníků.";
+    private const string WordLimitMessage = "Slovník může obsahovat maximálně 100 slov.";
+    private const string DuplicateWordMessage = "Slovo už ve slovníku existuje.";
+
     private readonly ICustomDictionaryRepository _dictionaryRepo;
     private readonly IDictionaryWordRepository _wordRepo;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IUserRepository? _userRepository;
 
     public DictionaryService(
         ICustomDictionaryRepository dictionaryRepo,
         IDictionaryWordRepository wordRepo,
-        IUnitOfWork unitOfWork)
+        IUnitOfWork unitOfWork,
+        IUserRepository? userRepository = null)
     {
         _dictionaryRepo = dictionaryRepo;
         _wordRepo = wordRepo;
         _unitOfWork = unitOfWork;
+        _userRepository = userRepository;
     }
 
     public async Task<DictionaryDto> CreateDictionaryAsync(Guid userId, CreateDictionaryRequest request)
     {
+        await EnsurePremiumAsync(userId);
+
+        var existingDictionaries = await _dictionaryRepo.GetByUserIdAsync(userId);
+        if (existingDictionaries.Count >= MaxDictionariesPerUser)
+        {
+            throw new InvalidOperationException(DictionaryLimitMessage);
+        }
+
         var dictionary = CustomDictionary.Create(userId, request.Name, request.Description);
+        dictionary.SetPublicStatus(request.IsPublic);
         await _dictionaryRepo.AddAsync(dictionary);
         await _unitOfWork.SaveChangesAsync();
 
@@ -36,7 +55,7 @@ public class DictionaryService : IDictionaryService
     public async Task<IReadOnlyList<DictionaryDto>> GetUserDictionariesAsync(Guid userId)
     {
         var dictionaries = await _dictionaryRepo.GetByUserIdAsync(userId);
-        return dictionaries.Select(MapToDto).ToList();
+        return dictionaries.Select(dictionary => MapToDto(dictionary)).ToList();
     }
 
     public async Task<DictionaryDto?> GetDictionaryByIdAsync(Guid id, Guid userId)
@@ -45,7 +64,8 @@ public class DictionaryService : IDictionaryService
         if (dictionary == null || !dictionary.CanBeAccessedBy(userId))
             return null;
 
-        return MapToDto(dictionary);
+        var words = await _wordRepo.GetByDictionaryIdAsync(id);
+        return MapToDto(dictionary, words);
     }
 
     public async Task<bool> DeleteDictionaryAsync(Guid id, Guid userId)
@@ -64,6 +84,8 @@ public class DictionaryService : IDictionaryService
         var dictionary = await _dictionaryRepo.GetByIdAsync(dictionaryId);
         if (dictionary == null || !dictionary.CanBeModifiedBy(userId))
             throw new UnauthorizedAccessException("User cannot modify this dictionary");
+
+        await EnsureCanAddWordAsync(dictionaryId, request.Word);
 
         var word = DictionaryWord.Create(dictionaryId, request.Word, request.Difficulty);
         await _wordRepo.AddAsync(word);
@@ -84,6 +106,7 @@ public class DictionaryService : IDictionaryService
 
         var result = new ImportResultDto();
         var lines = csvContent.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+        await EnsureCanImportAsync(dictionaryId, lines.Length);
 
         foreach (var line in lines)
         {
@@ -136,6 +159,7 @@ public class DictionaryService : IDictionaryService
 
         var result = new ImportResultDto();
         var lines = txtContent.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+        await EnsureCanImportAsync(dictionaryId, lines.Length);
 
         foreach (var line in lines)
         {
@@ -188,6 +212,8 @@ public class DictionaryService : IDictionaryService
             
             if (document.RootElement.ValueKind == JsonValueKind.Array)
             {
+                await EnsureCanImportAsync(dictionaryId, document.RootElement.GetArrayLength());
+
                 foreach (var element in document.RootElement.EnumerateArray())
                 {
                     await ProcessJsonElementAsync(element, dictionaryId, result);
@@ -272,10 +298,54 @@ public class DictionaryService : IDictionaryService
     public async Task<IReadOnlyList<DictionaryDto>> GetPublicDictionariesAsync()
     {
         var dictionaries = await _dictionaryRepo.GetPublicDictionariesAsync();
-        return dictionaries.Select(MapToDto).ToList();
+        return dictionaries.Select(dictionary => MapToDto(dictionary)).ToList();
     }
 
-    private static DictionaryDto MapToDto(CustomDictionary dictionary)
+    private async Task EnsurePremiumAsync(Guid userId)
+    {
+        if (_userRepository == null)
+        {
+            return;
+        }
+
+        var user = await _userRepository.GetByIdAsync(userId);
+        if (user?.Premium.IsActive(DateTime.UtcNow) != true)
+        {
+            throw new UnauthorizedAccessException(PremiumRequiredMessage);
+        }
+    }
+
+    private async Task EnsureCanAddWordAsync(Guid dictionaryId, string word)
+    {
+        if (await _wordRepo.CountByDictionaryIdAsync(dictionaryId) >= MaxWordsPerDictionary)
+        {
+            throw new InvalidOperationException(WordLimitMessage);
+        }
+
+        if (await _wordRepo.ExistsInDictionaryAsync(dictionaryId, word))
+        {
+            throw new InvalidOperationException(DuplicateWordMessage);
+        }
+    }
+
+    private async Task EnsureCanImportAsync(Guid dictionaryId, int requestedWordCount)
+    {
+        if (requestedWordCount <= 0)
+        {
+            return;
+        }
+
+        var currentCount = await _wordRepo.CountByDictionaryIdAsync(dictionaryId);
+        if (currentCount + requestedWordCount > MaxWordsPerDictionary)
+        {
+            throw new InvalidOperationException(WordLimitMessage);
+        }
+    }
+
+    public static bool IsDuplicateWordError(InvalidOperationException exception) =>
+        exception.Message == DuplicateWordMessage;
+
+    private static DictionaryDto MapToDto(CustomDictionary dictionary, IReadOnlyList<DictionaryWord>? words = null)
     {
         return new DictionaryDto
         {
@@ -286,7 +356,8 @@ public class DictionaryService : IDictionaryService
             IsPublic = dictionary.IsPublic,
             WordCount = dictionary.WordCount,
             CreatedAt = dictionary.CreatedAt,
-            UpdatedAt = dictionary.UpdatedAt
+            UpdatedAt = dictionary.UpdatedAt,
+            Words = words?.Select(MapToWordDto).ToList() ?? new List<DictionaryWordDto>()
         };
     }
 

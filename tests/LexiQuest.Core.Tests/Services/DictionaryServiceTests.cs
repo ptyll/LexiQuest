@@ -81,6 +81,30 @@ public class DictionaryServiceTests
     }
 
     [Fact]
+    public async Task GetDictionaryByIdAsync_ExistingDictionary_ReturnsDictionaryWords()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var dictionary = CustomDictionary.Create(userId, "Test", "Popis");
+        var words = new List<DictionaryWord>
+        {
+            DictionaryWord.Create(dictionary.Id, "slunce", DifficultyLevel.Beginner),
+            DictionaryWord.Create(dictionary.Id, "strom", DifficultyLevel.Intermediate)
+        };
+
+        _dictionaryRepo.GetByIdAsync(dictionary.Id).Returns(dictionary);
+        _wordRepo.GetByDictionaryIdAsync(dictionary.Id).Returns(words);
+
+        // Act
+        var result = await _service.GetDictionaryByIdAsync(dictionary.Id, userId);
+
+        // Assert
+        result.Should().NotBeNull();
+        result!.Words.Should().HaveCount(2);
+        result.Words.Select(w => w.Word).Should().Contain("slunce", "strom");
+    }
+
+    [Fact]
     public async Task GetDictionaryByIdAsync_PrivateDictionary_OtherUser_ReturnsNull()
     {
         // Arrange

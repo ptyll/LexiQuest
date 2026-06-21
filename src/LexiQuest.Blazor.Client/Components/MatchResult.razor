@@ -17,7 +17,7 @@
             }
 
             <div class="result-header">
-                <h1 class="result-title">
+                <h1 class="result-title" data-testid="multiplayer-result-title">
                     @GetResultTitle()
                 </h1>
                 @if (!IsWinner() && !Result.IsDraw)
@@ -26,7 +26,7 @@
                 }
                 @if (Result.IsDraw)
                 {
-                    <p class="tiebreaker-text">@Localizer["Result_Speed_Tiebreaker"]</p>
+                    <p class="draw-text">@Localizer["Result_Draw_Message"]</p>
                 }
             </div>
 
@@ -47,7 +47,7 @@
 
             <!-- XP Rewards -->
             <div class="xp-rewards">
-                <div class="xp-badge">
+                <div class="xp-badge" data-testid="multiplayer-result-xp">
                     <TmBadge Variant="BadgeVariant.Success" Size="BadgeSize.Md">
                         @string.Format(Localizer["Result_XP_Won"], Result.XPEarned)
                     </TmBadge>
@@ -55,7 +55,7 @@
 
                 @if (!Result.IsPrivateRoom && Result.LeagueXPEarned > 0)
                 {
-                    <div class="xp-badge xp-league">
+                    <div class="xp-badge xp-league" data-testid="multiplayer-result-league-xp">
                         <TmBadge Variant="BadgeVariant.Primary" Size="BadgeSize.Md">
                             @string.Format(Localizer["Result_XP_League"], Result.LeagueXPEarned)
                         </TmBadge>
@@ -65,19 +65,63 @@
 
             @if (Result.IsPrivateRoom)
             {
-                <div class="no-league-info">
+                <div class="no-league-info" data-testid="multiplayer-result-no-league-info">
                     <TmAlert Severity="AlertSeverity.Info">
                         @Localizer["PrivateRoom_NoLeagueXP"]
                     </TmAlert>
                 </div>
             }
 
-            @if (BestOf > 1)
+            @if (ShouldShowSeriesScore)
             {
-                <div class="series-score">
+                <div class="series-score" data-testid="multiplayer-result-series-score">
                     <TmBadge Variant="BadgeVariant.Info" Size="BadgeSize.Md">
-                        @string.Format(Localizer["Series_Score"], SeriesPlayer1Wins, SeriesPlayer2Wins)
+                        @string.Format(Localizer["Series_Score"], EffectiveSeriesPlayer1Wins, EffectiveSeriesPlayer2Wins)
                     </TmBadge>
+                </div>
+            }
+
+            @if (Result.IsPrivateRoom && (RematchRequestSent || RematchRequestedByOpponent || RematchDeclined))
+            {
+                <div class="rematch-panel">
+                    @if (RematchRequestSent)
+                    {
+                        <div data-testid="multiplayer-result-rematch-pending">
+                            <TmAlert Severity="AlertSeverity.Info">
+                                @Localizer["Rematch_Pending"]
+                            </TmAlert>
+                        </div>
+                    }
+
+                    @if (RematchRequestedByOpponent)
+                    {
+                        <div class="rematch-request" data-testid="multiplayer-result-rematch-request">
+                            <TmAlert Severity="AlertSeverity.Info">
+                                @Localizer["Rematch_Request"]
+                            </TmAlert>
+                            <div class="rematch-actions">
+                                <span data-testid="multiplayer-result-rematch-accept">
+                                    <TmButton Variant="ButtonVariant.Primary" OnClick="() => OnAcceptRematch.InvokeAsync()">
+                                        @Localizer["Button_AcceptRematch"]
+                                    </TmButton>
+                                </span>
+                                <span data-testid="multiplayer-result-rematch-decline">
+                                    <TmButton Variant="ButtonVariant.Ghost" OnClick="() => OnDeclineRematch.InvokeAsync()">
+                                        @Localizer["Button_DeclineRematch"]
+                                    </TmButton>
+                                </span>
+                            </div>
+                        </div>
+                    }
+
+                    @if (RematchDeclined)
+                    {
+                        <div data-testid="multiplayer-result-rematch-declined">
+                            <TmAlert Severity="AlertSeverity.Warning">
+                                @Localizer["Rematch_Declined"]
+                            </TmAlert>
+                        </div>
+                    }
                 </div>
             }
         </div>
@@ -85,22 +129,28 @@
 
     <Footer>
         <div class="action-buttons">
-            @if (IsWinner() || Result.IsDraw)
+            @if (ShouldShowNextMatchAction && (IsWinner() || Result.IsDraw))
             {
-                <TmButton Variant="ButtonVariant.Primary" OnClick="() => OnNextMatch.InvokeAsync()">
-                    @Localizer["Button_NextMatch"]
-                </TmButton>
+                <span data-testid="multiplayer-result-next">
+                    <TmButton Variant="ButtonVariant.Primary" OnClick="() => OnNextMatch.InvokeAsync()">
+                        @Localizer["Button_NextMatch"]
+                    </TmButton>
+                </span>
             }
-            else
+            else if (ShouldShowNextMatchAction)
             {
-                <TmButton Variant="ButtonVariant.Primary" OnClick="() => OnNextMatch.InvokeAsync()">
-                    @(Result.IsPrivateRoom ? Localizer["Button_Rematch"] : Localizer["Button_Revenge"])
-                </TmButton>
+                <span data-testid="multiplayer-result-next">
+                    <TmButton Variant="ButtonVariant.Primary" OnClick="() => OnNextMatch.InvokeAsync()">
+                        @(Result.IsPrivateRoom ? Localizer["Button_Rematch"] : Localizer["Button_Revenge"])
+                    </TmButton>
+                </span>
             }
             
-            <TmButton Variant="ButtonVariant.Ghost" OnClick="() => OnHome.InvokeAsync()">
-                @Localizer["Button_Home"]
-            </TmButton>
+            <span data-testid="multiplayer-result-home">
+                <TmButton Variant="ButtonVariant.Ghost" OnClick="() => OnHome.InvokeAsync()">
+                    @Localizer["Button_Home"]
+                </TmButton>
+            </span>
         </div>
     </Footer>
 </TmModal>
@@ -109,15 +159,28 @@
     [Parameter] public bool IsVisible { get; set; }
     [Parameter] public MatchResultDto Result { get; set; } = null!;
     [Parameter] public EventCallback OnNextMatch { get; set; }
+    [Parameter] public EventCallback OnAcceptRematch { get; set; }
+    [Parameter] public EventCallback OnDeclineRematch { get; set; }
     [Parameter] public EventCallback OnHome { get; set; }
     [Parameter] public int SeriesPlayer1Wins { get; set; }
     [Parameter] public int SeriesPlayer2Wins { get; set; }
     [Parameter] public int BestOf { get; set; } = 1;
+    [Parameter] public bool RematchRequestSent { get; set; }
+    [Parameter] public bool RematchRequestedByOpponent { get; set; }
+    [Parameter] public bool RematchDeclined { get; set; }
 
-    private bool IsWinner() => Result is { IsDraw: false, WinnerId: not null } &&
-        Result.WinnerId != Guid.Empty &&
-        (Result.YourScore > Result.OpponentScore ||
-         (Result.YourScore == Result.OpponentScore && Result.YourTime < Result.OpponentTime));
+    private bool IsWinner() => Result?.DidYouWin == true;
+    private int EffectiveBestOf => BestOf > 1 ? BestOf : Result?.BestOf ?? 1;
+    private int EffectiveSeriesPlayer1Wins => Result?.SeriesPlayer1Wins ?? SeriesPlayer1Wins;
+    private int EffectiveSeriesPlayer2Wins => Result?.SeriesPlayer2Wins ?? SeriesPlayer2Wins;
+    private bool ShouldShowSeriesScore =>
+        EffectiveBestOf > 1 &&
+        (Result?.SeriesPlayer1Wins.HasValue == true ||
+         Result?.SeriesPlayer2Wins.HasValue == true ||
+         SeriesPlayer1Wins > 0 ||
+         SeriesPlayer2Wins > 0);
+    private bool ShouldShowNextMatchAction =>
+        Result?.IsPrivateRoom != true || (!RematchRequestSent && !RematchRequestedByOpponent);
 
     private string GetResultClass() => Result switch
     {

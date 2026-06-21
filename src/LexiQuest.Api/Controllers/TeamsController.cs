@@ -38,6 +38,26 @@ public class TeamsController : ControllerBase
         return Ok(team);
     }
 
+    [HttpGet("my")]
+    [ProducesResponseType(typeof(TeamDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public async Task<ActionResult<TeamDto>> GetMyTeamForUi(CancellationToken cancellationToken)
+    {
+        var userId = GetCurrentUserId();
+        if (userId == null)
+        {
+            return Unauthorized();
+        }
+
+        var team = await _teamService.GetUserTeamAsync(userId.Value, cancellationToken);
+        if (team == null)
+        {
+            return NoContent();
+        }
+
+        return Ok(team);
+    }
+
     [HttpGet("{id:guid}")]
     [ProducesResponseType(typeof(TeamDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -166,6 +186,34 @@ public class TeamsController : ControllerBase
         try
         {
             var result = await _teamService.InviteMemberAsync(id, userId.Value, request, cancellationToken);
+            if (!result)
+            {
+                return NotFound();
+            }
+
+            return Ok();
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
+
+    [HttpPost("{id:guid}/invite-by-username")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> InviteMemberByUsername(Guid id, [FromBody] InviteMemberByUsernameRequest request, CancellationToken cancellationToken)
+    {
+        var userId = GetCurrentUserId();
+        if (userId == null)
+        {
+            return Unauthorized();
+        }
+
+        try
+        {
+            var result = await _teamService.InviteMemberByUsernameAsync(id, userId.Value, request, cancellationToken);
             if (!result)
             {
                 return NotFound();

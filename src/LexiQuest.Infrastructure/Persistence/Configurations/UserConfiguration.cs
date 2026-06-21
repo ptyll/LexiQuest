@@ -25,6 +25,14 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         {
             privacy.Property(p => p.ProfileVisibility).HasConversion<string>();
         });
+
+        builder.HasMany(u => u.CoinTransactions)
+            .WithOne()
+            .HasForeignKey(t => t.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Navigation(u => u.CoinTransactions)
+            .UsePropertyAccessMode(PropertyAccessMode.Field);
         
         // Indexes
         builder.HasIndex(u => u.Email).IsUnique();

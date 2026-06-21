@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
   <data name="Page.Title" xml:space="preserve">
-    <value>Achievementy</value>
+    <value>Úspěchy</value>
   </data>
   <data name="Progress.Title" xml:space="preserve">
     <value>Postup</value>

@@ -4,10 +4,10 @@
 @using Tempo.Blazor.Components.Layout
 @using Microsoft.Extensions.Localization
 
-<div class="searching-view">
+<div class="searching-view" data-testid="quick-match-searching">
     <h1 class="matchmaking-title">@Localizer["Matchmaking_Title"]</h1>
     
-    <div class="matchmaking-status">
+    <div class="matchmaking-status" data-testid="quick-match-searching-status">
         <TmSpinner Size="SpinnerSize.Lg" Color="SpinnerColor.Primary" />
         <p class="status-text">@Localizer["Matchmaking_Searching"]</p>
     </div>
@@ -33,9 +33,9 @@
         <TmProgressBar Indeterminate="true" Size="ProgressBarSize.Md" />
     </div>
     
-    <TmButton Variant="ButtonVariant.Ghost" OnClick="OnCancel">
+    <button type="button" class="quick-match-cancel" data-testid="quick-match-cancel" @onclick="() => OnCancel.InvokeAsync()">
         @Localizer["Matchmaking_Cancel"]
-    </TmButton>
+    </button>
     
     <TmCard Class="rules-card">
         <CardHeader>

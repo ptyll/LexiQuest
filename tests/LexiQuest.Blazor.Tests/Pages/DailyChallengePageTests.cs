@@ -44,7 +44,7 @@ public class DailyChallengePageTests : BunitContext
             XPMultiplier: 150
         );
         
-        _dailyChallengeService.GetTodayAsync().Returns(Task.FromResult(challenge));
+        _dailyChallengeService.GetTodayAsync().Returns(Task.FromResult<DailyChallengeDto?>(challenge));
         _dailyChallengeService.GetLeaderboardAsync().Returns(Task.FromResult(new List<DailyLeaderboardEntryDto>()));
 
         // Act
@@ -67,7 +67,7 @@ public class DailyChallengePageTests : BunitContext
             XPMultiplier: 200
         );
         
-        _dailyChallengeService.GetTodayAsync().Returns(Task.FromResult(challenge));
+        _dailyChallengeService.GetTodayAsync().Returns(Task.FromResult<DailyChallengeDto?>(challenge));
         _dailyChallengeService.GetLeaderboardAsync().Returns(Task.FromResult(new List<DailyLeaderboardEntryDto>()));
 
         // Act
@@ -90,7 +90,7 @@ public class DailyChallengePageTests : BunitContext
             XPMultiplier: 100
         );
         
-        _dailyChallengeService.GetTodayAsync().Returns(Task.FromResult(challenge));
+        _dailyChallengeService.GetTodayAsync().Returns(Task.FromResult<DailyChallengeDto?>(challenge));
         _dailyChallengeService.GetLeaderboardAsync().Returns(Task.FromResult(new List<DailyLeaderboardEntryDto>()));
         _dailyChallengeService.HasCompletedTodayAsync().Returns(Task.FromResult(true));
 
@@ -100,6 +100,35 @@ public class DailyChallengePageTests : BunitContext
         // Assert
         cut.WaitForState(() => cut.Find(".completed-state") != null);
         cut.Find(".completed-state").Should().NotBeNull();
+    }
+
+    [Fact]
+    public void DailyChallengePage_Completed_SubSecondResultShowsOneSecond()
+    {
+        // Arrange
+        var challenge = new DailyChallengeDto(
+            Date: DateTime.UtcNow.Date,
+            WordId: Guid.NewGuid(),
+            Modifier: DailyModifier.Easy,
+            ModifierDescription: "Jednoduchá slova",
+            XPMultiplier: 100
+        );
+        var leaderboard = new List<DailyLeaderboardEntryDto>
+        {
+            new(Guid.NewGuid(), "CurrentUser", null, TimeSpan.FromMilliseconds(250), 15, 1, true)
+        };
+
+        _dailyChallengeService.GetTodayAsync().Returns(Task.FromResult<DailyChallengeDto?>(challenge));
+        _dailyChallengeService.GetLeaderboardAsync().Returns(Task.FromResult(leaderboard));
+        _dailyChallengeService.HasCompletedTodayAsync().Returns(Task.FromResult(true));
+
+        // Act
+        var cut = Render<DailyChallenge>();
+
+        // Assert
+        cut.WaitForState(() => cut.Find("[data-testid='daily-result-time']") != null);
+        cut.Find("[data-testid='daily-result-time']").TextContent.Should().Contain("1s");
+        cut.Markup.Should().NotContain("0s");
     }
 
     [Fact]
@@ -121,7 +150,7 @@ public class DailyChallengePageTests : BunitContext
             new(Guid.NewGuid(), "CurrentUser", null, TimeSpan.FromSeconds(12), 150, 3, true)
         };
         
-        _dailyChallengeService.GetTodayAsync().Returns(Task.FromResult(challenge));
+        _dailyChallengeService.GetTodayAsync().Returns(Task.FromResult<DailyChallengeDto?>(challenge));
         _dailyChallengeService.GetLeaderboardAsync().Returns(Task.FromResult(leaderboard));
         _dailyChallengeService.HasCompletedTodayAsync().Returns(Task.FromResult(false));
 

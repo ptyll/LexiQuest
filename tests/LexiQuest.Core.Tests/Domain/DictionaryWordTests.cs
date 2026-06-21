@@ -70,7 +70,7 @@ public class DictionaryWordTests
     {
         // Arrange
         var dictionaryId = Guid.NewGuid();
-        var longWord = new string('a', 51);
+        var longWord = new string('a', 21);
 
         // Act
         Action act = () => DictionaryWord.Create(dictionaryId, longWord, DifficultyLevel.Beginner);

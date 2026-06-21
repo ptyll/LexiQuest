@@ -138,6 +138,45 @@
   <data name="Button_Current" xml:space="preserve">
     <value>Aktuální plán</value>
   </data>
+  <data name="Button_CancelSubscription" xml:space="preserve">
+    <value>Zrušit předplatné</value>
+  </data>
+  <data name="Status_Free" xml:space="preserve">
+    <value>Bez Premium</value>
+  </data>
+  <data name="FeatureAvailability_Title" xml:space="preserve">
+    <value>Dostupnost prémiových funkcí</value>
+  </data>
+  <data name="FeatureAvailability_Description" xml:space="preserve">
+    <value>Uzamčené funkce se odemknou ihned po aktivaci Premium.</value>
+  </data>
+  <data name="Feature_Locked" xml:space="preserve">
+    <value>Zamčeno</value>
+  </data>
+  <data name="Feature_Unlocked" xml:space="preserve">
+    <value>Aktivní</value>
+  </data>
+  <data name="Feature_LockedTooltip" xml:space="preserve">
+    <value>Tato funkce je dostupná s Premium.</value>
+  </data>
+  <data name="Feature_UnlockedTooltip" xml:space="preserve">
+    <value>Tato funkce je na vašem účtu aktivní.</value>
+  </data>
+  <data name="CancelSubscription_Success" xml:space="preserve">
+    <value>Premium bylo zrušeno.</value>
+  </data>
+  <data name="CancelSubscription_Failed" xml:space="preserve">
+    <value>Premium se nepodařilo zrušit.</value>
+  </data>
+  <data name="Error_StatusLoad" xml:space="preserve">
+    <value>Nepodařilo se načíst stav Premium.</value>
+  </data>
+  <data name="Error_FeaturesLoad" xml:space="preserve">
+    <value>Nepodařilo se načíst prémiové funkce.</value>
+  </data>
+  <data name="Error_CheckoutCreate" xml:space="preserve">
+    <value>Nepodařilo se vytvořit checkout.</value>
+  </data>
   <data name="SecurePayment" xml:space="preserve">
     <value>Bezpečná platba přes Stripe</value>
   </data>

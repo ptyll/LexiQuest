@@ -9,5 +9,7 @@ public record StartGameRequest(
     GameMode Mode,
     DifficultyLevel? Difficulty = null,
     Guid? PathId = null,
-    int? LevelNumber = null
+    int? LevelNumber = null,
+    Guid? CustomDictionaryId = null,
+    AIChallengeType? AiChallengeType = null
 );

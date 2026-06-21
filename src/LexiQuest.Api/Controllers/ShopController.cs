@@ -81,10 +81,10 @@ public class ShopController : ControllerBase
     {
         var categories = new[]
         {
-            new ShopCategoryDto("Avatar", "Avatary", "User", 12),
-            new ShopCategoryDto("Frame", "Rámečky", "Square", 8),
-            new ShopCategoryDto("Theme", "Témata", "Palette", 6),
-            new ShopCategoryDto("Boost", "Boosty", "Zap", 4)
+            new ShopCategoryDto("Avatar", "Avatary", "User", 2),
+            new ShopCategoryDto("Frame", "Rámečky", "Square", 2),
+            new ShopCategoryDto("Theme", "Témata", "Palette", 1),
+            new ShopCategoryDto("Boost", "Boosty", "Zap", 1)
         };
 
         return Ok(categories);
@@ -100,11 +100,12 @@ public class ShopController : ControllerBase
 
         if (!result.Success)
         {
+            var remainingCoins = await _inventoryService.GetCoinBalanceAsync(userId, cancellationToken);
             return BadRequest(new Shared.DTOs.Shop.PurchaseResult(
                 false,
                 result.Message,
                 null,
-                0));
+                remainingCoins));
         }
 
         var coins = await _inventoryService.GetCoinBalanceAsync(userId, cancellationToken);
@@ -150,18 +151,25 @@ public class ShopController : ControllerBase
         var userId = User.GetUserId();
         var items = await _inventoryService.GetUserInventoryAsync(userId, cancellationToken);
 
-        // TODO: Load shop item details for each inventory item
-        var dtos = items.Select(i => new InventoryItemDto(
-            i.Id,
-            i.ShopItemId,
-            "Item Name", // TODO: Load from ShopItem
-            "Description", // TODO: Load from ShopItem
-            "Category", // TODO: Load from ShopItem
-            "Rarity", // TODO: Load from ShopItem
-            "#000000", // TODO: Load from ShopItem
-            "image.png", // TODO: Load from ShopItem
-            i.IsEquipped,
-            i.PurchasedAt));
+        var dtos = new List<InventoryItemDto>();
+        foreach (var inventoryItem in items)
+        {
+            var shopItem = await _inventoryService.GetShopItemAsync(inventoryItem.ShopItemId, cancellationToken);
+            if (shopItem == null)
+                continue;
+
+            dtos.Add(new InventoryItemDto(
+                inventoryItem.Id,
+                inventoryItem.ShopItemId,
+                shopItem.Name,
+                shopItem.Description,
+                shopItem.Category.ToString(),
+                shopItem.Rarity.ToString(),
+                shopItem.GetRarityColor(),
+                shopItem.ImageUrl,
+                inventoryItem.IsEquipped,
+                inventoryItem.PurchasedAt));
+        }
 
         return Ok(dtos);
     }

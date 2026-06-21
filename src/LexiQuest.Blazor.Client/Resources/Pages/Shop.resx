@@ -79,6 +79,9 @@
   <data name="Tab_Shields" xml:space="preserve">
     <value>Štíty</value>
   </data>
+  <data name="Tab_Boosts" xml:space="preserve">
+    <value>Boosty</value>
+  </data>
   <data name="Coins_Balance" xml:space="preserve">
     <value>Mince:</value>
   </data>
@@ -107,6 +110,6 @@
     <value>Upgradovat na Premium</value>
   </data>
   <data name="Label_Limited" xml:space="preserve">
-    <value>Limited</value>
+    <value>Limitované</value>
   </data>
 </root>

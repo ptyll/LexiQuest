@@ -1,0 +1,74 @@
+@page "/e2e/toasts"
+@inject IStringLocalizer<E2EToasts> L
+@inject IToastService ToastService
+
+@if (IsDebugBuild)
+{
+    <div class="e2e-toast-page" data-testid="e2e-toast-page">
+        <h1>@L["Page_Title"]</h1>
+        <div class="e2e-toast-actions">
+            <button type="button" class="tm-btn tm-btn-primary" data-testid="e2e-toast-success" @onclick="ShowSuccess">
+                @L["Button_Success"]
+            </button>
+            <button type="button" class="tm-btn tm-btn-primary" data-testid="e2e-toast-error" @onclick="ShowError">
+                @L["Button_Error"]
+            </button>
+            <button type="button" class="tm-btn tm-btn-primary" data-testid="e2e-toast-warning" @onclick="ShowWarning">
+                @L["Button_Warning"]
+            </button>
+            <button type="button" class="tm-btn tm-btn-primary" data-testid="e2e-toast-info" @onclick="ShowInfo">
+                @L["Button_Info"]
+            </button>
+        </div>
+    </div>
+}
+else
+{
+    <NotFoundContent />
+}
+
+@code {
+    [SupplyParameterFromQuery(Name = "showAll")]
+    public bool ShowAll { get; set; }
+
+    private bool _shownFromQuery;
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (!firstRender || !IsDebugBuild || !ShowAll || _shownFromQuery)
+        {
+            return;
+        }
+
+        _shownFromQuery = true;
+        ShowAllToasts();
+    }
+
+    private void ShowAllToasts()
+    {
+        ShowSuccess();
+        ShowError();
+        ShowWarning();
+        ShowInfo();
+    }
+
+    private void ShowSuccess() => ToastService.ShowSuccess(L["Toast_Success"]);
+
+    private void ShowError() => ToastService.ShowError(L["Toast_Error"]);
+
+    private void ShowWarning() => ToastService.ShowWarning(L["Toast_Warning"]);
+
+    private void ShowInfo() => ToastService.ShowInfo(L["Toast_Info"]);
+
+    private static bool IsDebugBuild
+    {
+        get
+        {
+#if DEBUG
+            return true;
+#else
+            return false;
+#endif
+        }
+    }
+}

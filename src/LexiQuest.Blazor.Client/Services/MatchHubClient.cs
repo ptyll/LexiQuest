@@ -32,16 +32,24 @@ public class MatchHubClient : IMatchHubClient
     public event EventHandler? OnMatchmakingTimeout;
     public event EventHandler<int>? OnCountdownTick;
     public event EventHandler<MultiplayerRoundDto>? OnRoundStarted;
+    public event EventHandler<OpponentProgressDto>? OnPlayerProgress;
     public event EventHandler<OpponentProgressDto>? OnOpponentProgress;
     public event EventHandler<MatchResultDto>? OnMatchEnded;
     public event EventHandler? OnOpponentDisconnected;
     public event EventHandler<RoomCreatedEvent>? OnRoomCreated;
+    public event EventHandler<string>? OnRoomCreationFailed;
+    public event EventHandler<string>? OnRoomJoined;
+    public event EventHandler<string>? OnRoomJoinFailed;
     public event EventHandler<PlayerJoinedRoomEvent>? OnPlayerJoinedRoom;
     public event EventHandler? OnPlayerLeftRoom;
     public event EventHandler<Guid>? OnPlayerReady;
+    public event EventHandler<PlayerReadyStateDto>? OnPlayerReadyStateChanged;
+    public event EventHandler<IReadOnlyList<PlayerReadyStateDto>>? OnRoomStateReset;
     public event EventHandler? OnRoomExpired;
     public event EventHandler<Guid>? OnRematchRequested;
+    public event EventHandler<Guid>? OnRematchDeclined;
     public event EventHandler<LobbyMessageDto>? OnLobbyMessage;
+    public event EventHandler<string>? OnChatError;
 
     public MatchHubClient(IAuthService authService, IConfiguration configuration)
     {
@@ -58,7 +66,10 @@ public class MatchHubClient : IMatchHubClient
 
         ConnectionState = HubConnectionState.Connecting;
 
-        var hubUrl = $"{_configuration["ApiUrl"]}hubs/match";
+        var apiBaseUrl = _configuration["ApiBaseUrl"]
+            ?? _configuration["ApiUrl"]
+            ?? "https://localhost:5000";
+        var hubUrl = $"{apiBaseUrl.TrimEnd('/')}/hubs/match";
         var token = await _authService.GetTokenAsync();
 
         _hubConnection = new HubConnectionBuilder()
@@ -129,6 +140,8 @@ public class MatchHubClient : IMatchHubClient
         // Common game events
         _hubConnection.On<int>("CountdownTick", s => OnCountdownTick?.Invoke(this, s));
         _hubConnection.On<MultiplayerRoundDto>("RoundStarted", r => OnRoundStarted?.Invoke(this, r));
+        _hubConnection.On<OpponentProgressDto>("PlayerProgressUpdated", progress =>
+            OnPlayerProgress?.Invoke(this, progress));
         _hubConnection.On<OpponentProgressDto>("OpponentAnswered", progress =>
             OnOpponentProgress?.Invoke(this, progress));
         _hubConnection.On<MatchResultDto>("MatchEnded", r => OnMatchEnded?.Invoke(this, r));
@@ -136,12 +149,21 @@ public class MatchHubClient : IMatchHubClient
         
         // Private Room events
         _hubConnection.On<RoomCreatedEvent>("RoomCreated", e => OnRoomCreated?.Invoke(this, e));
+        _hubConnection.On<string>("RoomCreationFailed", error => OnRoomCreationFailed?.Invoke(this, error));
+        _hubConnection.On<string>("RoomJoined", code => OnRoomJoined?.Invoke(this, code));
+        _hubConnection.On<string>("RoomJoinFailed", error => OnRoomJoinFailed?.Invoke(this, error));
         _hubConnection.On<PlayerJoinedRoomEvent>("PlayerJoinedRoom", e => OnPlayerJoinedRoom?.Invoke(this, e));
         _hubConnection.On("PlayerLeftRoom", () => OnPlayerLeftRoom?.Invoke(this, EventArgs.Empty));
         _hubConnection.On<Guid>("PlayerReady", id => OnPlayerReady?.Invoke(this, id));
+        _hubConnection.On<PlayerReadyStateDto>("PlayerReadyStateChanged", state =>
+            OnPlayerReadyStateChanged?.Invoke(this, state));
+        _hubConnection.On<IReadOnlyList<PlayerReadyStateDto>>("RoomStateReset", states =>
+            OnRoomStateReset?.Invoke(this, states));
         _hubConnection.On("RoomExpired", () => OnRoomExpired?.Invoke(this, EventArgs.Empty));
         _hubConnection.On<Guid>("RematchRequested", id => OnRematchRequested?.Invoke(this, id));
+        _hubConnection.On<Guid>("RematchDeclined", id => OnRematchDeclined?.Invoke(this, id));
         _hubConnection.On<LobbyMessageDto>("LobbyMessage", m => OnLobbyMessage?.Invoke(this, m));
+        _hubConnection.On<string>("ChatError", error => OnChatError?.Invoke(this, error));
     }
 
     #region Hub Methods
@@ -149,13 +171,13 @@ public class MatchHubClient : IMatchHubClient
     public async Task JoinMatchmakingAsync()
     {
         EnsureConnected();
-        await _hubConnection!.InvokeAsync("JoinMatchmaking");
+        await _hubConnection!.InvokeAsync<bool>("JoinMatchmaking");
     }
 
     public async Task CancelMatchmakingAsync()
     {
         EnsureConnected();
-        await _hubConnection!.InvokeAsync("CancelMatchmaking");
+        await _hubConnection!.InvokeAsync<bool>("CancelMatchmaking");
     }
 
     public async Task CreateRoomAsync(RoomSettingsDto settings)
@@ -170,22 +192,46 @@ public class MatchHubClient : IMatchHubClient
         await _hubConnection!.InvokeAsync("JoinRoom", roomCode);
     }
 
+    public async Task<RoomStatusDto?> GetRoomStatusAsync(string roomCode)
+    {
+        EnsureConnected();
+        return await _hubConnection!.InvokeAsync<RoomStatusDto?>("GetRoomStatus", roomCode);
+    }
+
     public async Task LeaveRoomAsync()
     {
         EnsureConnected();
         await _hubConnection!.InvokeAsync("LeaveRoom");
     }
 
-    public async Task SetReadyAsync()
+    public async Task SetReadyAsync(bool isReady = true)
     {
         EnsureConnected();
-        await _hubConnection!.InvokeAsync("SetReady");
+        await _hubConnection!.InvokeAsync("SetReady", isReady);
     }
 
     public async Task RequestRematchAsync()
     {
         EnsureConnected();
         await _hubConnection!.InvokeAsync("RequestRematch");
+    }
+
+    public async Task AcceptRematchAsync()
+    {
+        EnsureConnected();
+        await _hubConnection!.InvokeAsync("AcceptRematch");
+    }
+
+    public async Task DeclineRematchAsync()
+    {
+        EnsureConnected();
+        await _hubConnection!.InvokeAsync("DeclineRematch");
+    }
+
+    public async Task<bool> JoinMatchAsync(Guid matchId)
+    {
+        EnsureConnected();
+        return await _hubConnection!.InvokeAsync<bool>("JoinMatch", matchId);
     }
 
     public async Task SubmitAnswerAsync(string answer, int timeSpentMs)
@@ -198,6 +244,12 @@ public class MatchHubClient : IMatchHubClient
     {
         EnsureConnected();
         await _hubConnection!.InvokeAsync("Forfeit");
+    }
+
+    public async Task ExpireMatchAsync()
+    {
+        EnsureConnected();
+        await _hubConnection!.InvokeAsync("ExpireMatch");
     }
 
     public async Task SendLobbyMessageAsync(string message)

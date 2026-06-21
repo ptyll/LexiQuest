@@ -91,6 +91,9 @@
   <data name="Matchmaking_Timeout_Title" xml:space="preserve">
     <value>Soupeř nenalezen</value>
   </data>
+  <data name="Matchmaking_Timeout_Message" xml:space="preserve">
+    <value>Nepodařilo se najít žádného dostupného soupeře.</value>
+  </data>
   <data name="Matchmaking_Retry" xml:space="preserve">
     <value>Zkusit znovu</value>
   </data>
@@ -111,5 +114,8 @@
   </data>
   <data name="Matchmaking_QuestionMark" xml:space="preserve">
     <value>?</value>
+  </data>
+  <data name="Matchmaking_Player_Level" xml:space="preserve">
+    <value>Úroveň {0}</value>
   </data>
 </root>

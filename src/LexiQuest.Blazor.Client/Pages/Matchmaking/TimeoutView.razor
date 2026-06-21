@@ -2,30 +2,36 @@
 @using Tempo.Blazor.Components.Icons
 @using Microsoft.Extensions.Localization
 
-<div class="timeout-view">
+<div class="timeout-view" data-testid="quick-match-timeout">
     <div class="timeout-icon">
         <TmIcon Name="timer-off" Size="IconSize.Xl" />
     </div>
     
-    <h1 class="timeout-title">@Localizer["Matchmaking_Timeout_Title"]</h1>
+    <h1 class="timeout-title" data-testid="quick-match-timeout-title">@Localizer["Matchmaking_Timeout_Title"]</h1>
     
-    <p class="timeout-message">Nepodařilo se najít žádného dostupného soupeře.</p>
+    <p class="timeout-message">@Localizer["Matchmaking_Timeout_Message"]</p>
     
     <div class="timeout-actions">
-        <TmButton Variant="ButtonVariant.Primary" OnClick="OnRetry" Class="btn-retry">
-            <TmIcon Name="refresh" />
-            @Localizer["Matchmaking_Retry"]
-        </TmButton>
+        <span data-testid="quick-match-timeout-retry">
+            <TmButton Variant="ButtonVariant.Primary" OnClick="OnRetry" Class="btn-retry">
+                <TmIcon Name="refresh" />
+                @Localizer["Matchmaking_Retry"]
+            </TmButton>
+        </span>
         
-        <TmButton Variant="ButtonVariant.Secondary" OnClick="OnPlayVsAI" Class="btn-play-ai">
-            <TmIcon Name="smart-toy" />
-            @Localizer["Matchmaking_PlayVsAI"]
-        </TmButton>
+        <span data-testid="quick-match-timeout-play-ai">
+            <TmButton Variant="ButtonVariant.Secondary" OnClick="OnPlayVsAI" Class="btn-play-ai">
+                <TmIcon Name="smart-toy" />
+                @Localizer["Matchmaking_PlayVsAI"]
+            </TmButton>
+        </span>
         
-        <TmButton Variant="ButtonVariant.Ghost" OnClick="OnBack" Class="btn-back">
-            <TmIcon Name="arrow-back" />
-            @Localizer["Matchmaking_Back"]
-        </TmButton>
+        <span data-testid="quick-match-timeout-back">
+            <TmButton Variant="ButtonVariant.Ghost" OnClick="OnBack" Class="btn-back">
+                <TmIcon Name="arrow-back" />
+                @Localizer["Matchmaking_Back"]
+            </TmButton>
+        </span>
     </div>
 </div>
 

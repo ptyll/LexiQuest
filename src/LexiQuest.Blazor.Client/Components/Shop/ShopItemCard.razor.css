@@ -1,6 +1,23 @@
 .shop-item-card-wrapper {
+    --tm-color-success: #16a34a;
+    --tm-radius-lg: 10px;
+    --tm-radius-md: 8px;
+    --tm-bg-secondary: #f8fafc;
+    --tm-bg-tertiary: #eef6ff;
+    --tm-space-1: 0.25rem;
+    --tm-space-2: 0.5rem;
+    --tm-space-3: 0.75rem;
+    --tm-border-default: #dbe3ef;
+    --tm-font-size-sm: 0.875rem;
+    --tm-font-size-base: 1rem;
+    --tm-font-size-lg: 1.125rem;
+    --tm-font-weight-semibold: 700;
+    --tm-text-primary: #111827;
+    --tm-text-secondary: #526173;
     position: relative;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
+    min-width: 0;
+    height: 100%;
 }
 
 .shop-item-card-wrapper:hover {
@@ -14,6 +31,11 @@
 
 .shop-item-card-wrapper.equipped {
     border: 2px solid var(--tm-color-success);
+    border-radius: var(--tm-radius-lg);
+}
+
+.shop-item-card-surface {
+    height: 100%;
 }
 
 .shop-item-card {

@@ -4,31 +4,139 @@
 @inject NavigationManager NavigationManager
 @inject IAdminService AdminService
 @inject ToastService ToastService
+@inject IJSRuntime JSRuntime
 
 <PageTitle>@L["Title"] - LexiQuest</PageTitle>
 
-<div class="admin-words-page">
+<div class="admin-words-page" data-testid="admin-words-page">
     <div class="admin-header">
         <div class="header-left">
             <h1>@L["Title"]</h1>
             <p>@L["Subtitle"]</p>
         </div>
         <div class="header-actions">
-            <TmButton Variant="ButtonVariant.Primary"
-                      OnClick="ShowAddModal"
-                      Icon="@IconNames.Plus">
-                @L["Button.AddWord"]
-            </TmButton>
+            <span data-testid="admin-word-stats-open">
+                <TmButton Variant="ButtonVariant.Outline"
+                          OnClick="ShowStatsDrawer"
+                          Icon="@IconNames.BarChart2">
+                    @L["Button.Stats"]
+                </TmButton>
+            </span>
+            <span data-testid="admin-word-export">
+                <TmButton Variant="ButtonVariant.Outline"
+                          OnClick="ExportWords"
+                          Icon="@IconNames.Download"
+                          Disabled="_isExporting">
+                    @L["Button.Export"]
+                </TmButton>
+            </span>
+            <span data-testid="admin-word-import-open">
+                <TmButton Variant="ButtonVariant.Secondary"
+                          OnClick="ShowImportModal"
+                          Icon="@IconNames.Upload">
+                    @L["Button.Import"]
+                </TmButton>
+            </span>
+            <span data-testid="admin-word-create-open">
+                <TmButton Variant="ButtonVariant.Primary"
+                          OnClick="ShowAddModal"
+                          Icon="@IconNames.Plus">
+                    @L["Button.AddWord"]
+                </TmButton>
+            </span>
         </div>
     </div>
 
-    <div class="search-bar">
-        <TmFormField Label="@L["Search.Label"]">
-            <TmTextInput @bind-Value="_searchText"
-                         Placeholder="@L["Search.Placeholder"]"
-                         OnChange="OnSearchChanged" />
-        </TmFormField>
-    </div>
+    <section class="filters-panel" data-testid="admin-word-filters">
+        <div data-testid="admin-word-search">
+            <TmFormField Label="@L["Search.Label"]">
+                <TmTextInput @bind-Value="_searchText"
+                             Placeholder="@L["Search.Placeholder"]"
+                             OnChange="ApplyFiltersAsync" />
+            </TmFormField>
+        </div>
+        <div data-testid="admin-word-filter-difficulty">
+            <TmFormField Label="@L["Filter.Difficulty"]">
+                <label class="select-label-wrapper">
+                    <span class="visually-hidden">@L["Filter.Difficulty"]</span>
+                    <TmSelect @bind-Value="_difficultyFilter" Options="DifficultyFilterOptions" />
+                </label>
+            </TmFormField>
+        </div>
+        <div data-testid="admin-word-filter-category">
+            <TmFormField Label="@L["Filter.Category"]">
+                <label class="select-label-wrapper">
+                    <span class="visually-hidden">@L["Filter.Category"]</span>
+                    <TmSelect @bind-Value="_categoryFilter" Options="CategoryFilterOptions" />
+                </label>
+            </TmFormField>
+        </div>
+        <div data-testid="admin-word-filter-min-length">
+            <TmFormField Label="@L["Filter.MinLength"]">
+                <input class="tm-input"
+                       type="number"
+                       min="1"
+                       placeholder="3"
+                       value="@_minLengthText"
+                       @oninput="OnMinLengthInput" />
+            </TmFormField>
+        </div>
+        <div data-testid="admin-word-filter-max-length">
+            <TmFormField Label="@L["Filter.MaxLength"]">
+                <input class="tm-input"
+                       type="number"
+                       min="1"
+                       placeholder="12"
+                       value="@_maxLengthText"
+                       @oninput="OnMaxLengthInput" />
+            </TmFormField>
+        </div>
+        <div class="filter-actions">
+            <span data-testid="admin-word-apply-filters">
+                <TmButton Variant="ButtonVariant.Primary"
+                          OnClick="ApplyFiltersAsync"
+                          Icon="@IconNames.Search">
+                    @L["Button.ApplyFilters"]
+                </TmButton>
+            </span>
+            <span data-testid="admin-word-reset-filters">
+                <TmButton Variant="ButtonVariant.Outline"
+                          OnClick="ResetFiltersAsync"
+                          Icon="@IconNames.Refresh">
+                    @L["Button.ResetFilters"]
+                </TmButton>
+            </span>
+            <span data-testid="admin-word-column-picker">
+                <TmButton Variant="ButtonVariant.Outline"
+                          OnClick="ToggleColumnPicker"
+                          Icon="@IconNames.Columns">
+                    @L["Button.Columns"]
+                </TmButton>
+            </span>
+        </div>
+
+        @if (_showColumnPicker)
+        {
+            <div class="column-picker" data-testid="admin-word-column-picker-panel">
+                <label>
+                    <input type="checkbox" checked disabled />
+                    @L["Column.Word"]
+                </label>
+                <label data-testid="admin-word-column-toggle-difficulty">
+                    <input type="checkbox" @bind="_showDifficultyColumn" />
+                    @L["Column.Difficulty"]
+                </label>
+                <label data-testid="admin-word-column-toggle-category">
+                    <input type="checkbox" @bind="_showCategoryColumn" />
+                    @L["Column.Category"]
+                </label>
+                <label data-testid="admin-word-column-toggle-length">
+                    <input type="checkbox" @bind="_showLengthColumn" />
+                    @L["Column.Length"]
+                </label>
+            </div>
+        }
+    </section>
 
     @if (_isLoading)
     {
@@ -36,35 +144,64 @@
     }
     else if (_words != null && _words.Items.Count > 0)
     {
-        <div class="table-container">
+        <div class="table-container" data-testid="admin-word-table">
             <table class="data-table">
                 <thead>
                     <tr>
                         <th>@L["Table.Word"]</th>
-                        <th>@L["Table.Difficulty"]</th>
-                        <th>@L["Table.Category"]</th>
-                        <th>@L["Table.Length"]</th>
+                        @if (_showDifficultyColumn)
+                        {
+                            <th data-testid="admin-word-heading-difficulty">@L["Table.Difficulty"]</th>
+                        }
+                        @if (_showCategoryColumn)
+                        {
+                            <th data-testid="admin-word-heading-category">@L["Table.Category"]</th>
+                        }
+                        @if (_showLengthColumn)
+                        {
+                            <th data-testid="admin-word-heading-length">@L["Table.Length"]</th>
+                        }
                         <th>@L["Table.Actions"]</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach (var word in _words.Items)
                     {
-                        <tr>
-                            <td class="word-cell">@word.Word</td>
-                            <td>
-                                <TmBadge Variant="@GetDifficultyVariant(word.Difficulty)">
-                                    @word.Difficulty
-                                </TmBadge>
-                            </td>
-                            <td>@(word.Category ?? "-")</td>
-                            <td>@word.Length</td>
-                            <td>
-                                <TmButton Variant="ButtonVariant.Danger"
-                                          Size="ButtonSize.Sm"
-                                          OnClick="() => ShowDeleteConfirm(word)">
-                                    @L["Button.Delete"]
-                                </TmButton>
+                        <tr data-testid="admin-word-row" data-word="@word.Word">
+                            <td class="word-cell" data-testid="admin-word-cell-word">@word.Word</td>
+                            @if (_showDifficultyColumn)
+                            {
+                                <td data-testid="admin-word-cell-difficulty">
+                                    <TmBadge Variant="@GetDifficultyVariant(word.Difficulty)">
+                                        @FormatDifficulty(word.Difficulty)
+                                    </TmBadge>
+                                </td>
+                            }
+                            @if (_showCategoryColumn)
+                            {
+                                <td data-testid="admin-word-cell-category">@FormatCategory(word.Category)</td>
+                            }
+                            @if (_showLengthColumn)
+                            {
+                                <td data-testid="admin-word-cell-length">@word.Length</td>
+                            }
+                            <td class="row-actions">
+                                <span data-testid="admin-word-edit">
+                                    <TmButton Variant="ButtonVariant.Secondary"
+                                              Size="ButtonSize.Sm"
+                                              OnClick="() => ShowEditModal(word)"
+                                              Icon="@IconNames.Edit">
+                                        @L["Button.Edit"]
+                                    </TmButton>
+                                </span>
+                                <span data-testid="admin-word-delete">
+                                    <TmButton Variant="ButtonVariant.Danger"
+                                              Size="ButtonSize.Sm"
+                                              OnClick="() => ShowDeleteConfirm(word)"
+                                              Icon="@IconNames.Trash">
+                                        @L["Button.Delete"]
+                                    </TmButton>
+                                </span>
                             </td>
                         </tr>
                     }
@@ -72,115 +209,256 @@
             </table>
         </div>
 
-        <div class="pagination">
-            <TmButton Variant="ButtonVariant.Outline"
-                      Size="ButtonSize.Sm"
-                      Disabled="_currentPage <= 1"
-                      OnClick="PreviousPage">
-                @L["Pagination.Previous"]
-            </TmButton>
-            <span class="page-info">@string.Format(L["Pagination.Info"], _currentPage, TotalPages)</span>
-            <TmButton Variant="ButtonVariant.Outline"
-                      Size="ButtonSize.Sm"
-                      Disabled="_currentPage >= TotalPages"
-                      OnClick="NextPage">
-                @L["Pagination.Next"]
-            </TmButton>
+        <div class="pagination" data-testid="admin-word-pagination">
+            <span data-testid="admin-word-pagination-prev">
+                <TmButton Variant="ButtonVariant.Outline"
+                          Size="ButtonSize.Sm"
+                          Disabled="_currentPage <= 1"
+                          OnClick="PreviousPage"
+                          Icon="@IconNames.ChevronLeft">
+                    @L["Pagination.Previous"]
+                </TmButton>
+            </span>
+            <span class="page-info" data-testid="admin-word-page-info">
+                @string.Format(L["Pagination.Info"], _currentPage, TotalPages)
+            </span>
+            <span data-testid="admin-word-pagination-next">
+                <TmButton Variant="ButtonVariant.Outline"
+                          Size="ButtonSize.Sm"
+                          Disabled="_currentPage >= TotalPages"
+                          OnClick="NextPage"
+                          Icon="@IconNames.ChevronRight">
+                    @L["Pagination.Next"]
+                </TmButton>
+            </span>
         </div>
     }
     else
     {
-        <TmEmptyState Icon="@IconNames.FileText"
-                      Title="@L["Empty.Title"]"
-                      Description="@L["Empty.Description"]"
-                      ActionText="@L["Button.AddWord"]"
-                      OnAction="ShowAddModal" />
+        <div data-testid="admin-word-empty">
+            <TmEmptyState Icon="@IconNames.FileText"
+                          Title="@L["Empty.Title"]"
+                          Description="@L["Empty.Description"]"
+                          ActionText="@L["Button.AddWord"]"
+                          OnAction="ShowAddModal" />
+        </div>
     }
 </div>
 
-@* Add Word Modal *@
-<TmModal @bind-IsOpen="_showAddModal" Title="@L["Modal.Add.Title"]">
-    <div class="modal-form">
+<TmModal Show="@_showWordModal" Title="@WordModalTitle" Size="ModalSize.Medium" OnClose="CloseWordModal">
+    <ChildContent>
+    <div class="modal-form" data-testid="admin-word-modal">
         <TmFormField Label="@L["Form.Word"]">
-            <TmTextInput @bind-Value="_newWord" Placeholder="@L["Form.Word.Placeholder"]" />
+            <div data-testid="admin-word-form-word">
+                <TmTextInput @bind-Value="_formWord" Placeholder="@L["Form.Word.Placeholder"]" />
+            </div>
         </TmFormField>
         <TmFormField Label="@L["Form.Difficulty"]">
-            <TmSelect @bind-Value="_newDifficulty" Options="_difficultyOptions" />
+            <div data-testid="admin-word-form-difficulty">
+                <label class="select-label-wrapper">
+                    <span class="visually-hidden">@L["Form.Difficulty"]</span>
+                    <TmSelect @bind-Value="_formDifficulty" Options="DifficultyOptions" />
+                </label>
+            </div>
         </TmFormField>
         <TmFormField Label="@L["Form.Category"]">
-            <TmSelect @bind-Value="_newCategory" Options="_categoryOptions" />
+            <div data-testid="admin-word-form-category">
+                <label class="select-label-wrapper">
+                    <span class="visually-hidden">@L["Form.Category"]</span>
+                    <TmSelect @bind-Value="_formCategory" Options="CategoryOptions" />
+                </label>
+            </div>
         </TmFormField>
         <div class="modal-actions">
-            <TmButton Variant="ButtonVariant.Outline" OnClick="CloseAddModal">
-                @L["Button.Cancel"]
-            </TmButton>
-            <TmButton Variant="ButtonVariant.Primary" OnClick="AddWord" Disabled="_isSaving">
-                @L["Button.Save"]
-            </TmButton>
+            <span data-testid="admin-word-cancel">
+                <TmButton Variant="ButtonVariant.Outline" OnClick="CloseWordModal">
+                    @L["Button.Cancel"]
+                </TmButton>
+            </span>
+            <span data-testid="admin-word-save">
+                <TmButton Variant="ButtonVariant.Primary" OnClick="SaveWord" Disabled="_isSaving">
+                    @L["Button.Save"]
+                </TmButton>
+            </span>
         </div>
     </div>
+    </ChildContent>
 </TmModal>
 
-@* Delete Confirmation Modal *@
-<TmModal @bind-IsOpen="_showDeleteModal" Title="@L["Modal.Delete.Title"]">
-    <div class="modal-form">
-        <p>@string.Format(L["Modal.Delete.Message"], _wordToDelete?.Word)</p>
+<TmModal Show="@_showImportModal" Title="@L["Modal.Import.Title"]" Size="ModalSize.Medium" OnClose="CloseImportModal">
+    <ChildContent>
+    <div class="modal-form" data-testid="admin-word-import-modal">
+        <TmFormField Label="@L["Import.Csv"]">
+            <textarea class="csv-textarea"
+                      data-testid="admin-word-import-csv"
+                      @bind="_importCsv"
+                      placeholder="@L["Import.Placeholder"]"></textarea>
+        </TmFormField>
+        @if (_lastImportResult != null)
+        {
+            <div class="import-result" data-testid="admin-word-import-result">
+                @string.Format(L["Import.Result"], _lastImportResult.Imported, _lastImportResult.Skipped, _lastImportResult.Errors)
+            </div>
+        }
         <div class="modal-actions">
-            <TmButton Variant="ButtonVariant.Outline" OnClick="CloseDeleteModal">
-                @L["Button.Cancel"]
-            </TmButton>
-            <TmButton Variant="ButtonVariant.Danger" OnClick="ConfirmDelete" Disabled="_isDeleting">
-                @L["Button.ConfirmDelete"]
-            </TmButton>
+            <span data-testid="admin-word-import-cancel">
+                <TmButton Variant="ButtonVariant.Outline" OnClick="CloseImportModal">
+                    @L["Button.Cancel"]
+                </TmButton>
+            </span>
+            <span data-testid="admin-word-import-save">
+                <TmButton Variant="ButtonVariant.Primary"
+                          OnClick="ImportWords"
+                          Disabled="_isImporting">
+                    @L["Button.Import"]
+                </TmButton>
+            </span>
         </div>
     </div>
+    </ChildContent>
 </TmModal>
+
+<TmModal Show="@_showDeleteModal" Title="@L["Modal.Delete.Title"]" Size="ModalSize.Small" OnClose="CloseDeleteModal">
+    <ChildContent>
+    <div class="modal-form" data-testid="admin-word-delete-modal">
+        <p>@string.Format(L["Modal.Delete.Message"], _wordToDelete?.Word)</p>
+        <div class="modal-actions">
+            <span data-testid="admin-word-delete-cancel">
+                <TmButton Variant="ButtonVariant.Outline" OnClick="CloseDeleteModal">
+                    @L["Button.Cancel"]
+                </TmButton>
+            </span>
+            <span data-testid="admin-word-delete-confirm">
+                <TmButton Variant="ButtonVariant.Danger" OnClick="ConfirmDelete" Disabled="_isDeleting">
+                    @L["Button.ConfirmDelete"]
+                </TmButton>
+            </span>
+        </div>
+    </div>
+    </ChildContent>
+</TmModal>
+
+@if (_showStatsDrawer)
+{
+    <div class="drawer-backdrop" @onclick="CloseStatsDrawer"></div>
+    <aside class="stats-drawer" data-testid="admin-word-stats-drawer">
+        <div class="drawer-header">
+            <h2>@L["Stats.Title"]</h2>
+            <span data-testid="admin-word-stats-close">
+                <TmButton Variant="ButtonVariant.Ghost"
+                          Size="ButtonSize.Sm"
+                          OnClick="CloseStatsDrawer"
+                          Icon="@IconNames.X">
+                    @L["Button.Close"]
+                </TmButton>
+            </span>
+        </div>
+        @if (_isLoadingStats)
+        {
+            <TmSkeleton Variant="SkeletonVariant.Rect" Height="160px" />
+        }
+        else if (_wordStats != null)
+        {
+            <div class="stats-summary" data-testid="admin-word-stats-total">
+                <span>@L["Stats.TotalWords"]</span>
+                <strong>@_wordStats.TotalWords</strong>
+            </div>
+            <div class="stats-section" data-testid="admin-word-stats-distribution">
+                <h3>@L["Stats.Distribution"]</h3>
+                @foreach (var item in _wordStats.DifficultyDistribution)
+                {
+                    <div class="stats-row">
+                        <span>@FormatDifficulty(item.Key)</span>
+                        <strong>@item.Value</strong>
+                    </div>
+                }
+            </div>
+            <div class="stats-section" data-testid="admin-word-stats-success">
+                <h3>@L["Stats.SuccessRates"]</h3>
+                @foreach (var item in _wordStats.SuccessRates)
+                {
+                    <div class="stats-row">
+                        <span>@FormatDifficulty(item.Key)</span>
+                        <strong>@item.Value.ToString("0") %</strong>
+                    </div>
+                }
+            </div>
+        }
+    </aside>
+}
 
 @code {
     private PaginatedResult<AdminWordDto>? _words;
+    private WordStatsDto? _wordStats;
+    private BulkImportResult? _lastImportResult;
     private bool _isLoading = true;
     private bool _isSaving;
     private bool _isDeleting;
-    private string _searchText = string.Empty;
-    private int _currentPage = 1;
-    private const int PageSize = 25;
-
-    // Add modal
-    private bool _showAddModal;
-    private string _newWord = string.Empty;
-    private string _newDifficulty = string.Empty;
-    private string _newCategory = string.Empty;
-
-    // Delete modal
+    private bool _isImporting;
+    private bool _isExporting;
+    private bool _isLoadingStats;
+    private bool _showWordModal;
+    private bool _showImportModal;
     private bool _showDeleteModal;
+    private bool _showStatsDrawer;
+    private bool _showColumnPicker;
+    private bool _showDifficultyColumn = true;
+    private bool _showCategoryColumn = true;
+    private bool _showLengthColumn = true;
+    private string _searchText = string.Empty;
+    private string _difficultyFilter = string.Empty;
+    private string _categoryFilter = string.Empty;
+    private string _minLengthText = string.Empty;
+    private string _maxLengthText = string.Empty;
+    private string _formWord = string.Empty;
+    private string _formDifficulty = DifficultyLevel.Beginner.ToString();
+    private string _formCategory = WordCategory.Everyday.ToString();
+    private string _importCsv = string.Empty;
+    private int _currentPage = 1;
+    private Guid? _editingWordId;
     private AdminWordDto? _wordToDelete;
+    private const int PageSize = 25;
 
     private int TotalPages => _words == null || _words.TotalCount == 0
         ? 1
         : (int)Math.Ceiling((double)_words.TotalCount / PageSize);
 
-    private List<SelectOption<string>> _difficultyOptions = new()
-    {
-        new SelectOption<string>("Easy", "Easy"),
-        new SelectOption<string>("Medium", "Medium"),
-        new SelectOption<string>("Hard", "Hard"),
-        new SelectOption<string>("Expert", "Expert")
-    };
+    private string WordModalTitle => _editingWordId.HasValue
+        ? L["Modal.Edit.Title"]
+        : L["Modal.Add.Title"];
 
-    private List<SelectOption<string>> _categoryOptions = new()
-    {
-        new SelectOption<string>("", "-"),
-        new SelectOption<string>("Animals", "Animals"),
-        new SelectOption<string>("Food", "Food"),
-        new SelectOption<string>("Technology", "Technology"),
-        new SelectOption<string>("Nature", "Nature"),
-        new SelectOption<string>("Science", "Science")
-    };
+    private IReadOnlyList<SelectOption<string>> DifficultyFilterOptions =>
+    [
+        SelectOption<string>.From(string.Empty, L["Filter.AllDifficulty"].Value),
+        SelectOption<string>.From(DifficultyLevel.Beginner.ToString(), L["Difficulty.Beginner"].Value),
+        SelectOption<string>.From(DifficultyLevel.Intermediate.ToString(), L["Difficulty.Intermediate"].Value),
+        SelectOption<string>.From(DifficultyLevel.Advanced.ToString(), L["Difficulty.Advanced"].Value),
+        SelectOption<string>.From(DifficultyLevel.Expert.ToString(), L["Difficulty.Expert"].Value)
+    ];
+
+    private IReadOnlyList<SelectOption<string>> DifficultyOptions =>
+    [
+        SelectOption<string>.From(DifficultyLevel.Beginner.ToString(), L["Difficulty.Beginner"].Value),
+        SelectOption<string>.From(DifficultyLevel.Intermediate.ToString(), L["Difficulty.Intermediate"].Value),
+        SelectOption<string>.From(DifficultyLevel.Advanced.ToString(), L["Difficulty.Advanced"].Value),
+        SelectOption<string>.From(DifficultyLevel.Expert.ToString(), L["Difficulty.Expert"].Value)
+    ];
+
+    private IReadOnlyList<SelectOption<string>> CategoryFilterOptions =>
+    [
+        SelectOption<string>.From(string.Empty, L["Filter.AllCategories"].Value),
+        ..CategoryOptions
+    ];
+
+    private IReadOnlyList<SelectOption<string>> CategoryOptions =>
+        Enum.GetValues<WordCategory>()
+            .Select(category => SelectOption<string>.From(category.ToString(), FormatCategory(category.ToString())))
+            .ToList();
 
     protected override async Task OnInitializedAsync()
     {
-        var isAdmin = await AdminService.IsCurrentUserAdminAsync();
-        if (!isAdmin)
+        var canManageWords = await AdminService.CanManageWordsAsync();
+        if (!canManageWords)
         {
             NavigationManager.NavigateTo("/");
             return;
@@ -197,11 +475,11 @@
         try
         {
             var request = new AdminWordListRequest(
-                Search: string.IsNullOrWhiteSpace(_searchText) ? null : _searchText,
-                Difficulty: null,
-                Category: null,
-                MinLength: null,
-                MaxLength: null,
+                Search: string.IsNullOrWhiteSpace(_searchText) ? null : _searchText.Trim(),
+                Difficulty: string.IsNullOrWhiteSpace(_difficultyFilter) ? null : _difficultyFilter,
+                Category: string.IsNullOrWhiteSpace(_categoryFilter) ? null : _categoryFilter,
+                MinLength: ParseLength(_minLengthText),
+                MaxLength: ParseLength(_maxLengthText),
                 Page: _currentPage,
                 PageSize: PageSize);
             _words = await AdminService.GetWordsAsync(request);
@@ -217,8 +495,19 @@
         }
     }
 
-    private async Task OnSearchChanged()
+    private async Task ApplyFiltersAsync()
     {
+        _currentPage = 1;
+        await LoadWordsAsync();
+    }
+
+    private async Task ResetFiltersAsync()
+    {
+        _searchText = string.Empty;
+        _difficultyFilter = string.Empty;
+        _categoryFilter = string.Empty;
+        _minLengthText = string.Empty;
+        _maxLengthText = string.Empty;
         _currentPage = 1;
         await LoadWordsAsync();
     }
@@ -241,22 +530,50 @@
         }
     }
 
+    private void ToggleColumnPicker()
+    {
+        _showColumnPicker = !_showColumnPicker;
+    }
+
+    private void OnMinLengthInput(ChangeEventArgs args)
+    {
+        _minLengthText = args.Value?.ToString() ?? string.Empty;
+    }
+
+    private void OnMaxLengthInput(ChangeEventArgs args)
+    {
+        _maxLengthText = args.Value?.ToString() ?? string.Empty;
+    }
+
     private void ShowAddModal()
     {
-        _newWord = string.Empty;
-        _newDifficulty = string.Empty;
-        _newCategory = string.Empty;
-        _showAddModal = true;
+        _editingWordId = null;
+        _formWord = string.Empty;
+        _formDifficulty = DifficultyLevel.Beginner.ToString();
+        _formCategory = WordCategory.Everyday.ToString();
+        _showWordModal = true;
     }
 
-    private void CloseAddModal()
+    private void ShowEditModal(AdminWordDto word)
     {
-        _showAddModal = false;
+        _editingWordId = word.Id;
+        _formWord = word.Word;
+        _formDifficulty = word.Difficulty;
+        _formCategory = string.IsNullOrWhiteSpace(word.Category)
+            ? WordCategory.Everyday.ToString()
+            : word.Category;
+        _showWordModal = true;
     }
 
-    private async Task AddWord()
+    private void CloseWordModal()
     {
-        if (string.IsNullOrWhiteSpace(_newWord) || string.IsNullOrWhiteSpace(_newDifficulty))
+        _showWordModal = false;
+        _editingWordId = null;
+    }
+
+    private async Task SaveWord()
+    {
+        if (string.IsNullOrWhiteSpace(_formWord) || string.IsNullOrWhiteSpace(_formDifficulty))
         {
             return;
         }
@@ -266,31 +583,143 @@
 
         try
         {
-            var request = new AdminWordCreateRequest(
-                Word: _newWord.Trim(),
-                Difficulty: _newDifficulty,
-                Category: string.IsNullOrWhiteSpace(_newCategory) ? null : _newCategory);
-            var result = await AdminService.CreateWordAsync(request);
-            if (result != null)
+            if (_editingWordId.HasValue)
             {
-                ToastService.ShowSuccess(L["Success.WordAdded"]);
-                _showAddModal = false;
-                await LoadWordsAsync();
+                var update = new AdminWordUpdateRequest(_formWord.Trim(), _formDifficulty, _formCategory);
+                var updated = await AdminService.UpdateWordAsync(_editingWordId.Value, update);
+                if (updated == null)
+                {
+                    ToastService.ShowError(L["Error.UpdateFailed"]);
+                    return;
+                }
+
+                ToastService.ShowSuccess(L["Success.WordUpdated"]);
             }
             else
             {
-                ToastService.ShowError(L["Error.AddFailed"]);
+                var create = new AdminWordCreateRequest(_formWord.Trim(), _formDifficulty, _formCategory);
+                var created = await AdminService.CreateWordAsync(create);
+                if (created == null)
+                {
+                    ToastService.ShowError(L["Error.AddFailed"]);
+                    return;
+                }
+
+                ToastService.ShowSuccess(L["Success.WordAdded"]);
             }
+
+            _showWordModal = false;
+            _editingWordId = null;
+            await LoadWordsAsync();
         }
         catch
         {
-            ToastService.ShowError(L["Error.AddFailed"]);
+            ToastService.ShowError(_editingWordId.HasValue ? L["Error.UpdateFailed"] : L["Error.AddFailed"]);
         }
         finally
         {
             _isSaving = false;
             StateHasChanged();
         }
+    }
+
+    private void ShowImportModal()
+    {
+        _importCsv = string.Empty;
+        _lastImportResult = null;
+        _showImportModal = true;
+    }
+
+    private void CloseImportModal()
+    {
+        _showImportModal = false;
+    }
+
+    private async Task ImportWords()
+    {
+        if (string.IsNullOrWhiteSpace(_importCsv))
+        {
+            return;
+        }
+
+        _isImporting = true;
+        StateHasChanged();
+
+        try
+        {
+            _lastImportResult = await AdminService.ImportWordsAsync(_importCsv);
+            if (_lastImportResult == null)
+            {
+                ToastService.ShowError(L["Error.ImportFailed"]);
+                return;
+            }
+
+            ToastService.ShowSuccess(L["Success.Imported"]);
+            await LoadWordsAsync();
+        }
+        catch
+        {
+            ToastService.ShowError(L["Error.ImportFailed"]);
+        }
+        finally
+        {
+            _isImporting = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task ExportWords()
+    {
+        _isExporting = true;
+        StateHasChanged();
+
+        try
+        {
+            var csv = await AdminService.ExportWordsAsync();
+            if (string.IsNullOrWhiteSpace(csv))
+            {
+                ToastService.ShowError(L["Error.ExportFailed"]);
+                return;
+            }
+
+            await JSRuntime.InvokeVoidAsync("lexiQuestAdmin.downloadTextFile", "words-export.csv", "text/csv;charset=utf-8", csv);
+            ToastService.ShowSuccess(L["Success.Exported"]);
+        }
+        catch
+        {
+            ToastService.ShowError(L["Error.ExportFailed"]);
+        }
+        finally
+        {
+            _isExporting = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task ShowStatsDrawer()
+    {
+        _showStatsDrawer = true;
+        _isLoadingStats = true;
+        StateHasChanged();
+
+        try
+        {
+            _wordStats = await AdminService.GetWordStatsAsync();
+        }
+        catch
+        {
+            ToastService.ShowError(L["Error.StatsFailed"]);
+        }
+        finally
+        {
+            _isLoadingStats = false;
+            StateHasChanged();
+        }
+    }
+
+    private void CloseStatsDrawer()
+    {
+        _showStatsDrawer = false;
     }
 
     private void ShowDeleteConfirm(AdminWordDto word)
@@ -307,7 +736,10 @@
 
     private async Task ConfirmDelete()
     {
-        if (_wordToDelete == null) return;
+        if (_wordToDelete == null)
+        {
+            return;
+        }
 
         _isDeleting = true;
         StateHasChanged();
@@ -338,12 +770,51 @@
         }
     }
 
+    private string FormatDifficulty(string? difficulty) => difficulty switch
+    {
+        nameof(DifficultyLevel.Beginner) => L["Difficulty.Beginner"],
+        nameof(DifficultyLevel.Intermediate) => L["Difficulty.Intermediate"],
+        nameof(DifficultyLevel.Advanced) => L["Difficulty.Advanced"],
+        nameof(DifficultyLevel.Expert) => L["Difficulty.Expert"],
+        _ => difficulty ?? "-"
+    };
+
+    private string FormatCategory(string? category) => category switch
+    {
+        nameof(WordCategory.Animals) => L["Category.Animals"],
+        nameof(WordCategory.Food) => L["Category.Food"],
+        nameof(WordCategory.Science) => L["Category.Science"],
+        nameof(WordCategory.Nature) => L["Category.Nature"],
+        nameof(WordCategory.Sports) => L["Category.Sports"],
+        nameof(WordCategory.Technology) => L["Category.Technology"],
+        nameof(WordCategory.History) => L["Category.History"],
+        nameof(WordCategory.Art) => L["Category.Art"],
+        nameof(WordCategory.Music) => L["Category.Music"],
+        nameof(WordCategory.Geography) => L["Category.Geography"],
+        nameof(WordCategory.Everyday) => L["Category.Everyday"],
+        nameof(WordCategory.Abstract) => L["Category.Abstract"],
+        nameof(WordCategory.Colors) => L["Category.Colors"],
+        nameof(WordCategory.Household) => L["Category.Household"],
+        nameof(WordCategory.Professions) => L["Category.Professions"],
+        nameof(WordCategory.Transport) => L["Category.Transport"],
+        nameof(WordCategory.Body) => L["Category.Body"],
+        nameof(WordCategory.Clothing) => L["Category.Clothing"],
+        nameof(WordCategory.Weather) => L["Category.Weather"],
+        nameof(WordCategory.Time) => L["Category.Time"],
+        _ => category ?? "-"
+    };
+
     private static BadgeVariant GetDifficultyVariant(string difficulty) => difficulty switch
     {
-        "Easy" => BadgeVariant.Success,
-        "Medium" => BadgeVariant.Warning,
-        "Hard" => BadgeVariant.Danger,
-        "Expert" => BadgeVariant.Danger,
+        nameof(DifficultyLevel.Beginner) => BadgeVariant.Success,
+        nameof(DifficultyLevel.Intermediate) => BadgeVariant.Warning,
+        nameof(DifficultyLevel.Advanced) => BadgeVariant.Danger,
+        nameof(DifficultyLevel.Expert) => BadgeVariant.Danger,
         _ => BadgeVariant.Default
     };
+
+    private static int? ParseLength(string value)
+    {
+        return int.TryParse(value, out var parsed) && parsed > 0 ? parsed : null;
+    }
 }

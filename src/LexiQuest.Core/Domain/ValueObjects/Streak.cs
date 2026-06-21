@@ -25,25 +25,39 @@ public class Streak
         if (LastActivityDate == null)
         {
             CurrentDays = 1;
-            LastActivityDate = today;
         }
         else if (LastActivityDate.Value.Date == today)
         {
-            // Already recorded today
+            LastActivityDate = utcNow;
             return;
         }
-        else if (LastActivityDate.Value.Date == today.AddDays(-1))
+        else if (utcNow - LastActivityDate.Value <= TimeSpan.FromHours(48))
         {
-            // Consecutive day
             CurrentDays++;
-            LastActivityDate = today;
         }
         else
         {
-            // Streak broken
             CurrentDays = 1;
-            LastActivityDate = today;
         }
+
+        LastActivityDate = utcNow;
+
+        if (CurrentDays > LongestDays)
+        {
+            LongestDays = CurrentDays;
+        }
+    }
+
+    public void RecordProtectedActivity(DateTime utcNow)
+    {
+        if (LastActivityDate?.Date == utcNow.Date)
+        {
+            LastActivityDate = utcNow;
+            return;
+        }
+
+        CurrentDays = CurrentDays <= 0 ? 1 : CurrentDays + 1;
+        LastActivityDate = utcNow;
 
         if (CurrentDays > LongestDays)
         {

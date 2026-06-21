@@ -1,9 +1,13 @@
 @inherits LayoutComponentBase
 
 <div class="landing-layout">
+    <OfflineBanner />
+
     <main>
         @Body
     </main>
+
+    <InstallPrompt />
 </div>
 
 <style>

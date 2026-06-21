@@ -1,7 +1,7 @@
 @using LexiQuest.Shared.DTOs.Streak
 @inject IStringLocalizer<StreakIndicator> L
 
-<div class="streak-indicator @GetFireLevelClass()">
+<div class="streak-indicator @GetFireLevelClass()" data-testid="@TestId">
     <div class="streak-main">
         <div class="streak-flames">
             @for (int i = 0; i < GetFireCount(); i++)
@@ -13,15 +13,15 @@
             <span class="streak-days">@GetStreakText()</span>
             @if (IsAtRisk)
             {
-                <span class="streak-risk">⚠️ @L["AtRisk"]</span>
+                <span class="streak-risk" data-testid="@RiskTestId">⚠️ @L["AtRisk"]</span>
             }
         </div>
     </div>
 
     @if (TimeRemaining.HasValue)
     {
-        <div class="streak-timer">
-            @L["TimeRemaining"]: @TimeRemaining.Value.ToString("hh\\:mm")
+        <div class="streak-timer" data-testid="@TimerTestId">
+            @L["TimeRemaining"]: @FormatTimeRemaining(TimeRemaining.Value)
         </div>
     }
 
@@ -32,7 +32,7 @@
             @* Active Shield *@
             @if (ShieldProtection.HasActiveShield)
             {
-                <div class="shield-active">
+                <div class="shield-active" data-testid="@ShieldActiveTestId">
                     <span class="shield-icon">🛡️</span>
                     <span class="shield-text">@L["ShieldActive"]</span>
                 </div>
@@ -40,7 +40,7 @@
             else if (ShieldProtection.ShieldsRemaining > 0)
             {
                 @* Available Shields *@
-                <div class="shield-available">
+                <div class="shield-available" data-testid="@ShieldsRemainingTestId">
                     <span class="shield-icon">🛡️</span>
                     <span class="shield-count">@ShieldProtection.ShieldsRemaining @L["ShieldsRemaining"]</span>
                 </div>
@@ -48,7 +48,7 @@
             else if (ShieldProtection.CanActivateFreeShield)
             {
                 @* Free Shield Available *@
-                <button class="shield-activate-btn tm-btn tm-btn--primary tm-btn--sm" @onclick="OnActivateShield">
+                <button class="shield-activate-btn tm-btn tm-btn--primary tm-btn--sm" data-testid="@ShieldActivateTestId" @onclick="OnActivateShield">
                     <span>🛡️</span>
                     <span>@L["ActivateShield"]</span>
                     <span class="shield-badge">@L["FreeShieldAvailable"]</span>
@@ -59,7 +59,7 @@
                 @* Premium Shield Available *@
                 @if (GetDaysUntilNextShield() <= 0)
                 {
-                    <button class="shield-activate-btn tm-btn tm-btn--primary tm-btn--sm" @onclick="OnActivateShield">
+                    <button class="shield-activate-btn tm-btn tm-btn--primary tm-btn--sm" data-testid="@ShieldActivateTestId" @onclick="OnActivateShield">
                         <span>🛡️</span>
                         <span>@L["ActivateShield"]</span>
                         <span class="shield-badge premium">@L["PremiumShieldAvailable"]</span>
@@ -69,14 +69,14 @@
                 {
                     <div class="shield-countdown">
                         <span>🛡️</span>
-                        <span>@L["NextShieldAvailable"]: @GetDaysUntilNextShield() @L["Days"]</span>
+                        <span>@L["NextShieldAvailable"]: @GetShieldCooldownText()</span>
                     </div>
                 }
             }
             else if (OnBuyShields.HasDelegate)
             {
                 @* Buy Shields Option *@
-                <button class="buy-shields-btn tm-btn tm-btn--outline tm-btn--sm" @onclick="OnBuyShields">
+                <button class="buy-shields-btn tm-btn tm-btn--outline tm-btn--sm" data-testid="@ShieldBuyTestId" @onclick="OnBuyShields">
                     <span>🛡️</span>
                     <span>@L["BuyShields"]</span>
                 </button>
@@ -85,7 +85,7 @@
             <!-- Freeze Badge (Premium) -->
             @if (IsPremium && !ShieldProtection.FreezeUsedThisWeek)
             {
-                <div class="freeze-badge">
+                <div class="freeze-badge" data-testid="@FreezeBadgeTestId">
                     <span>❄️</span>
                     <span>@L["FreezeAvailable"]</span>
                 </div>
@@ -119,6 +119,30 @@
     [Parameter]
     public EventCallback OnBuyShields { get; set; }
 
+    [Parameter]
+    public string TestId { get; set; } = "streak-indicator";
+
+    [Parameter]
+    public string RiskTestId { get; set; } = "streak-risk";
+
+    [Parameter]
+    public string TimerTestId { get; set; } = "streak-timer";
+
+    [Parameter]
+    public string ShieldActivateTestId { get; set; } = "streak-shield-activate";
+
+    [Parameter]
+    public string ShieldActiveTestId { get; set; } = "streak-shield-active";
+
+    [Parameter]
+    public string ShieldBuyTestId { get; set; } = "streak-shield-buy";
+
+    [Parameter]
+    public string ShieldsRemainingTestId { get; set; } = "streak-shields-remaining";
+
+    [Parameter]
+    public string FreezeBadgeTestId { get; set; } = "streak-freeze-badge";
+
     private string GetFireLevelClass()
     {
         return FireLevel.ToLower() switch
@@ -147,13 +171,40 @@
 
     private string GetStreakText()
     {
-        return CurrentDays == 1 ? $"1 {L["StreakDays"]}" : $"{CurrentDays} {L["StreakDays"]}";
+        return $"{CurrentDays} {GetStreakDaysLabel(CurrentDays)}";
+    }
+
+    private static string FormatTimeRemaining(TimeSpan value)
+    {
+        var totalHours = Math.Max(0, (int)Math.Floor(value.TotalHours));
+        return $"{totalHours:00}:{value.Minutes:00}";
     }
 
     private int GetDaysUntilNextShield()
     {
-        if (ShieldProtection?.NextShieldAvailableAt.HasValue != true)
+        var nextShieldAvailableAt = ShieldProtection?.NextShieldAvailableAt;
+        if (!nextShieldAvailableAt.HasValue)
             return 0;
-        return (ShieldProtection.NextShieldAvailableAt.Value - DateTime.UtcNow).Days;
+        return (nextShieldAvailableAt.Value - DateTime.UtcNow).Days;
+    }
+
+    private string GetShieldCooldownText()
+    {
+        var days = GetDaysUntilNextShield();
+        return $"{days} {GetDaysLabel(days)}";
+    }
+
+    private string GetDaysLabel(int days)
+    {
+        if (days == 1) return L["Days.One"].Value;
+        if (days >= 2 && days <= 4) return L["Days.Few"].Value;
+        return L["Days.Many"].Value;
+    }
+
+    private string GetStreakDaysLabel(int days)
+    {
+        if (days == 1) return L["StreakDays.One"].Value;
+        if (days >= 2 && days <= 4) return L["StreakDays.Few"].Value;
+        return L["StreakDays.Many"].Value;
     }
 }

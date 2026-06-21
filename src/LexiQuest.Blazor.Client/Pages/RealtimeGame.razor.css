@@ -14,6 +14,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 1rem;
     padding: 1rem;
     background: white;
     border-radius: var(--tm-radius-lg);
@@ -41,10 +42,18 @@
 }
 
 .word-progress {
+    flex-shrink: 0;
     font-size: var(--tm-font-size-lg);
     font-weight: var(--tm-font-weight-semibold);
     color: var(--tm-color-gray-800);
     text-align: center;
+    white-space: nowrap;
+}
+
+.forfeit-button {
+    flex-shrink: 0;
+    min-width: 4.5rem;
+    padding: 0.45rem 0.8rem;
 }
 
 /* Players Container */

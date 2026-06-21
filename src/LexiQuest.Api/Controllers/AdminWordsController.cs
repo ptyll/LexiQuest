@@ -65,7 +65,7 @@ public class AdminWordsController : ControllerBase
 
     [HttpPost("import")]
     [ProducesResponseType(typeof(BulkImportResult), StatusCodes.Status200OK)]
-    public async Task<ActionResult<BulkImportResult>> ImportWords([FromBody] ImportRequest request, CancellationToken cancellationToken)
+    public async Task<ActionResult<BulkImportResult>> ImportWords([FromBody] AdminWordImportRequest request, CancellationToken cancellationToken)
     {
         var result = await _adminWordService.BulkImportAsync(request.CsvContent, cancellationToken);
         return Ok(result);
@@ -87,5 +87,3 @@ public class AdminWordsController : ControllerBase
         return Ok(stats);
     }
 }
-
-public record ImportRequest(string CsvContent);

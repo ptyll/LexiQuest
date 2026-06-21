@@ -29,6 +29,10 @@ public class RealtimeGamePageTests : TestContext
         _localizer["Game_Button_Submit"].Returns(new LocalizedString("Game_Button_Submit", "Odeslat"));
         _localizer["Game_Combo_Label"].Returns(new LocalizedString("Game_Combo_Label", "🔥 x{0}"));
         _localizer["Game_Timer_Format"].Returns(new LocalizedString("Game_Timer_Format", "{0}:{1:D2}"));
+        _localizer["Game_Feedback_Correct"].Returns(new LocalizedString("Game_Feedback_Correct", "Správně!"));
+        _localizer["Game_Feedback_Wrong"].Returns(new LocalizedString("Game_Feedback_Wrong", "Špatně!"));
+
+        _matchHubClient.JoinMatchAsync(Arg.Any<Guid>()).Returns(Task.FromResult(true));
         
         Services.AddSingleton(_matchHubClient);
         Services.AddSingleton(_localizer);
@@ -82,5 +86,4 @@ public class RealtimeGamePageTests : TestContext
         cut.Find(".score-opponent").TextContent.Should().Contain("5");
     }
 }
-
 

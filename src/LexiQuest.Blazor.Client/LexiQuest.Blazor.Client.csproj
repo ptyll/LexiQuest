@@ -9,6 +9,7 @@
     <!-- Bundle optimization -->
     <BlazorWebAssemblyEnableLinking>true</BlazorWebAssemblyEnableLinking>
     <BlazorEnableCompression>true</BlazorEnableCompression>
+    <BlazorWebAssemblyLoadAllGlobalizationData>true</BlazorWebAssemblyLoadAllGlobalizationData>
   </PropertyGroup>
 
   <ItemGroup>
@@ -17,8 +18,9 @@
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="10.0.5" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.5" />
     <PackageReference Include="Microsoft.Extensions.Localization" Version="10.0.5" />
-    <PackageReference Include="Tempo.Blazor" Version="1.1.0" />
-    <PackageReference Include="Tempo.Blazor.FluentValidation" Version="1.1.0" />
+    <PackageReference Include="Tempo.Blazor" Version="1.1.15" />
+    <PackageReference Include="Tempo.Blazor.Abstractions" Version="1.1.15" />
+    <PackageReference Include="Tempo.Blazor.FluentValidation" Version="1.1.15" />
   </ItemGroup>
 
   <ItemGroup>

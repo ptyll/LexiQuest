@@ -2,6 +2,7 @@ using Bunit;
 using FluentAssertions;
 using LexiQuest.Blazor.Pages;
 using LexiQuest.Blazor.Services;
+using LexiQuest.Shared.DTOs.Notifications;
 using LexiQuest.Shared.DTOs.Users;
 using LexiQuest.Shared.Enums;
 using Microsoft.AspNetCore.Components;
@@ -18,6 +19,7 @@ public class SettingsPageTests : TestContext
 {
     private readonly IStringLocalizer<Settings> _localizer;
     private readonly IUserService _userService;
+    private readonly INotificationService _notificationService;
 
     public SettingsPageTests()
     {
@@ -25,8 +27,23 @@ public class SettingsPageTests : TestContext
         _localizer[Arg.Any<string>()].Returns(ci => new LocalizedString(ci.Arg<string>(), ci.Arg<string>()));
         
         _userService = Substitute.For<IUserService>();
+        _notificationService = Substitute.For<INotificationService>();
+        _notificationService.GetPreferencesAsync().Returns(new NotificationPreferenceDto(
+            true,
+            true,
+            true,
+            TimeSpan.FromHours(20),
+            true,
+            true,
+            true));
+        _notificationService.UpdatePreferencesAsync(Arg.Any<UpdatePreferencesRequest>())
+            .Returns(Task.CompletedTask);
+        _notificationService.SavePushSubscriptionAsync(Arg.Any<PushSubscriptionDto>())
+            .Returns(Task.CompletedTask);
         Services.AddSingleton(_localizer);
         Services.AddSingleton(_userService);
+        Services.AddSingleton(_notificationService);
+        Services.AddSingleton(Substitute.For<IAuthService>());
         Services.AddSingleton(Substitute.For<NavigationManager>());
         Services.AddSingleton(new ToastService());
         Services.AddSingleton(Substitute.For<ITmLocalizer>());
@@ -74,12 +91,13 @@ public class SettingsPageTests : TestContext
         var profile = CreateTestProfile();
         _userService.GetProfileAsync().Returns(profile);
         _userService.UpdateProfileAsync(Arg.Any<UpdateProfileRequest>()).Returns(true);
+        _userService.IsUsernameAvailableAsync("newusername", Arg.Any<CancellationToken>()).Returns(true);
 
         var cut = Render<Settings>();
 
         // Act
         var usernameInput = cut.Find("[data-testid='username-input'] input");
-        usernameInput.Input("newusername");
+        usernameInput.Change("newusername");
         
         var saveButton = cut.Find("[data-testid='save-profile-btn'] button");
         await saveButton.ClickAsync();
@@ -115,9 +133,9 @@ public class SettingsPageTests : TestContext
         var cut = Render<Settings>();
 
         // Act
-        cut.Find("[data-testid='current-password-input'] input").Input("OldPass123!");
-        cut.Find("[data-testid='new-password-input'] input").Input("NewPass123!");
-        cut.Find("[data-testid='confirm-password-input'] input").Input("NewPass123!");
+        cut.Find("[data-testid='current-password-input'] input").Change("OldPass123!");
+        cut.Find("[data-testid='new-password-input'] input").Change("NewPass123!");
+        cut.Find("[data-testid='confirm-password-input'] input").Change("NewPass123!");
         
         var changeBtn = cut.Find("[data-testid='change-password-btn'] button");
         await changeBtn.ClickAsync();
@@ -141,6 +159,114 @@ public class SettingsPageTests : TestContext
         cut.Find("[data-testid='email-notifications-toggle']").Should().NotBeNull();
         cut.Find("[data-testid='animations-toggle']").Should().NotBeNull();
         cut.Find("[data-testid='sounds-toggle']").Should().NotBeNull();
+    }
+
+    [Fact]
+    public void SettingsPage_Preferences_LoadsNotificationPreferences()
+    {
+        // Arrange
+        var profile = CreateTestProfile();
+        profile.Preferences.PushNotificationsEnabled = true;
+        profile.Preferences.EmailNotificationsEnabled = true;
+        profile.Preferences.LeagueUpdatesEnabled = true;
+        profile.Preferences.AchievementNotificationsEnabled = true;
+        profile.Preferences.DailyChallengeReminderEnabled = true;
+
+        _userService.GetProfileAsync().Returns(profile);
+        _notificationService.GetPreferencesAsync().Returns(new NotificationPreferenceDto(
+            false,
+            false,
+            true,
+            TimeSpan.FromHours(19).Add(TimeSpan.FromMinutes(30)),
+            false,
+            false,
+            false));
+
+        // Act
+        var cut = Render<Settings>();
+
+        // Assert
+        IsChecked(cut, "[data-testid='push-notifications-toggle']").Should().BeFalse();
+        IsChecked(cut, "[data-testid='email-notifications-toggle']").Should().BeFalse();
+        IsChecked(cut, "[data-testid='league-updates-toggle']").Should().BeFalse();
+        IsChecked(cut, "[data-testid='achievement-notifications-toggle']").Should().BeFalse();
+        IsChecked(cut, "[data-testid='daily-challenge-reminder-toggle']").Should().BeFalse();
+        cut.Find("[data-testid='streak-reminder-time-input'] input")
+            .GetAttribute("value")
+            .Should()
+            .Be("19:30");
+    }
+
+    [Fact]
+    public async Task SettingsPage_Preferences_SaveUpdatesNotificationPreferences()
+    {
+        // Arrange
+        var profile = CreateTestProfile();
+        _userService.GetProfileAsync().Returns(profile);
+        _userService.UpdatePreferencesAsync(Arg.Any<UserPreferencesDto>()).Returns(true);
+
+        var cut = Render<Settings>();
+
+        // Act
+        cut.Find("[data-testid='push-notifications-toggle'] input").Change(false);
+        cut.Find("[data-testid='email-notifications-toggle'] input").Change(false);
+        cut.Find("[data-testid='league-updates-toggle'] input").Change(false);
+        cut.Find("[data-testid='achievement-notifications-toggle'] input").Change(false);
+        cut.Find("[data-testid='daily-challenge-reminder-toggle'] input").Change(false);
+        cut.Find("[data-testid='streak-reminder-time-input'] input").Change("07:05");
+
+        await cut.Find("[data-testid='save-preferences-btn'] button").ClickAsync();
+
+        // Assert
+        await _userService.Received(1).UpdatePreferencesAsync(Arg.Is<UserPreferencesDto>(p =>
+            !p.PushNotificationsEnabled
+            && !p.EmailNotificationsEnabled
+            && !p.LeagueUpdatesEnabled
+            && !p.AchievementNotificationsEnabled
+            && !p.DailyChallengeReminderEnabled
+            && p.StreakReminderTime == TimeSpan.FromHours(7).Add(TimeSpan.FromMinutes(5))));
+
+        await _notificationService.Received(1).UpdatePreferencesAsync(Arg.Is<UpdatePreferencesRequest>(r =>
+            !r.PushEnabled
+            && !r.EmailEnabled
+            && r.StreakReminder
+            && r.StreakReminderTime == TimeSpan.FromHours(7).Add(TimeSpan.FromMinutes(5))
+            && !r.LeagueUpdates
+            && !r.AchievementNotifications
+            && !r.DailyChallengeReminder));
+    }
+
+    [Fact]
+    public async Task SettingsPage_PushNotifications_EnableRequestsAndStoresSubscription()
+    {
+        // Arrange
+        var profile = CreateTestProfile();
+        _userService.GetProfileAsync().Returns(profile);
+        _notificationService.GetPreferencesAsync().Returns(new NotificationPreferenceDto(
+            false,
+            true,
+            true,
+            TimeSpan.FromHours(20),
+            true,
+            true,
+            true));
+
+        var subscription = new PushSubscriptionDto(
+            "https://push.lexiquest.test/unit",
+            "unit-p256dh",
+            "unit-auth");
+        JSInterop
+            .Setup<PushSubscriptionDto?>("lexiQuestPush.requestSubscription")
+            .SetResult(subscription);
+
+        var cut = Render<Settings>();
+
+        // Act
+        await cut.Find("[data-testid='push-notifications-toggle'] input").ChangeAsync(true);
+
+        // Assert
+        await _notificationService.Received(1).SavePushSubscriptionAsync(subscription);
+        IsChecked(cut, "[data-testid='push-notifications-toggle']").Should().BeTrue();
     }
 
     [Fact]
@@ -181,5 +307,10 @@ public class SettingsPageTests : TestContext
                 LeaderboardVisible = true
             }
         };
+    }
+
+    private static bool IsChecked(IRenderedComponent<Settings> cut, string testId)
+    {
+        return cut.Find($"{testId} input").HasAttribute("checked");
     }
 }

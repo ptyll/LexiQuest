@@ -12,6 +12,10 @@ public interface IUserRepository
     Task<bool> ExistsByUsernameAsync(string username, CancellationToken cancellationToken = default);
     Task AddAsync(User user, CancellationToken cancellationToken = default);
     void Update(User user);
+    void Delete(User user);
+    Task<List<User>> GetAllAsync(CancellationToken cancellationToken = default);
+    Task<int> CountAsync(CancellationToken cancellationToken = default);
+    Task<int> CountActiveSinceAsync(DateTime sinceUtc, CancellationToken cancellationToken = default);
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     Task<List<User>> GetUsersWithStreakNotPlayedTodayAsync(CancellationToken cancellationToken = default);
     Task<List<User>> GetActiveUsersAsync(CancellationToken cancellationToken = default);

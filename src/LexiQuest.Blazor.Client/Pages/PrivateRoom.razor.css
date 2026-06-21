@@ -1,0 +1,24 @@
+.private-room-page {
+    min-height: 100%;
+    padding: var(--spacing-xl);
+}
+
+.private-room-loading {
+    min-height: 18rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-md);
+    color: var(--color-text-secondary);
+}
+
+.private-room-error {
+    max-width: 44rem;
+    margin: var(--spacing-xl) auto var(--spacing-md);
+}
+
+@media (max-width: 768px) {
+    .private-room-page {
+        padding: var(--spacing-md);
+    }
+}

@@ -3,8 +3,10 @@ using LexiQuest.Core.Domain.Entities;
 using LexiQuest.Core.Domain.ValueObjects;
 using LexiQuest.Core.Interfaces;
 using LexiQuest.Core.Interfaces.Repositories;
+using LexiQuest.Core.Interfaces.Services;
 using LexiQuest.Core.Services;
 using LexiQuest.Shared.DTOs.Auth;
+using LexiQuest.Shared.DTOs.Game;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Localization;
 using NSubstitute;
@@ -18,6 +20,9 @@ public class UserServiceTests
     private readonly IStringLocalizer<UserService> _localizer;
     private readonly IPasswordHasher<User> _passwordHasher;
     private readonly ITokenService _tokenService;
+    private readonly IEmailService _emailService;
+    private readonly IGuestProgressTransferService _guestProgressTransferService;
+    private readonly ILeagueService _leagueService;
     private readonly UserService _sut;
 
     public UserServiceTests()
@@ -27,9 +32,13 @@ public class UserServiceTests
         _localizer = Substitute.For<IStringLocalizer<UserService>>();
         _passwordHasher = Substitute.For<IPasswordHasher<User>>();
         _tokenService = Substitute.For<ITokenService>();
+        _emailService = Substitute.For<IEmailService>();
+        _guestProgressTransferService = Substitute.For<IGuestProgressTransferService>();
+        _leagueService = Substitute.For<ILeagueService>();
         
         _localizer["Error.EmailAlreadyExists"].Returns(new LocalizedString("Error.EmailAlreadyExists", "Tento email je již registrován"));
         _localizer["Error.UsernameAlreadyExists"].Returns(new LocalizedString("Error.UsernameAlreadyExists", "Toto uživatelské jméno je již obsazeno"));
+        _localizer["Error.GuestProgressInvalid"].Returns(new LocalizedString("Error.GuestProgressInvalid", "Pokrok z hraní jako host už nelze přenést."));
 
         _passwordHasher.HashPassword(Arg.Any<User>(), Arg.Any<string>())
             .Returns((callInfo) => "hashed_" + callInfo.ArgAt<string>(1));
@@ -37,7 +46,15 @@ public class UserServiceTests
         _tokenService.GenerateAccessToken(Arg.Any<User>()).Returns("test-access-token");
         _tokenService.GenerateRefreshToken().Returns("test-refresh-token");
 
-        _sut = new UserService(_userRepository, _unitOfWork, _passwordHasher, _localizer, _tokenService);
+        _sut = new UserService(
+            _userRepository,
+            _unitOfWork,
+            _passwordHasher,
+            _localizer,
+            _tokenService,
+            _emailService,
+            _guestProgressTransferService,
+            _leagueService);
     }
 
     [Fact]
@@ -66,6 +83,12 @@ public class UserServiceTests
         result.Value.User.Username.Should().Be(request.Username);
         await _userRepository.Received(1).AddAsync(Arg.Any<User>(), Arg.Any<CancellationToken>());
         await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+        await _leagueService.Received(1).AssignUserToLeagueAsync(
+            Arg.Any<Guid>(),
+            Arg.Is<DateTime>(d => d.DayOfWeek == DayOfWeek.Monday && d.TimeOfDay == TimeSpan.Zero),
+            Arg.Is<DateTime>(d => d.DayOfWeek == DayOfWeek.Monday && d.TimeOfDay == TimeSpan.Zero),
+            Arg.Any<CancellationToken>());
+        await _emailService.Received(1).SendWelcomeEmailAsync(request.Email, request.Username, Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -149,6 +172,69 @@ public class UserServiceTests
                 u.Preferences != null &&
                 u.Premium != null), 
             Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task UserService_Register_WithGuestProgressToken_TransfersXpAndSolvedWords()
+    {
+        // Arrange
+        var request = new RegisterRequest
+        {
+            Email = "guest@example.com",
+            Username = "guestuser",
+            Password = "Strong1!Pass",
+            ConfirmPassword = "Strong1!Pass",
+            AcceptTerms = true,
+            GuestProgressToken = "guest-transfer-token"
+        };
+
+        _userRepository.GetByEmailAsync(request.Email, Arg.Any<CancellationToken>()).Returns((User?)null);
+        _userRepository.GetByUsernameAsync(request.Username, Arg.Any<CancellationToken>()).Returns((User?)null);
+        _guestProgressTransferService
+            .ConsumeTransferToken(request.GuestProgressToken)
+            .Returns(new GuestSessionProgress(TotalXp: 86, WordsSolved: 5));
+
+        // Act
+        var result = await _sut.RegisterAsync(request);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value!.User.TotalXP.Should().Be(86);
+        await _userRepository.Received(1).AddAsync(
+            Arg.Is<User>(user =>
+                user.Stats.TotalXP == 86
+                && user.Stats.TotalWordsSolved == 5
+                && user.Stats.Accuracy == 100),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task UserService_Register_WithInvalidGuestProgressToken_ReturnsFailure()
+    {
+        // Arrange
+        var request = new RegisterRequest
+        {
+            Email = "guest@example.com",
+            Username = "guestuser",
+            Password = "Strong1!Pass",
+            ConfirmPassword = "Strong1!Pass",
+            AcceptTerms = true,
+            GuestProgressToken = "invalid-transfer-token"
+        };
+
+        _userRepository.GetByEmailAsync(request.Email, Arg.Any<CancellationToken>()).Returns((User?)null);
+        _userRepository.GetByUsernameAsync(request.Username, Arg.Any<CancellationToken>()).Returns((User?)null);
+        _guestProgressTransferService
+            .ConsumeTransferToken(request.GuestProgressToken)
+            .Returns((GuestSessionProgress?)null);
+
+        // Act
+        var result = await _sut.RegisterAsync(request);
+
+        // Assert
+        result.IsSuccess.Should().BeFalse();
+        result.Error.Code.Should().Be("GuestProgress.Invalid");
+        await _userRepository.DidNotReceive().AddAsync(Arg.Any<User>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]

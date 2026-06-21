@@ -78,29 +78,26 @@ public class GuestLimiterTests : IDisposable
     [Fact]
     public void CanStartGame_After24h_ResetsCounter()
     {
-        // This test is difficult to simulate with real MemoryCache
-        // We'll verify the logic works by checking the status before and after would reset
         // Arrange
         var ipAddress = "192.168.1.4";
+        var timeProvider = new ManualTimeProvider(DateTimeOffset.UtcNow);
+        var limiter = new GuestLimiter(_memoryCache, timeProvider);
         
         // Play 5 games
         for (int i = 0; i < 5; i++)
         {
-            _limiter.RecordGame(ipAddress);
+            limiter.RecordGame(ipAddress);
         }
 
         // Verify limit reached
-        var statusBefore = _limiter.GetStatus(ipAddress);
+        var statusBefore = limiter.GetStatus(ipAddress);
         statusBefore.Remaining.Should().Be(0);
 
-        // Act - in real scenario, 24h passes and counter resets
-        // We simulate by manually removing the cache entries (simulating expiration)
-        _memoryCache.Remove($"guest_games_count_{ipAddress}");
-        _memoryCache.Remove($"guest_games_last_{ipAddress}");
+        timeProvider.Advance(TimeSpan.FromHours(24).Add(TimeSpan.FromMinutes(1)));
 
-        var result = _limiter.CanStartGame(ipAddress);
+        var result = limiter.CanStartGame(ipAddress);
 
-        // Assert - counter reset, so new game allowed
+        // Assert
         result.Allowed.Should().BeTrue();
         result.RemainingGames.Should().Be(4); // Counter reset, so 4 remaining after this game
     }
@@ -139,5 +136,19 @@ public class GuestLimiterTests : IDisposable
         result.TotalAllowed.Should().Be(5);
         result.Used.Should().Be(3);
         result.Remaining.Should().Be(2);
+    }
+
+    private sealed class ManualTimeProvider : TimeProvider
+    {
+        private DateTimeOffset _utcNow;
+
+        public ManualTimeProvider(DateTimeOffset utcNow)
+        {
+            _utcNow = utcNow;
+        }
+
+        public override DateTimeOffset GetUtcNow() => _utcNow;
+
+        public void Advance(TimeSpan offset) => _utcNow = _utcNow.Add(offset);
     }
 }

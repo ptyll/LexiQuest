@@ -13,5 +13,8 @@ public record ScrambledWordDto(
     DifficultyLevel Difficulty,
     int TimeLimitSeconds,
     int TotalRounds,
-    int LivesRemaining
+    int LivesRemaining,
+    int MaxLives = 5,
+    bool IsInfiniteLives = false,
+    DateTime? NextLifeRegenAt = null
 );

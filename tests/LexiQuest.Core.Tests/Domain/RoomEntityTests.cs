@@ -81,6 +81,21 @@ public class RoomEntityTests
     }
 
     [Fact]
+    public void Room_Expire_MarksRoomExpiredAndMovesExpiryToPast()
+    {
+        // Arrange
+        var room = Room.Create(Guid.NewGuid(), "Player1", DefaultSettings);
+
+        // Act
+        room.Expire();
+
+        // Assert
+        room.Status.Should().Be(RoomStatus.Expired);
+        room.IsExpired.Should().BeTrue();
+        room.ExpiresAt.Should().BeBefore(DateTime.UtcNow);
+    }
+
+    [Fact]
     public void Room_Create_SetsDefaultValues()
     {
         // Act

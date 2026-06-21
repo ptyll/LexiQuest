@@ -62,10 +62,10 @@ public record GuestStatusResponse(
 /// </summary>
 public record GuestConvertRequest(
     Guid SessionId,
-    string Email,
-    string Username,
-    string Password,
-    bool TransferProgress
+    string? Email = null,
+    string? Username = null,
+    string? Password = null,
+    bool TransferProgress = true
 );
 
 /// <summary>
@@ -76,7 +76,8 @@ public record GuestConvertResponse(
     string? UserId,
     string? Message,
     int TransferredXp,
-    int TransferredWordsSolved
+    int TransferredWordsSolved,
+    string? TransferToken = null
 );
 
 /// <summary>

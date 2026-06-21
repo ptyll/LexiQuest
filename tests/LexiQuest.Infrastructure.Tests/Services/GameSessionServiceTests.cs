@@ -160,6 +160,48 @@ public class GameSessionServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task GameSessionService_SubmitAnswer_LargeXpGain_ReturnsMultiLevelXpEvent()
+    {
+        // Arrange
+        const int initialXp = 50;
+        const int xpGain = 500;
+        var user = User.Create("multilevel@test.local", "multilevel");
+        user.SetId(Guid.NewGuid());
+        user.SetPasswordHash("test-password-hash");
+        user.Stats.AddXP(initialXp);
+        _context.Users.Add(user);
+        await _context.SaveChangesAsync();
+
+        var gameSessionService = new GameSessionService(
+            _context,
+            _wordRepository,
+            new FixedXpCalculator(xpGain),
+            new LevelCalculator());
+
+        var startRequest = new StartGameRequest(Mode: GameMode.Training, Difficulty: DifficultyLevel.Beginner);
+        var gameState = await gameSessionService.StartGameAsync(user.Id, startRequest);
+        var correctAnswer = GetCorrectAnswer(gameState.SessionId, gameState.RoundNumber);
+
+        // Act
+        var result = await gameSessionService.SubmitAnswerAsync(user.Id, new SubmitAnswerRequest
+        {
+            SessionId = gameState.SessionId,
+            Answer = correctAnswer,
+            TimeSpentMs = 5000
+        });
+
+        // Assert
+        result.IsCorrect.Should().BeTrue();
+        result.XPEarned.Should().Be(xpGain);
+        result.XpEvent.Should().NotBeNull();
+        result.XpEvent!.LeveledUp.Should().BeTrue();
+        result.XpEvent.NewLevel.Should().Be(4);
+        result.XpEvent.TotalXP.Should().Be(initialXp + xpGain);
+        result.XpEvent.Unlocks.Should().Contain(u => u.Type == "Path" && u.Name == "Intermediate");
+        user.Stats.Level.Should().Be(4);
+    }
+
+    [Fact]
     public async Task GameSessionService_SubmitAnswer_Wrong_ResetsCombo()
     {
         // Arrange - First answer correctly to build combo
@@ -188,10 +230,10 @@ public class GameSessionServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task GameSessionService_SubmitAnswer_Wrong_DecreasesLife()
+    public async Task GameSessionService_SubmitAnswer_WrongInTimeAttack_DecreasesLife()
     {
         // Arrange
-        var startRequest = new StartGameRequest(Mode: GameMode.Training, Difficulty: DifficultyLevel.Beginner);
+        var startRequest = new StartGameRequest(Mode: GameMode.TimeAttack, Difficulty: DifficultyLevel.Beginner);
         var gameState = await _gameSessionService.StartGameAsync(_testUserId, startRequest);
         var initialLives = gameState.LivesRemaining;
 
@@ -206,6 +248,27 @@ public class GameSessionServiceTests : IDisposable
         // Assert
         result.IsCorrect.Should().BeFalse();
         result.LivesRemaining.Should().Be(initialLives - 1);
+    }
+
+    [Fact]
+    public async Task GameSessionService_SubmitAnswer_WrongInTraining_KeepsInfiniteLives()
+    {
+        // Arrange
+        var startRequest = new StartGameRequest(Mode: GameMode.Training, Difficulty: DifficultyLevel.Beginner);
+        var gameState = await _gameSessionService.StartGameAsync(_testUserId, startRequest);
+
+        // Act
+        var result = await _gameSessionService.SubmitAnswerAsync(_testUserId, new SubmitAnswerRequest
+        {
+            SessionId = gameState.SessionId,
+            Answer = "WRONGANSWER",
+            TimeSpentMs = 5000
+        });
+
+        // Assert
+        result.IsCorrect.Should().BeFalse();
+        result.LivesRemaining.Should().Be(gameState.LivesRemaining);
+        gameState.IsInfiniteLives.Should().BeTrue();
     }
 
     [Fact]
@@ -426,7 +489,7 @@ public class GameSessionServiceTests : IDisposable
         var userId = Guid.NewGuid();
         var session = GameSession.Create(
             userId: userId,
-            mode: GameMode.Training,
+            mode: GameMode.TimeAttack,
             difficulty: DifficultyLevel.Beginner,
             totalRounds: 10,
             lives: 1  // Only 1 life for quick game over
@@ -494,10 +557,10 @@ public class GameSessionServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task GameSession_WrongAnswer_DecreasesLife()
+    public async Task GameSession_WrongAnswerInTimeAttack_DecreasesLife()
     {
         // Arrange
-        var startRequest = new StartGameRequest(Mode: GameMode.Training, Difficulty: DifficultyLevel.Beginner);
+        var startRequest = new StartGameRequest(Mode: GameMode.TimeAttack, Difficulty: DifficultyLevel.Beginner);
         var gameState = await _gameSessionService.StartGameAsync(_testUserId, startRequest);
         var initialLives = gameState.LivesRemaining;
         
@@ -526,5 +589,37 @@ public class GameSessionServiceTests : IDisposable
             throw new InvalidOperationException($"Round {roundNumber} not found for session {sessionId}");
         
         return round.CorrectAnswer;
+    }
+
+    private sealed class FixedXpCalculator : IXpCalculator
+    {
+        private readonly int _xp;
+
+        public FixedXpCalculator(int xp)
+        {
+            _xp = xp;
+        }
+
+        public XpCalculationResult CalculateCorrectAnswer(int timeSpentMs, int comboCount, int correctStreak)
+        {
+            return new XpCalculationResult(
+                TotalXP: _xp,
+                BaseXP: _xp,
+                SpeedBonus: 0,
+                ComboMultiplier: 1,
+                StreakBonus: 0,
+                BreakdownDescription: "Fixed XP for service test");
+        }
+
+        public XpCalculationResult CalculateWrongAnswer()
+        {
+            return new XpCalculationResult(
+                TotalXP: 0,
+                BaseXP: 0,
+                SpeedBonus: 0,
+                ComboMultiplier: 1,
+                StreakBonus: 0,
+                BreakdownDescription: "Wrong answer");
+        }
     }
 }

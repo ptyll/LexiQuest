@@ -1,19 +1,31 @@
 @page "/register"
+@layout LandingLayout
+@using System.Text.Json
 @using LexiQuest.Blazor.Models
 @using LexiQuest.Blazor.Services
 @using LexiQuest.Blazor.Validators
 @using FluentValidation
+@using Microsoft.JSInterop
 @inject IAuthService AuthService
 @inject IStringLocalizer<Register> L
 @inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
 
-<div class="register-page">
+<div class="register-page" data-testid="register-page">
     <TmCard Variant="CardVariant.Elevated" Class="register-card">
         <div class="register-header">
             <div class="register-logo">LexiQuest</div>
-            <h2 class="register-title">@L["Title"]</h2>
+            <h1 class="register-title">@L["Title"]</h1>
             <p class="register-subtitle">@L["Subtitle"]</p>
         </div>
+
+        @if (guestProgress != null)
+        {
+            <div class="guest-progress-banner" data-testid="guest-progress-banner" role="status">
+                <strong>@L["GuestProgress.Title"]</strong>
+                <span>@string.Format(L["GuestProgress.Description"], guestProgress.TransferredXp, guestProgress.TransferredWordsSolved)</span>
+            </div>
+        }
 
         @if (!string.IsNullOrEmpty(errorMessage))
         {
@@ -26,7 +38,7 @@
             </TmAlert>
         }
 
-        <EditForm Model="@model" OnValidSubmit="HandleRegister" FormName="registerForm">
+        <EditForm Model="@model" OnValidSubmit="HandleRegister" FormName="registerForm" data-testid="register-form" novalidate>
             <FluentValidationValidator />
 
             <div class="register-form-fields">
@@ -52,8 +64,19 @@
                                       AutoComplete="new-password"
                                       @bind-Value="model.Password" />
 
-                    <TmPasswordStrengthIndicator Password="@model.Password"
-                                                  Class="password-strength" />
+                    @if (!string.IsNullOrWhiteSpace(model.Password))
+                    {
+                        <div class="password-strength" data-testid="password-strength" aria-live="polite">
+                            <div class="password-strength-header">
+                                <span>@L["PasswordStrength.Label"]</span>
+                                <strong>@PasswordStrengthText</strong>
+                            </div>
+                            <div class="password-strength-meter" aria-hidden="true">
+                                <span class="password-strength-fill @PasswordStrengthClass"
+                                      style="@($"width: {PasswordStrengthPercent}%")"></span>
+                            </div>
+                        </div>
+                    }
                 </div>
 
                 <TmValidatedField Label="@L["Input.ConfirmPassword.Label"]"
@@ -63,19 +86,26 @@
                                   AutoComplete="new-password"
                                   @bind-Value="model.ConfirmPassword" />
 
-                <TmCheckbox @bind-Value="model.AcceptTerms"
-                            Label="@L["Input.Terms.Label"]"
-                            Required="true" />
+                <div class="terms-field">
+                    <label class="terms-checkbox" data-testid="terms-checkbox">
+                        <InputCheckbox @bind-Value="model.AcceptTerms"
+                                       class="terms-checkbox-input" />
+                        <span>@L["Input.Terms.Label"]</span>
+                    </label>
+                    <ValidationMessage For="@(() => model.AcceptTerms)" />
+                </div>
             </div>
 
-            <TmButton Type="ButtonType.Submit"
-                      Variant="ButtonVariant.Primary"
-                      Block="true"
-                      IsLoading="isLoading"
-                      LoadingText="@L["Button.Loading"]"
-                      Class="register-submit-btn">
-                @L["Button.Submit"]
-            </TmButton>
+            <span data-testid="register-submit">
+                <TmButton Type="ButtonType.Submit"
+                          Variant="ButtonVariant.Primary"
+                          Block="true"
+                          IsLoading="isLoading"
+                          LoadingText="@L["Button.Loading"]"
+                          Class="register-submit-btn">
+                    @L["Button.Submit"]
+                </TmButton>
+            </span>
         </EditForm>
 
         <div class="register-divider">
@@ -104,6 +134,78 @@
     private RegisterModel model = new();
     private bool isLoading;
     private string? errorMessage;
+    private GuestProgressStorage? guestProgress;
+    private const string GuestProgressStorageKey = "guest_progress";
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        PropertyNameCaseInsensitive = true
+    };
+
+    private int PasswordStrengthScore
+    {
+        get
+        {
+            var password = model.Password ?? string.Empty;
+            var score = 0;
+
+            if (password.Length >= 8)
+            {
+                score++;
+            }
+
+            if (password.Any(char.IsUpper) && password.Any(char.IsLower))
+            {
+                score++;
+            }
+
+            if (password.Any(char.IsDigit))
+            {
+                score++;
+            }
+
+            if (password.Any(c => !char.IsLetterOrDigit(c)))
+            {
+                score++;
+            }
+
+            return score;
+        }
+    }
+
+    private string PasswordStrengthText => PasswordStrengthScore switch
+    {
+        <= 1 => L["PasswordStrength.Weak"].Value,
+        2 => L["PasswordStrength.Fair"].Value,
+        3 => L["PasswordStrength.Good"].Value,
+        _ => L["PasswordStrength.Strong"].Value
+    };
+
+    private int PasswordStrengthPercent => PasswordStrengthScore switch
+    {
+        <= 0 => 0,
+        1 => 25,
+        2 => 50,
+        3 => 75,
+        _ => 100
+    };
+
+    private string PasswordStrengthClass => PasswordStrengthScore switch
+    {
+        <= 1 => "password-strength-fill-weak",
+        2 => "password-strength-fill-fair",
+        3 => "password-strength-fill-good",
+        _ => "password-strength-fill-strong"
+    };
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+        {
+            return;
+        }
+
+        await LoadGuestProgressAsync();
+    }
 
     private async Task HandleRegister()
     {
@@ -117,6 +219,11 @@
 
             if (result?.Success == true)
             {
+                if (guestProgress != null)
+                {
+                    await JSRuntime.InvokeVoidAsync("localStorage.removeItem", GuestProgressStorageKey);
+                }
+
                 NavigationManager.NavigateTo("/dashboard");
             }
             else
@@ -150,4 +257,42 @@
     {
         errorMessage = null;
     }
+
+    private async Task LoadGuestProgressAsync()
+    {
+        var serialized = await JSRuntime.InvokeAsync<string?>("localStorage.getItem", GuestProgressStorageKey);
+        if (string.IsNullOrWhiteSpace(serialized))
+        {
+            return;
+        }
+
+        try
+        {
+            var progress = JsonSerializer.Deserialize<GuestProgressStorage>(serialized, JsonOptions);
+            if (progress == null
+                || string.IsNullOrWhiteSpace(progress.TransferToken)
+                || progress.TransferredXp <= 0
+                || progress.TransferredWordsSolved <= 0)
+            {
+                await JSRuntime.InvokeVoidAsync("localStorage.removeItem", GuestProgressStorageKey);
+                return;
+            }
+
+            guestProgress = progress;
+            model.GuestProgressToken = progress.TransferToken;
+            model.GuestTransferredXp = progress.TransferredXp;
+            model.GuestTransferredWordsSolved = progress.TransferredWordsSolved;
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (JsonException)
+        {
+            await JSRuntime.InvokeVoidAsync("localStorage.removeItem", GuestProgressStorageKey);
+        }
+    }
+
+    private sealed record GuestProgressStorage(
+        string TransferToken,
+        int TransferredXp,
+        int TransferredWordsSolved,
+        DateTimeOffset CreatedAtUtc);
 }

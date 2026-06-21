@@ -60,6 +60,11 @@ public class TeamRepository : ITeamRepository
         _context.Teams.Remove(team);
     }
 
+    public async Task AddMemberAsync(TeamMember member, CancellationToken cancellationToken = default)
+    {
+        await _context.TeamMembers.AddAsync(member, cancellationToken);
+    }
+
     // Invites
     public async Task<TeamInvite?> GetInviteByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {

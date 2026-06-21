@@ -3,6 +3,7 @@ using LexiQuest.Core.Interfaces.Repositories;
 using LexiQuest.Core.Interfaces.Services;
 using LexiQuest.Shared.DTOs.Game;
 using LexiQuest.Shared.Enums;
+using Microsoft.Extensions.Localization;
 
 namespace LexiQuest.Core.Services;
 
@@ -10,13 +11,16 @@ public class AIChallengeService : IAIChallengeService
 {
     private readonly IGameSessionRepository _gameSessionRepository;
     private readonly IWordRepository _wordRepository;
+    private readonly IStringLocalizer<AIChallengeService> _localizer;
 
     public AIChallengeService(
         IGameSessionRepository gameSessionRepository,
-        IWordRepository wordRepository)
+        IWordRepository wordRepository,
+        IStringLocalizer<AIChallengeService> localizer)
     {
         _gameSessionRepository = gameSessionRepository;
         _wordRepository = wordRepository;
+        _localizer = localizer;
     }
 
     public async Task<PlayerAnalysisDto> AnalyzePlayerAsync(
@@ -108,7 +112,7 @@ public class AIChallengeService : IAIChallengeService
 
         var categoryGroups = rounds
             .Where(r => sessionMap.ContainsKey(r.SessionId))
-            .GroupBy(r => sessionMap[r.SessionId].Difficulty.ToString())
+            .GroupBy(r => GetDifficultyLabel(sessionMap[r.SessionId].Difficulty))
             .Select(g => new CategoryPerformanceDto(
                 g.Key,
                 Math.Round((double)g.Count(r => r.IsCorrect) / g.Count(), 2),
@@ -124,10 +128,16 @@ public class AIChallengeService : IAIChallengeService
     {
         var tips = new List<string>();
 
+        if (weakLetters.Count == 0 && categoryPerformance.Count == 0)
+        {
+            tips.Add(_localizer["Tip.NoData"]);
+            return tips;
+        }
+
         if (weakLetters.Count > 0)
         {
             var letters = string.Join(", ", weakLetters.Take(3).Select(w => w.Letter));
-            tips.Add($"Focus on words containing: {letters}");
+            tips.Add(_localizer["Tip.WeakLetters", letters]);
         }
 
         var slowCategories = categoryPerformance
@@ -138,7 +148,7 @@ public class AIChallengeService : IAIChallengeService
 
         if (slowCategories.Count > 0)
         {
-            tips.Add($"Try to improve your speed on {slowCategories.First().Category} words");
+            tips.Add(_localizer["Tip.SlowCategory", slowCategories.First().Category]);
         }
 
         var weakCategories = categoryPerformance
@@ -149,12 +159,12 @@ public class AIChallengeService : IAIChallengeService
 
         if (weakCategories.Count > 0)
         {
-            tips.Add($"Practice more {weakCategories.First().Category} difficulty words");
+            tips.Add(_localizer["Tip.WeakCategory", weakCategories.First().Category]);
         }
 
         if (tips.Count == 0)
         {
-            tips.Add("Keep up the great work! Try harder difficulty levels for more challenge.");
+            tips.Add(_localizer["Tip.NoWeakness"]);
         }
 
         return tips;
@@ -167,16 +177,14 @@ public class AIChallengeService : IAIChallengeService
 
         if (weakLetters.Count == 0)
         {
-            // Fallback: return random words
-            var randomWords = await _wordRepository.GetRandomBatchAsync(10, cancellationToken: cancellationToken);
-            return randomWords.Select(w => new AIChallengeWordDto(
-                w.Original, 0.5, "General practice")).ToList();
+            var fallbackWords = await GetOrderedWordsAsync(cancellationToken);
+            return fallbackWords.Take(10).Select(w => new AIChallengeWordDto(
+                w.Original, PredictWordDifficulty(w), _localizer["Reason.GeneralPractice"].Value)).ToList();
         }
 
         var weakLetterChars = weakLetters.Select(w => w.Letter).ToHashSet();
 
-        // Get a batch of words and filter for those containing weak letters
-        var allWords = await _wordRepository.GetRandomBatchAsync(50, cancellationToken: cancellationToken);
+        var allWords = await GetOrderedWordsAsync(cancellationToken);
         var matchingWords = allWords
             .Where(w => w.Original.ToUpperInvariant().Any(c => weakLetterChars.Contains(c)))
             .Take(10)
@@ -185,26 +193,31 @@ public class AIChallengeService : IAIChallengeService
                 var matchedLetters = w.Original.ToUpperInvariant()
                     .Where(c => weakLetterChars.Contains(c))
                     .Distinct();
-                var reason = $"Contains weak letter(s): {string.Join(", ", matchedLetters)}";
+                var reason = _localizer["Reason.WeakLetters", string.Join(", ", matchedLetters)].Value;
                 return new AIChallengeWordDto(w.Original, PredictWordDifficulty(w), reason);
             })
             .ToList();
 
-        return matchingWords;
+        return matchingWords.Count > 0
+            ? matchingWords
+            : allWords.Take(10).Select(w => new AIChallengeWordDto(
+                w.Original, PredictWordDifficulty(w), _localizer["Reason.GeneralPractice"].Value)).ToList();
     }
 
     private async Task<List<AIChallengeWordDto>> GenerateSpeedTrainingAsync(
         CancellationToken cancellationToken)
     {
-        // Get short words for speed training
-        var allWords = await _wordRepository.GetRandomBatchAsync(50, cancellationToken: cancellationToken);
+        var allWords = await GetOrderedWordsAsync(cancellationToken);
         var shortWords = allWords
             .Where(w => w.Length <= 5)
+            .OrderBy(w => w.Length)
+            .ThenBy(w => w.FrequencyRank)
+            .ThenBy(w => w.Original)
             .Take(10)
             .Select(w => new AIChallengeWordDto(
                 w.Original,
                 PredictWordDifficulty(w),
-                "Short word for speed training"))
+                _localizer["Reason.SpeedTraining"].Value))
             .ToList();
 
         // If no short words at all, take the shortest available
@@ -212,11 +225,12 @@ public class AIChallengeService : IAIChallengeService
         {
             var shortestWords = allWords
                 .OrderBy(w => w.Length)
+                .ThenBy(w => w.FrequencyRank)
                 .Take(10)
                 .Select(w => new AIChallengeWordDto(
                     w.Original,
                     PredictWordDifficulty(w),
-                    "Speed training"))
+                    _localizer["Reason.SpeedTraining"].Value))
                 .ToList();
             return shortestWords;
         }
@@ -237,19 +251,22 @@ public class AIChallengeService : IAIChallengeService
 
         if (incorrectWords.Count == 0)
         {
-            var randomWords = await _wordRepository.GetRandomBatchAsync(10, cancellationToken: cancellationToken);
-            return randomWords.Select(w => new AIChallengeWordDto(
-                w.Original, 0.5, "General practice")).ToList();
+            var fallbackWords = await GetOrderedWordsAsync(cancellationToken);
+            return fallbackWords.Take(10).Select(w => new AIChallengeWordDto(
+                w.Original, PredictWordDifficulty(w), _localizer["Reason.GeneralPractice"].Value)).ToList();
         }
 
-        // Try to find these words in the repository
+        var existingWords = (await GetOrderedWordsAsync(cancellationToken))
+            .ToDictionary(w => w.Normalized, StringComparer.OrdinalIgnoreCase);
+
         var words = new List<AIChallengeWordDto>();
         foreach (var wordText in incorrectWords)
         {
+            existingWords.TryGetValue(wordText.ToLowerInvariant(), out var word);
             words.Add(new AIChallengeWordDto(
-                wordText,
-                0.7,
-                "Previously answered incorrectly"));
+                word?.Original ?? wordText,
+                word is null ? 0.7 : PredictWordDifficulty(word),
+                _localizer["Reason.PreviousMistake"].Value));
         }
 
         return words;
@@ -273,17 +290,23 @@ public class AIChallengeService : IAIChallengeService
             difficultLengths = new HashSet<int> { 5, 6, 7 };
         }
 
-        var allWords = await _wordRepository.GetRandomBatchAsync(50, cancellationToken: cancellationToken);
+        var allWords = await GetOrderedWordsAsync(cancellationToken);
         var patternWords = allWords
             .Where(w => difficultLengths.Contains(w.Length))
+            .OrderBy(w => w.Length)
+            .ThenBy(w => w.FrequencyRank)
+            .ThenBy(w => w.Original)
             .Take(10)
             .Select(w => new AIChallengeWordDto(
                 w.Original,
                 PredictWordDifficulty(w),
-                $"Pattern: {w.Length}-letter word"))
+                _localizer["Reason.Pattern", w.Length]))
             .ToList();
 
-        return patternWords;
+        return patternWords.Count > 0
+            ? patternWords
+            : allWords.Take(10).Select(w => new AIChallengeWordDto(
+                w.Original, PredictWordDifficulty(w), _localizer["Reason.GeneralPractice"].Value)).ToList();
     }
 
     internal double PredictDifficulty(List<GameRound> playerRounds, List<AIChallengeWordDto> challengeWords)
@@ -319,18 +342,38 @@ public class AIChallengeService : IAIChallengeService
         return type switch
         {
             AIChallengeType.WeaknessFocus => (
-                "Weakness Focus",
-                "Words selected based on letters you find most challenging."),
+                "Zaměření na slabiny",
+                "Slova vybraná podle písmen, která vám dělají největší potíže."),
             AIChallengeType.SpeedTraining => (
-                "Speed Training",
-                "Short words to help you improve your response time."),
+                "Rychlostní trénink",
+                "Krátká slova pro zrychlení reakcí."),
             AIChallengeType.MemoryGame => (
-                "Memory Game",
-                "Words you've gotten wrong before. Can you get them right this time?"),
+                "Paměťová hra",
+                "Slova, která jste dříve zodpověděli špatně."),
             AIChallengeType.PatternRecognition => (
-                "Pattern Recognition",
-                "Words with similar patterns to ones you've struggled with."),
-            _ => ("AI Challenge", "A personalized challenge generated for you.")
+                "Rozpoznávání vzorů",
+                "Slova s podobnou délkou nebo vzorem jako ta, se kterými jste bojovali."),
+            _ => ("AI výzva", "Personalizovaná výzva připravená na míru.")
+        };
+    }
+
+    private async Task<IReadOnlyList<Word>> GetOrderedWordsAsync(CancellationToken cancellationToken)
+    {
+        return (await _wordRepository.GetAllAsync(cancellationToken))
+            .OrderBy(w => w.FrequencyRank)
+            .ThenBy(w => w.Original)
+            .ToList();
+    }
+
+    private string GetDifficultyLabel(DifficultyLevel difficulty)
+    {
+        return difficulty switch
+        {
+            DifficultyLevel.Beginner => _localizer["Difficulty.Beginner"],
+            DifficultyLevel.Intermediate => _localizer["Difficulty.Intermediate"],
+            DifficultyLevel.Advanced => _localizer["Difficulty.Advanced"],
+            DifficultyLevel.Expert => _localizer["Difficulty.Expert"],
+            _ => difficulty.ToString()
         };
     }
 }

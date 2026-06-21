@@ -8,7 +8,7 @@
     Class="join-room-modal">
     
     <ChildContent>
-        <EditForm Model="@this" OnValidSubmit="HandleSubmit" class="join-room-form">
+        <EditForm Model="@this" OnValidSubmit="HandleSubmit" class="join-room-form" data-testid="private-room-join-modal" novalidate>
             <DataAnnotationsValidator />
             
             <TmFormField Label="@Localizer["Room_Code_Label"]">
@@ -20,10 +20,11 @@
                     aria-label="@Localizer["Room_Code_Label"]"
                     autocomplete="off"
                     class="room-code-input tm-input"
+                    data-testid="private-room-join-input"
                     @oninput="HandleInput" />
                 @if (!string.IsNullOrEmpty(_validationMessage))
                 {
-                    <div class="validation-message">@_validationMessage</div>
+                    <div class="validation-message" data-testid="private-room-join-validation">@_validationMessage</div>
                 }
             </TmFormField>
 
@@ -38,6 +39,7 @@
 
     <Footer>
         <button class="join-button tm-btn tm-btn-primary"
+                data-testid="private-room-join-submit"
                 @onclick="HandleSubmit"
                 disabled="@IsLoading">
             @if (IsLoading)

@@ -6,6 +6,18 @@
   <data name="Message" xml:space="preserve">
     <value>Děkujeme za zakoupení LexiQuest Premium. Vaše premium funkce jsou nyní aktivní.</value>
   </data>
+  <data name="Activating_Title" xml:space="preserve">
+    <value>Aktivujeme Premium</value>
+  </data>
+  <data name="Activating_Message" xml:space="preserve">
+    <value>Dokončujeme aktivaci vašeho prémiového účtu.</value>
+  </data>
+  <data name="ActivationError_Title" xml:space="preserve">
+    <value>Aktivace se nepodařila</value>
+  </data>
+  <data name="ActivationError_Message" xml:space="preserve">
+    <value>Premium se nepodařilo aktivovat. Zkuste prosím obnovit stránku nebo se vraťte na výběr plánu.</value>
+  </data>
   <data name="Features_Title" xml:space="preserve">
     <value>Vaše premium výhody</value>
   </data>
@@ -28,9 +40,12 @@
     <value>Vlastní slovníky</value>
   </data>
   <data name="Button_Dashboard" xml:space="preserve">
-    <value>Přejít na dashboard</value>
+    <value>Přejít na přehled</value>
   </data>
   <data name="Button_Settings" xml:space="preserve">
     <value>Nastavení účtu</value>
+  </data>
+  <data name="Button_Premium" xml:space="preserve">
+    <value>Zpět na Premium</value>
   </data>
 </root>

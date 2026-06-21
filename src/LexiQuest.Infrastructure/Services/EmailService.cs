@@ -4,15 +4,28 @@ using MailKit.Security;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MimeKit;
+using System.Globalization;
+using System.Net;
+using System.Resources;
 
 namespace LexiQuest.Infrastructure.Services;
 
 public class EmailService : IEmailService
 {
+    private static readonly ResourceManager PasswordResetResources = new(
+        "LexiQuest.Infrastructure.Resources.Email.PasswordResetEmail",
+        typeof(EmailService).Assembly);
+
+    private static readonly ResourceManager WelcomeResources = new(
+        "LexiQuest.Infrastructure.Resources.Email.WelcomeEmail",
+        typeof(EmailService).Assembly);
+
     private readonly EmailSettings _settings;
     private readonly ILogger<EmailService> _logger;
 
-    public EmailService(IOptions<EmailSettings> settings, ILogger<EmailService> logger)
+    public EmailService(
+        IOptions<EmailSettings> settings,
+        ILogger<EmailService> logger)
     {
         _settings = settings.Value;
         _logger = logger;
@@ -21,23 +34,30 @@ public class EmailService : IEmailService
     public async Task SendPasswordResetEmailAsync(string toEmail, string resetToken, CancellationToken cancellationToken = default)
     {
         var resetUrl = $"{_settings.BaseUrl}/password-reset/{resetToken}";
+        var subject = PasswordReset("Subject");
 
         var htmlBody = BuildHtmlTemplate(
             _settings.FromName,
-            BuildPasswordResetContent(resetUrl));
+            BuildPasswordResetContent(toEmail, resetUrl),
+            PasswordReset("Footer"));
+        var textBody = BuildPasswordResetText(toEmail, resetUrl);
 
-        await SendEmailAsync(toEmail, $"{_settings.FromName} - Password Reset", htmlBody, cancellationToken);
+        await SendEmailAsync(toEmail, subject, htmlBody, textBody, cancellationToken);
 
         _logger.LogInformation("Password reset email sent to {Email}", toEmail);
     }
 
     public async Task SendWelcomeEmailAsync(string toEmail, string username, CancellationToken cancellationToken = default)
     {
+        var subject = Welcome("Subject");
+
         var htmlBody = BuildHtmlTemplate(
             _settings.FromName,
-            BuildWelcomeContent(username));
+            BuildWelcomeContent(username),
+            Welcome("Footer"));
+        var textBody = BuildWelcomeText(username);
 
-        await SendEmailAsync(toEmail, $"Welcome to {_settings.FromName}!", htmlBody, cancellationToken);
+        await SendEmailAsync(toEmail, subject, htmlBody, textBody, cancellationToken);
 
         _logger.LogInformation("Welcome email sent to {Email}", toEmail);
     }
@@ -46,14 +66,16 @@ public class EmailService : IEmailService
     {
         var htmlBody = BuildHtmlTemplate(
             _settings.FromName,
-            BuildNotificationContent(title, message));
+            BuildNotificationContent(title, message),
+            Welcome("Footer"));
+        var textBody = $"{title}{Environment.NewLine}{Environment.NewLine}{message}";
 
-        await SendEmailAsync(toEmail, title, htmlBody, cancellationToken);
+        await SendEmailAsync(toEmail, title, htmlBody, textBody, cancellationToken);
 
         _logger.LogInformation("Notification email sent to {Email}: {Title}", toEmail, title);
     }
 
-    private async Task SendEmailAsync(string toEmail, string subject, string htmlBody, CancellationToken cancellationToken)
+    private async Task SendEmailAsync(string toEmail, string subject, string htmlBody, string textBody, CancellationToken cancellationToken)
     {
         var message = new MimeMessage();
         message.From.Add(new MailboxAddress(_settings.FromName, _settings.FromEmail));
@@ -62,7 +84,8 @@ public class EmailService : IEmailService
 
         var bodyBuilder = new BodyBuilder
         {
-            HtmlBody = htmlBody
+            HtmlBody = htmlBody,
+            TextBody = textBody
         };
         message.Body = bodyBuilder.ToMessageBody();
 
@@ -75,7 +98,11 @@ public class EmailService : IEmailService
                 : SecureSocketOptions.None;
 
             await client.ConnectAsync(_settings.Host, _settings.Port, secureSocketOptions, cancellationToken);
-            await client.AuthenticateAsync(_settings.Username, _settings.Password, cancellationToken);
+            if (!string.IsNullOrWhiteSpace(_settings.Username))
+            {
+                await client.AuthenticateAsync(_settings.Username, _settings.Password, cancellationToken);
+            }
+
             await client.SendAsync(message, cancellationToken);
         }
         catch (Exception ex)
@@ -92,11 +119,14 @@ public class EmailService : IEmailService
         }
     }
 
-    private static string BuildHtmlTemplate(string appName, string content)
+    private static string BuildHtmlTemplate(string appName, string content, string footer)
     {
+        var encodedAppName = Html(appName);
+        var encodedFooter = Html(footer);
+
         return $$"""
             <!DOCTYPE html>
-            <html lang="en">
+            <html lang="cs">
             <head>
                 <meta charset="utf-8" />
                 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -115,13 +145,13 @@ public class EmailService : IEmailService
                 <div class="container">
                     <div class="card">
                         <div class="header">
-                            <h1>{{appName}}</h1>
+                            <h1>{{encodedAppName}}</h1>
                         </div>
                         <div class="content">
                             {{content}}
                         </div>
                         <div class="footer">
-                            &copy; {{DateTime.UtcNow.Year}} {{appName}}. All rights reserved.
+                            &copy; {{DateTime.UtcNow.Year.ToString(CultureInfo.InvariantCulture)}} {{encodedAppName}}. {{encodedFooter}}
                         </div>
                     </div>
                 </div>
@@ -130,32 +160,76 @@ public class EmailService : IEmailService
             """;
     }
 
-    private static string BuildPasswordResetContent(string resetUrl)
+    private string BuildPasswordResetContent(string toEmail, string resetUrl)
     {
+        var encodedUrl = Html(resetUrl);
+
         return $"""
-            <p>You requested a password reset. Click the button below to set a new password:</p>
+            <p>{Html(PasswordReset("Greeting", toEmail))}</p>
+            <p>{Html(PasswordReset("Body"))}</p>
             <p style="text-align: center;">
-                <a href="{resetUrl}" class="btn">Reset Password</a>
+                <a href="{encodedUrl}" class="btn">{Html(PasswordReset("Action"))}</a>
             </p>
-            <p>If you did not request this, you can safely ignore this email. The link will expire shortly.</p>
-            <p style="font-size: 12px; color: #999;">If the button does not work, copy and paste this URL into your browser:<br />{resetUrl}</p>
+            <p>{Html(PasswordReset("Expiry", 1))}</p>
+            <p>{Html(PasswordReset("Ignore"))}</p>
+            <p style="font-size: 12px; color: #999;">{Html(PasswordReset("FallbackUrl"))}<br />{encodedUrl}</p>
             """;
     }
 
-    private static string BuildWelcomeContent(string username)
+    private string BuildPasswordResetText(string toEmail, string resetUrl)
     {
         return $"""
-            <p>Hi <strong>{username}</strong>,</p>
-            <p>Welcome aboard! Your account has been created successfully.</p>
-            <p>Start your language learning journey now and challenge yourself with word quests, daily challenges, and more.</p>
+            {PasswordReset("Greeting", toEmail)}
+
+            {PasswordReset("Body")}
+            {PasswordReset("Action")}: {resetUrl}
+            {PasswordReset("Expiry", 1)}
+            {PasswordReset("Ignore")}
+            """;
+    }
+
+    private string BuildWelcomeContent(string username)
+    {
+        return $"""
+            <p>{Html(Welcome("Greeting", username))}</p>
+            <p>{Html(Welcome("Body"))}</p>
+            <p style="text-align: center;">
+                <a href="{Html(_settings.BaseUrl)}" class="btn">{Html(Welcome("Action"))}</a>
+            </p>
+            """;
+    }
+
+    private string BuildWelcomeText(string username)
+    {
+        return $"""
+            {Welcome("Greeting", username)}
+
+            {Welcome("Body")}
+            {Welcome("Action")}: {_settings.BaseUrl}
             """;
     }
 
     private static string BuildNotificationContent(string title, string message)
     {
         return $"""
-            <h2 style="margin-top: 0;">{title}</h2>
-            <p>{message}</p>
+            <h2 style="margin-top: 0;">{Html(title)}</h2>
+            <p>{Html(message)}</p>
             """;
     }
+
+    private static string PasswordReset(string key, params object[] args) => FormatResource(PasswordResetResources, key, args);
+
+    private static string Welcome(string key, params object[] args) => FormatResource(WelcomeResources, key, args);
+
+    private static string FormatResource(ResourceManager resourceManager, string key, params object[] args)
+    {
+        var value = resourceManager.GetString(key, CultureInfo.CurrentUICulture)
+            ?? throw new InvalidOperationException($"Missing email resource '{key}'.");
+
+        return args.Length == 0
+            ? value
+            : string.Format(CultureInfo.CurrentCulture, value, args);
+    }
+
+    private static string Html(string value) => WebUtility.HtmlEncode(value);
 }

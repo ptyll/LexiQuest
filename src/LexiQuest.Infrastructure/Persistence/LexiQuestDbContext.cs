@@ -14,6 +14,7 @@ public class LexiQuestDbContext : DbContext
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
     public DbSet<LearningPath> LearningPaths => Set<LearningPath>();
     public DbSet<PathLevel> PathLevels => Set<PathLevel>();
+    public DbSet<UserPathLevelProgress> UserPathLevelProgresses => Set<UserPathLevelProgress>();
     public DbSet<PasswordResetToken> PasswordResetTokens => Set<PasswordResetToken>();
     public DbSet<League> Leagues => Set<League>();
     public DbSet<LeagueParticipant> LeagueParticipants => Set<LeagueParticipant>();

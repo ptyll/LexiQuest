@@ -1,60 +1,163 @@
 @inherits LayoutComponentBase
+@implements IDisposable
 @inject ThemeService ThemeService
 @inject NavigationManager Navigation
+@inject IAuthService AuthService
+@inject IStringLocalizer<MainLayout> L
+@inject IJSRuntime JS
 
-<div class="@(ThemeService.IsDark ? "dark" : "")" data-theme="@ThemeService.ThemeName">
-    <OfflineBanner />
+@if (_isAuthorized)
+{
+    <div class="@AppShellClass" data-theme="@ThemeService.ThemeName">
+        <a href="#main-content"
+           class="skip-link"
+           data-testid="skip-to-content"
+           @onclick="FocusMainContentAsync"
+           @onclick:preventDefault="true">
+            @L["SkipToContent"]
+        </a>
 
-    <TmTopBar BrandTitle="LexiQuest"
-              OnLogout="HandleLogout">
-        <ActionsContent>
-            <button class="tm-btn tm-btn--ghost tm-btn--sm" @onclick="() => ThemeService.Toggle()">
-                @if (ThemeService.IsDark)
-                {
-                    <span>&#x2600;</span>
-                }
-                else
-                {
-                    <span>&#x1F319;</span>
-                }
-            </button>
-        </ActionsContent>
-    </TmTopBar>
+        <OfflineBanner />
 
-    <div class="app-layout">
-        <TmSidebar Items="_navItems"
-                   Collapsed="_sidebarCollapsed"
-                   OnToggle="HandleSidebarToggle" />
+        <TmTopBar BrandTitle="LexiQuest"
+                  OnLogout="HandleLogout">
+            <ActionsContent>
+                <button class="tm-btn tm-btn--ghost tm-btn--sm mobile-nav-toggle"
+                        type="button"
+                        data-testid="mobile-nav-toggle"
+                        aria-label="@L["MobileMenu.Open"]"
+                        aria-expanded="@_isMobileNavOpen"
+                        aria-controls="mobile-nav-panel"
+                        @onclick="ToggleMobileNav">
+                    <TmIcon Name="menu" />
+                </button>
+                <button class="tm-btn tm-btn--ghost tm-btn--sm" @onclick="() => ThemeService.Toggle()">
+                    @if (ThemeService.IsDark)
+                    {
+                        <span>&#x2600;</span>
+                    }
+                    else
+                    {
+                        <span>&#x1F319;</span>
+                    }
+                </button>
+                <NotificationBell />
+                <button class="tm-btn tm-btn--ghost tm-btn--sm"
+                        type="button"
+                        data-testid="logout-button"
+                        aria-label="@L["Logout"]"
+                        title="@L["Logout"]"
+                        @onclick="HandleLogout">
+                    <TmIcon Name="@IconNames.LogOut" />
+                </button>
+            </ActionsContent>
+        </TmTopBar>
 
-        <main class="app-content page-transition">
-            <Microsoft.AspNetCore.Components.Web.ErrorBoundary @key="Navigation.Uri">
-                @Body
-            </Microsoft.AspNetCore.Components.Web.ErrorBoundary>
-        </main>
+        <div class="app-layout">
+            <div class="@SidebarShellClass" data-testid="app-sidebar">
+                <TmSidebar Items="_navItems"
+                           Collapsed="_sidebarCollapsed"
+                           OnToggle="HandleSidebarToggle" />
+            </div>
+
+            <main id="main-content" class="app-content page-transition" tabindex="-1">
+                <LexiQuest.Blazor.Components.ErrorBoundary @key="Navigation.Uri">
+                    @Body
+                </LexiQuest.Blazor.Components.ErrorBoundary>
+            </main>
+        </div>
+
+        @if (_isMobileNavOpen)
+        {
+            <div class="mobile-nav-backdrop" data-testid="mobile-nav-backdrop" @onclick="CloseMobileNav">
+                <nav id="mobile-nav-panel"
+                     class="mobile-nav-panel"
+                     data-testid="mobile-nav-dialog"
+                     role="dialog"
+                     aria-modal="true"
+                     aria-label="@L["MobileMenu.Label"]"
+                     @onclick:stopPropagation>
+                    <div class="mobile-nav-header">
+                        <span class="mobile-nav-title">@L["MobileMenu.Title"]</span>
+                        <button class="tm-btn tm-btn--ghost tm-btn--sm"
+                                type="button"
+                                data-testid="mobile-nav-close"
+                                aria-label="@L["MobileMenu.Close"]"
+                                @onclick="CloseMobileNav"
+                                autofocus>
+                            <TmIcon Name="@IconNames.X" />
+                        </button>
+                    </div>
+
+                    <div class="mobile-nav-links">
+                        @foreach (var item in _navItems)
+                        {
+                            <a href="@item.Href"
+                               class="@GetMobileNavLinkClass(item)"
+                               aria-current="@(item.IsActive ? "page" : null)"
+                               data-testid="@($"mobile-nav-link-{item.Id}")"
+                               @onclick="CloseMobileNav">
+                                <TmIcon Name="@item.Icon" />
+                                <span>@item.Label</span>
+                            </a>
+                        }
+                    </div>
+                </nav>
+            </div>
+        }
+
+        <TmToastContainer Position="ToastPosition.BottomRight" MaxVisible="5" />
+        <InstallPrompt />
     </div>
-
-    <TmToastContainer Position="ToastPosition.TopRight" MaxVisible="5" />
-    <InstallPrompt />
-</div>
+}
 
 @code {
     private bool _sidebarCollapsed;
+    private bool _isAuthorized;
+    private bool _isMobileNavOpen;
     private IReadOnlyList<ISidebarNavItem> _navItems = [];
+
+    private string AppShellClass => ThemeService.IsDark ? "lexi-app-shell dark" : "lexi-app-shell";
+
+    private string SidebarShellClass =>
+        _sidebarCollapsed ? "app-sidebar-shell app-sidebar-shell--collapsed" : "app-sidebar-shell";
 
     protected override void OnInitialized()
     {
         ThemeService.OnChanged += StateHasChanged;
+        Navigation.LocationChanged += HandleLocationChanged;
+        UpdateNavItems();
+    }
 
+    private void UpdateNavItems()
+    {
         _navItems = new List<SidebarNavItemModel>
         {
-            new() { Id = "dashboard", Label = "Dashboard", Icon = "home", Href = "/dashboard" },
-            new() { Id = "game", Label = "Hra", Icon = "play-circle", Href = "/game" },
-            new() { Id = "paths", Label = "Cesty", Icon = "map", Href = "/paths" },
-            new() { Id = "leagues", Label = "Ligy", Icon = "trophy", Href = "/leagues" },
-            new() { Id = "achievements", Label = "Achievementy", Icon = "award", Href = "/achievements" },
-            new() { Id = "profile", Label = "Profil", Icon = "user", Href = "/profile" },
-            new() { Id = "settings", Label = "Nastavení", Icon = "settings", Href = "/settings" }
+            new() { Id = "dashboard", Label = L["Nav.Dashboard"], Icon = "home", Href = "/dashboard", IsActive = IsCurrentRoute("/dashboard") },
+            new() { Id = "game", Label = L["Nav.Game"], Icon = "play-circle", Href = "/game", IsActive = IsCurrentRoute("/game") },
+            new() { Id = "paths", Label = L["Nav.Paths"], Icon = "map", Href = "/paths", IsActive = IsCurrentRoute("/paths") },
+            new() { Id = "leagues", Label = L["Nav.Leagues"], Icon = "trophy", Href = "/leagues", IsActive = IsCurrentRoute("/leagues") },
+            new() { Id = "achievements", Label = L["Nav.Achievements"], Icon = "award", Href = "/achievements", IsActive = IsCurrentRoute("/achievements") },
+            new() { Id = "profile", Label = L["Nav.Profile"], Icon = "user", Href = "/profile", IsActive = IsCurrentRoute("/profile") },
+            new() { Id = "settings", Label = L["Nav.Settings"], Icon = "settings", Href = "/settings", IsActive = IsCurrentRoute("/settings") }
         };
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+        {
+            return;
+        }
+
+        _isAuthorized = await AuthService.IsAuthenticatedAsync();
+        if (!_isAuthorized)
+        {
+            Navigation.NavigateTo("/login", replace: true);
+            return;
+        }
+
+        StateHasChanged();
     }
 
     private void HandleSidebarToggle()
@@ -62,13 +165,53 @@
         _sidebarCollapsed = !_sidebarCollapsed;
     }
 
-    private void HandleLogout()
+    private void ToggleMobileNav()
     {
-        Navigation.NavigateTo("/login");
+        _isMobileNavOpen = !_isMobileNavOpen;
+    }
+
+    private void CloseMobileNav()
+    {
+        _isMobileNavOpen = false;
+    }
+
+    private async Task FocusMainContentAsync()
+    {
+        await JS.InvokeVoidAsync("lexiQuestA11y.focusById", "main-content");
+    }
+
+    private bool IsCurrentRoute(string href)
+    {
+        var path = "/" + Navigation.ToBaseRelativePath(Navigation.Uri).Split(['?', '#'], 2)[0].Trim('/');
+        if (path == "/")
+        {
+            path = "/dashboard";
+        }
+
+        return path.Equals(href, StringComparison.OrdinalIgnoreCase)
+            || path.StartsWith($"{href}/", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private void HandleLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs args)
+    {
+        CloseMobileNav();
+        UpdateNavItems();
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    private static string GetMobileNavLinkClass(ISidebarNavItem item) =>
+        item.IsActive ? "mobile-nav-link mobile-nav-link--active" : "mobile-nav-link";
+
+    private async Task HandleLogout()
+    {
+        await AuthService.LogoutAsync();
+        _isAuthorized = false;
+        Navigation.NavigateTo("/login", replace: true);
     }
 
     public void Dispose()
     {
         ThemeService.OnChanged -= StateHasChanged;
+        Navigation.LocationChanged -= HandleLocationChanged;
     }
 }

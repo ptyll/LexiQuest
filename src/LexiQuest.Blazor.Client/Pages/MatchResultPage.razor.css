@@ -1,0 +1,31 @@
+.match-result-page {
+    min-height: 100vh;
+    padding: 2rem 1rem;
+    background: var(--tm-bg-secondary, #f8fafc);
+}
+
+.match-result-state {
+    display: flex;
+    min-height: 60vh;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    text-align: center;
+    color: var(--tm-text-secondary, #475569);
+}
+
+.match-result-home {
+    border: 1px solid var(--tm-color-primary, #2563eb);
+    border-radius: 0.5rem;
+    background: var(--tm-color-primary, #2563eb);
+    color: white;
+    cursor: pointer;
+    font-weight: 700;
+    padding: 0.75rem 1rem;
+}
+
+.match-result-home:hover,
+.match-result-home:focus-visible {
+    background: var(--tm-color-primary-dark, #1d4ed8);
+}

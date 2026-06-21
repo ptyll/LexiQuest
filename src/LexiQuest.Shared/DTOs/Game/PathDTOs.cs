@@ -35,5 +35,12 @@ public record PathLevelDto(
     int LevelNumber,
     string Status,
     bool IsBoss,
-    bool IsPerfect
+    bool IsPerfect,
+    int WordCount = 10,
+    int WordLengthMin = 3,
+    int WordLengthMax = 5,
+    int TimePerWordSeconds = 30,
+    int HintCount = 3,
+    int Lives = 5,
+    int XpReward = 100
 );

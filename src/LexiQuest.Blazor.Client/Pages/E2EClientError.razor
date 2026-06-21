@@ -1,0 +1,49 @@
+@page "/e2e/client-error"
+@using System.Collections.Concurrent
+
+@if (IsDebugBuild && ShouldRenderRecoveredState)
+{
+    <div data-testid="e2e-client-error-recovered"></div>
+}
+else
+{
+    <NotFoundContent />
+}
+
+@code {
+    private static readonly ConcurrentDictionary<string, byte> TriggeredTokens = new();
+
+    [SupplyParameterFromQuery(Name = "throw")]
+    public string? Throw { get; set; }
+
+    [SupplyParameterFromQuery(Name = "token")]
+    public string? Token { get; set; }
+
+    private bool ShouldRenderRecoveredState => Throw == "1";
+
+    protected override void OnParametersSet()
+    {
+        if (!IsDebugBuild || Throw != "1")
+        {
+            return;
+        }
+
+        var token = string.IsNullOrWhiteSpace(Token) ? "default" : Token;
+        if (TriggeredTokens.TryAdd(token, 0))
+        {
+            throw new InvalidOperationException("E2E forced client error");
+        }
+    }
+
+    private static bool IsDebugBuild
+    {
+        get
+        {
+#if DEBUG
+            return true;
+#else
+            return false;
+#endif
+        }
+    }
+}

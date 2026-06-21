@@ -1,5 +1,6 @@
 using Bunit;
 using FluentAssertions;
+using LexiQuest.Blazor.Components.Guest;
 using LexiQuest.Blazor.Pages;
 using LexiQuest.Blazor.Services;
 using LexiQuest.Shared.DTOs.Game;
@@ -45,8 +46,39 @@ public class GuestGamePageTests : BunitContext
         _localizer["Correct"].Returns(new LocalizedString("Correct", "Správně!"));
         _localizer["Wrong"].Returns(new LocalizedString("Wrong", "Špatně"));
 
+        var ctaLocalizer = Substitute.For<IStringLocalizer<GuestCTAModal>>();
+        ctaLocalizer["Title"].Returns(new LocalizedString("Title", "Skvělé!"));
+        ctaLocalizer["Description"].Returns(new LocalizedString("Description", "Zaregistrujte se a získejte plný přístup!"));
+        ctaLocalizer["Benefit_SaveProgress"].Returns(new LocalizedString("Benefit_SaveProgress", "Ukládání pokroku"));
+        ctaLocalizer["Benefit_Achievements"].Returns(new LocalizedString("Benefit_Achievements", "Achievementy"));
+        ctaLocalizer["Benefit_Leagues"].Returns(new LocalizedString("Benefit_Leagues", "Ligy"));
+        ctaLocalizer["Benefit_Stats"].Returns(new LocalizedString("Benefit_Stats", "Statistiky"));
+        ctaLocalizer["Later"].Returns(new LocalizedString("Later", "Pokračovat ve hře"));
+        ctaLocalizer["Register"].Returns(new LocalizedString("Register", "Zaregistrovat se"));
+
+        var convertLocalizer = Substitute.For<IStringLocalizer<GuestConvertModal>>();
+        convertLocalizer["Title"].Returns(new LocalizedString("Title", "Hra dokončena!"));
+        convertLocalizer["Description"].Returns(new LocalizedString("Description", "Gratulujeme! Úspěšně jste dokončili hru."));
+        convertLocalizer["YourResults"].Returns(new LocalizedString("YourResults", "Vaše výsledky"));
+        convertLocalizer["WordsSolved"].Returns(new LocalizedString("WordsSolved", "Vyřešená slova: {0}"));
+        convertLocalizer["TotalXp"].Returns(new LocalizedString("TotalXp", "Celkem XP: {0}"));
+        convertLocalizer["SaveProgressDescription"].Returns(new LocalizedString("SaveProgressDescription", "Zaregistrujte se a získejte svých {0} XP!"));
+        convertLocalizer["SaveProgress"].Returns(new LocalizedString("SaveProgress", "Uložit pokrok"));
+        convertLocalizer["PlayAgain"].Returns(new LocalizedString("PlayAgain", "Hrát znovu"));
+
+        var limitLocalizer = Substitute.For<IStringLocalizer<GuestLimitReached>>();
+        limitLocalizer["Title"].Returns(new LocalizedString("Title", "Denní limit dosažen"));
+        limitLocalizer["Description"].Returns(new LocalizedString("Description", "Pro dnešek jste vyčerpali svůj limit her."));
+        limitLocalizer["Register"].Returns(new LocalizedString("Register", "Zaregistrovat se"));
+        limitLocalizer["Back"].Returns(new LocalizedString("Back", "Zpět na úvodní stránku"));
+        limitLocalizer["HaveAccount"].Returns(new LocalizedString("HaveAccount", "Už máte účet?"));
+        limitLocalizer["Login"].Returns(new LocalizedString("Login", "Přihlásit se"));
+
         Services.AddSingleton(_guestGameService);
         Services.AddSingleton(_localizer);
+        Services.AddSingleton(ctaLocalizer);
+        Services.AddSingleton(convertLocalizer);
+        Services.AddSingleton(limitLocalizer);
         Services.AddSingleton(Substitute.For<ITmLocalizer>());
         Services.AddSingleton(Substitute.For<NavigationManager>());
     }

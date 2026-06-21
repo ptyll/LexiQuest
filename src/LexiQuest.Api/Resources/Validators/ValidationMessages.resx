@@ -18,6 +18,9 @@
   <data name="Validation.Email.Invalid" xml:space="preserve">
     <value>Neplatný formát emailu</value>
   </data>
+  <data name="Validation.Email.MaxLength" xml:space="preserve">
+    <value>Email může mít maximálně {0} znaků</value>
+  </data>
   <data name="Validation.CurrentPassword.Required" xml:space="preserve">
     <value>Aktuální heslo je povinné</value>
   </data>

@@ -39,11 +39,15 @@ public class InventoryServiceTests
         // Arrange
         var userId = Guid.NewGuid();
         var shopItemId = Guid.NewGuid();
+        var user = User.Create("shop@test.local", "shopuser");
+        user.SetId(userId);
+        user.AddCoins(500);
         var shopItem = ShopItem.Create("Test Item", "Description", ShopCategory.Avatar, 100, ItemRarity.Common, "img.png");
         
         _shopItemRepository.GetByIdAsync(shopItemId).Returns(shopItem);
         _inventoryRepository.HasItemAsync(userId, shopItemId).Returns(false);
         _premiumFeatureService.IsPremiumAsync(userId).Returns(false);
+        _userRepository.GetByIdAsync(userId, Arg.Any<CancellationToken>()).Returns(user);
 
         // Act
         var result = await _service.PurchaseItemAsync(userId, shopItemId);
@@ -100,11 +104,14 @@ public class InventoryServiceTests
         // Arrange
         var userId = Guid.NewGuid();
         var shopItemId = Guid.NewGuid();
+        var user = User.Create("premium@test.local", "premiumuser");
+        user.SetId(userId);
         var shopItem = ShopItem.CreatePremiumOnly("Premium Item", "Description", ShopCategory.Avatar, 0, ItemRarity.Legendary, "img.png");
         
         _shopItemRepository.GetByIdAsync(shopItemId).Returns(shopItem);
         _inventoryRepository.HasItemAsync(userId, shopItemId).Returns(false);
         _premiumFeatureService.IsPremiumAsync(userId).Returns(true);
+        _userRepository.GetByIdAsync(userId, Arg.Any<CancellationToken>()).Returns(user);
 
         // Act
         var result = await _service.PurchaseItemAsync(userId, shopItemId);

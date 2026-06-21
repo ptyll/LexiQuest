@@ -1,53 +1,91 @@
 .admin-dashboard-page {
-    padding: var(--tm-spacing-6);
+    padding: var(--tm-space-6, 1.5rem);
     max-width: 1200px;
     margin: 0 auto;
 }
 
 .admin-header {
-    margin-bottom: var(--tm-spacing-6);
+    margin-bottom: var(--tm-space-6, 1.5rem);
 }
 
 .admin-header h1 {
     font-size: 1.875rem;
     font-weight: 700;
-    color: var(--tm-color-text-primary);
-    margin: 0 0 var(--tm-spacing-2);
+    color: var(--tm-text-primary, #111827);
+    margin: 0 0 var(--tm-space-2, 0.5rem);
 }
 
 .admin-header p {
     font-size: 1rem;
-    color: var(--tm-color-text-secondary);
+    color: var(--tm-text-secondary, #6b7280);
     margin: 0;
 }
 
 .stats-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: var(--tm-spacing-4);
-    margin-bottom: var(--tm-spacing-6);
+    gap: var(--tm-space-4, 1rem);
+    margin-bottom: var(--tm-space-6, 1.5rem);
+}
+
+.admin-stat-card {
+    display: flex;
+    align-items: center;
+    gap: var(--tm-space-4, 1rem);
+    min-height: 104px;
+    padding: var(--tm-space-5, 1.25rem);
+    border: 1px solid var(--tm-border-color, #e5e7eb);
+    border-radius: 8px;
+    background: var(--tm-bg-surface, #ffffff);
+    box-shadow: var(--tm-shadow-sm, 0 1px 2px rgb(15 23 42 / 0.06));
+}
+
+.admin-stat-value {
+    flex: 0 0 auto;
+    min-width: 3.5rem;
+    font-size: 2rem;
+    line-height: 1;
+    font-weight: 700;
+    color: var(--tm-text-primary, #111827);
+    text-align: right;
+}
+
+.admin-stat-copy {
+    min-width: 0;
+}
+
+.admin-stat-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--tm-text-primary, #111827);
+}
+
+.admin-stat-subtitle {
+    margin-top: var(--tm-space-1, 0.25rem);
+    font-size: 0.875rem;
+    color: var(--tm-text-secondary, #6b7280);
 }
 
 .quick-links {
-    margin-top: var(--tm-spacing-6);
+    margin-top: var(--tm-space-6, 1.5rem);
 }
 
 .link-buttons {
     display: flex;
-    gap: var(--tm-spacing-3);
+    gap: var(--tm-space-3, 0.75rem);
     flex-wrap: wrap;
-    padding: var(--tm-spacing-4);
+    padding: var(--tm-space-4, 1rem);
 }
 
 .retry-container {
-    margin-top: var(--tm-spacing-4);
+    margin-top: var(--tm-space-4, 1rem);
     display: flex;
     justify-content: center;
 }
 
 @media (max-width: 768px) {
     .admin-dashboard-page {
-        padding: var(--tm-spacing-4);
+        padding: var(--tm-space-4, 1rem);
     }
 
     .stats-grid {
@@ -61,7 +99,7 @@
 
 @media (max-width: 480px) {
     .admin-dashboard-page {
-        padding: var(--tm-spacing-3);
+        padding: var(--tm-space-3, 0.75rem);
     }
 
     .stats-grid {

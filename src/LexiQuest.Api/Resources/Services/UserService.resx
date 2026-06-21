@@ -64,4 +64,7 @@
   <data name="Error.Username.Exists" xml:space="preserve">
     <value>Toto uživatelské jméno je již obsazeno</value>
   </data>
+  <data name="Error.GuestProgressInvalid" xml:space="preserve">
+    <value>Pokrok z hraní jako host už nelze přenést. Zkuste prosím spustit novou hru jako host.</value>
+  </data>
 </root>

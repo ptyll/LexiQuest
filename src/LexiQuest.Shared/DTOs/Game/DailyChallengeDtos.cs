@@ -7,7 +7,14 @@ public record DailyChallengeDto(
     Guid WordId,
     DailyModifier Modifier,
     string ModifierDescription,
-    int XPMultiplier
+    int XPMultiplier,
+    string ScrambledWord = "",
+    int WordLength = 0
+);
+
+public record DailyChallengeSubmitRequest(
+    string Answer,
+    int TimeTakenMs
 );
 
 public record ChallengeResultDto(

@@ -1,3 +1,4 @@
+using LexiQuest.Api.Extensions;
 using LexiQuest.Core.Interfaces.Services;
 using LexiQuest.Shared.DTOs.Achievements;
 using Microsoft.AspNetCore.Authorization;
@@ -21,8 +22,7 @@ public class AchievementsController : ControllerBase
     [ProducesResponseType(typeof(List<AchievementDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<List<AchievementDto>>> GetAll(CancellationToken cancellationToken)
     {
-        var userId = GetCurrentUserId();
-        if (userId == Guid.Empty)
+        if (!TryGetCurrentUserId(out var userId))
             return Unauthorized();
 
         var achievements = await _achievementService.GetUserAchievementsAsync(userId, cancellationToken);
@@ -34,8 +34,7 @@ public class AchievementsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<AchievementDto>> GetById(Guid id, CancellationToken cancellationToken)
     {
-        var userId = GetCurrentUserId();
-        if (userId == Guid.Empty)
+        if (!TryGetCurrentUserId(out var userId))
             return Unauthorized();
 
         var achievements = await _achievementService.GetUserAchievementsAsync(userId, cancellationToken);
@@ -47,12 +46,18 @@ public class AchievementsController : ControllerBase
         return Ok(achievement);
     }
 
-    private Guid GetCurrentUserId()
+    private bool TryGetCurrentUserId(out Guid userId)
     {
-        var userIdClaim = User.FindFirst("sub")?.Value;
-        if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
-            return Guid.Empty;
-        return userId;
+        try
+        {
+            userId = User.GetUserId();
+            return true;
+        }
+        catch (UnauthorizedAccessException)
+        {
+            userId = Guid.Empty;
+            return false;
+        }
     }
 }
 
@@ -72,19 +77,24 @@ public class UserAchievementsController : ControllerBase
     [ProducesResponseType(typeof(List<AchievementDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<List<AchievementDto>>> GetMyAchievements(CancellationToken cancellationToken)
     {
-        var userId = GetCurrentUserId();
-        if (userId == Guid.Empty)
+        if (!TryGetCurrentUserId(out var userId))
             return Unauthorized();
 
         var achievements = await _achievementService.GetUserAchievementsAsync(userId, cancellationToken);
         return Ok(achievements);
     }
 
-    private Guid GetCurrentUserId()
+    private bool TryGetCurrentUserId(out Guid userId)
     {
-        var userIdClaim = User.FindFirst("sub")?.Value;
-        if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
-            return Guid.Empty;
-        return userId;
+        try
+        {
+            userId = User.GetUserId();
+            return true;
+        }
+        catch (UnauthorizedAccessException)
+        {
+            userId = Guid.Empty;
+            return false;
+        }
     }
 }

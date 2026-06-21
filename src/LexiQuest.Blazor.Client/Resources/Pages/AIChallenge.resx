@@ -75,6 +75,24 @@
   <data name="Challenge.Generating" xml:space="preserve">
     <value>Generuji výzvu...</value>
   </data>
+  <data name="Preview.Title" xml:space="preserve">
+    <value>Doporučená slova</value>
+  </data>
+  <data name="Preview.Loading" xml:space="preserve">
+    <value>Připravuji doporučení...</value>
+  </data>
+  <data name="Preview.Empty" xml:space="preserve">
+    <value>Pro tuto výzvu zatím nejsou dostupná doporučená slova.</value>
+  </data>
+  <data name="Preview.ReasonButton" xml:space="preserve">
+    <value>Proč</value>
+  </data>
+  <data name="Preview.Reason.Title" xml:space="preserve">
+    <value>Proč toto slovo</value>
+  </data>
+  <data name="Preview.Difficulty" xml:space="preserve">
+    <value>Odhad náročnosti: {0}%</value>
+  </data>
   <data name="Challenge.Icon.WeaknessFocus" xml:space="preserve">
     <value>target</value>
   </data>

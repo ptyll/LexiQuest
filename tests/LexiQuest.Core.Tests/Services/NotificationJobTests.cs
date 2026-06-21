@@ -6,6 +6,7 @@ using LexiQuest.Core.Interfaces.Services;
 using LexiQuest.Core.Services;
 using LexiQuest.Shared.DTOs.Notifications;
 using LexiQuest.Shared.Enums;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using Xunit;
@@ -16,6 +17,7 @@ public class StreakReminderJobTests
 {
     private readonly IUserRepository _userRepository;
     private readonly INotificationService _notificationService;
+    private readonly IStringLocalizer<StreakReminderJob> _localizer;
     private readonly ILogger<StreakReminderJob> _logger;
     private readonly StreakReminderJob _sut;
 
@@ -23,8 +25,11 @@ public class StreakReminderJobTests
     {
         _userRepository = Substitute.For<IUserRepository>();
         _notificationService = Substitute.For<INotificationService>();
+        _localizer = Substitute.For<IStringLocalizer<StreakReminderJob>>();
+        _localizer["Notification.StreakWarning.Title"].Returns(new LocalizedString("Notification.StreakWarning.Title", "Streak je v ohrožení"));
+        _localizer["Notification.StreakWarning.Message"].Returns(new LocalizedString("Notification.StreakWarning.Message", "Dnes ještě nemáte splněnou denní výzvu. Zahrajte si, ať streak pokračuje."));
         _logger = Substitute.For<ILogger<StreakReminderJob>>();
-        _sut = new StreakReminderJob(_userRepository, _notificationService, _logger);
+        _sut = new StreakReminderJob(_userRepository, _notificationService, _localizer, _logger);
     }
 
     [Fact]
@@ -42,7 +47,9 @@ public class StreakReminderJobTests
         await _notificationService.Received(1).SendAsync(
             Arg.Is<SendNotificationRequest>(r =>
                 r.UserId == user.Id &&
-                r.Type == NotificationType.StreakWarning),
+                r.Type == NotificationType.StreakWarning &&
+                r.Title == "Streak je v ohrožení" &&
+                r.Message == "Dnes ještě nemáte splněnou denní výzvu. Zahrajte si, ať streak pokračuje."),
             Arg.Any<CancellationToken>());
     }
 }
@@ -51,6 +58,7 @@ public class DailyChallengeReminderJobTests
 {
     private readonly IUserRepository _userRepository;
     private readonly INotificationService _notificationService;
+    private readonly IStringLocalizer<DailyChallengeReminderJob> _localizer;
     private readonly ILogger<DailyChallengeReminderJob> _logger;
     private readonly DailyChallengeReminderJob _sut;
 
@@ -58,8 +66,11 @@ public class DailyChallengeReminderJobTests
     {
         _userRepository = Substitute.For<IUserRepository>();
         _notificationService = Substitute.For<INotificationService>();
+        _localizer = Substitute.For<IStringLocalizer<DailyChallengeReminderJob>>();
+        _localizer["Notification.DailyChallenge.Title"].Returns(new LocalizedString("Notification.DailyChallenge.Title", "Denní výzva je připravena"));
+        _localizer["Notification.DailyChallenge.Message"].Returns(new LocalizedString("Notification.DailyChallenge.Message", "Nová denní výzva čeká na odehrání. Zvládnete ji dnes splnit?"));
         _logger = Substitute.For<ILogger<DailyChallengeReminderJob>>();
-        _sut = new DailyChallengeReminderJob(_userRepository, _notificationService, _logger);
+        _sut = new DailyChallengeReminderJob(_userRepository, _notificationService, _localizer, _logger);
     }
 
     [Fact]
@@ -77,7 +88,10 @@ public class DailyChallengeReminderJobTests
         await _notificationService.Received(1).SendAsync(
             Arg.Is<SendNotificationRequest>(r =>
                 r.UserId == user.Id &&
-                r.Type == NotificationType.DailyChallenge),
+                r.Type == NotificationType.DailyChallenge &&
+                r.Title == "Denní výzva je připravena" &&
+                r.Message == "Nová denní výzva čeká na odehrání. Zvládnete ji dnes splnit?" &&
+                r.ActionUrl == "/daily-challenge"),
             Arg.Any<CancellationToken>());
     }
 }

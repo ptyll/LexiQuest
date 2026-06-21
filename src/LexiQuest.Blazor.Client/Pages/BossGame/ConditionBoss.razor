@@ -4,7 +4,7 @@
 @inject IGameService GameService
 @inject NavigationManager NavigationManager
 
-<div class="min-h-screen bg-gray-50 dark:bg-gray-900">
+<div class="boss-page boss-page--condition">
     @if (_session == null)
     {
         <TmSkeleton Type="Rectangle" Class="h-32 mb-4" />
@@ -13,7 +13,7 @@
     else
     {
         <!-- Condition Header -->
-        <div class="bg-gradient-to-r from-purple-900 to-indigo-800 text-white p-6 shadow-lg">
+        <div data-testid="condition-header" class="bg-gradient-to-r from-purple-900 to-indigo-800 text-white p-6 shadow-lg">
             <div class="max-w-4xl mx-auto">
                 <div class="flex items-center justify-between mb-4">
                     <div class="flex items-center gap-3">
@@ -32,7 +32,7 @@
                 <div class="mb-4">
                     <div class="flex justify-between text-sm text-purple-200 mb-1">
                         <span>@L["ConditionBoss_Progress"]</span>
-                        <span>@_session.CurrentRound/@_session.TotalRounds</span>
+                        <span data-testid="progress-text">@_session.CurrentRound/@_session.TotalRounds</span>
                     </div>
                     <TmProgressBar 
                         Value="@CalculateProgress()" 
@@ -51,28 +51,31 @@
         </div>
 
         <!-- Game Arena -->
-        <div class="max-w-4xl mx-auto p-6">
+        <div class="boss-arena max-w-4xl mx-auto p-6">
             @if (!_session.IsGameOver && !_session.IsCompleted)
             {
                 <div class="space-y-4">
                     <!-- Forbidden Letter Warning Box -->
-                    <div data-testid="forbidden-warning-box" 
-                         class="border-2 border-red-500 border-dashed rounded-xl p-6 bg-red-50 animate-pulse">
-                        <div data-testid="forbidden-warning" class="flex items-center gap-4">
-                            <span class="text-4xl">🚫</span>
-                            <div>
-                                <div class="font-bold text-lg text-red-800">
-                                    @L["ConditionBoss_ForbiddenTitle"]
-                                </div>
-                                <div class="text-3xl font-black text-red-600 tracking-widest mt-2">
-                                    @_session.ForbiddenLetters
-                                </div>
-                                <div class="text-sm text-red-700 mt-2">
-                                    @L["ConditionBoss_PenaltyWarning"]
+                    @if (!string.IsNullOrWhiteSpace(_session.ForbiddenLetters))
+                    {
+                        <div data-testid="forbidden-warning-box" 
+                             class="border-2 border-red-500 border-dashed rounded-xl p-6 bg-red-50 animate-pulse">
+                            <div data-testid="forbidden-warning" class="flex items-center gap-4">
+                                <span class="text-4xl">🚫</span>
+                                <div>
+                                    <div class="font-bold text-lg text-red-800">
+                                        @L["ConditionBoss_ForbiddenTitle"]
+                                    </div>
+                                    <div data-testid="forbidden-letters" class="text-3xl font-black text-red-600 tracking-widest mt-2">
+                                        @_session.ForbiddenLetters
+                                    </div>
+                                    <div class="text-sm text-red-700 mt-2">
+                                        @L["ConditionBoss_PenaltyWarning"]
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    }
 
                     <!-- Penalty Warning (if applied) -->
                     @if (LastResult?.ForbiddenLetterPenalty != null)
@@ -93,7 +96,7 @@
                     <TmCard Variant="CardVariant.Elevated" Class="p-8">
                         <!-- Scrambled Word Display -->
                         <div class="text-center mb-8">
-                            <div class="text-5xl font-bold tracking-widest text-gray-800 dark:text-gray-100 mb-4">
+                            <div data-testid="boss-scrambled-word" class="text-5xl font-bold tracking-widest text-gray-800 dark:text-gray-100 mb-4">
                                 @_currentScrambledWord
                             </div>
                             <p class="text-gray-500">@L["ConditionBoss_UnscrambleHint"]</p>
@@ -101,8 +104,9 @@
 
                         <!-- Answer Input -->
                         <TmFormField Label="@L["ConditionBoss_AnswerLabel"]" Class="mb-6">
-                            <TmTextInput 
-                                @bind-Value="_currentAnswer"
+                        <TmTextInput 
+                            data-testid="boss-answer-input"
+                            @bind-Value="_currentAnswer"
                                 Placeholder="@L["ConditionBoss_AnswerPlaceholder"]"
                                 Size="InputSize.Large"
                                 Disabled="_isSubmitting"
@@ -111,6 +115,7 @@
 
                         <!-- Submit Button -->
                         <TmButton 
+                            data-testid="boss-submit"
                             Variant="ButtonVariant.Primary"
                             OnClick="SubmitAnswer"
                             Class="w-full"
@@ -129,7 +134,7 @@
         <!-- Victory Modal -->
         @if (_session.IsCompleted)
         {
-            <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div data-testid="victory-modal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
                 <TmCard Variant="CardVariant.Elevated" Class="max-w-md w-full mx-4">
                     <div class="p-6">
                         <div class="flex items-center gap-3 text-green-600 mb-4">
@@ -159,7 +164,7 @@
         <!-- Defeat Modal -->
         @if (_session.IsGameOver && !_session.IsCompleted)
         {
-            <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div data-testid="defeat-modal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
                 <TmCard Variant="CardVariant.Elevated" Class="max-w-md w-full mx-4">
                     <div class="p-6">
                         <div class="flex items-center gap-3 text-red-600 mb-4">
@@ -196,6 +201,7 @@
     protected override void OnInitialized()
     {
         _session = Session;
+        ApplySessionState();
     }
 
     protected override async Task OnInitializedAsync()
@@ -203,6 +209,7 @@
         if (_session == null)
         {
             _session = await BossService.GetBossStateAsync(SessionId);
+            ApplySessionState();
         }
     }
 
@@ -220,15 +227,24 @@
             
             _session!.IsGameOver = result.IsGameOver;
             _session.IsCompleted = result.IsCompleted;
-            _session.TotalXP += result.XPGained;
+            _session.TotalXP = result.TotalXP;
+            _session.CurrentRound = result.CurrentRound;
+            _session.EndedAt = result.EndedAt;
+            _session.ForbiddenLetters = result.ForbiddenLetters;
             
-            if (result.IsCorrect && !result.IsCompleted)
+            if (result.NextScrambledWord != null)
             {
-                _session.CurrentRound++;
-                _currentScrambledWord = result.NextScrambledWord ?? "NEXTWORD";
+                _currentScrambledWord = result.NextScrambledWord;
+                _session.WordLength = result.WordLength ?? _session.WordLength;
                 _currentAnswer = "";
             }
-            else if (!result.IsGameOver)
+
+            if (result.IsCorrect)
+            {
+                _session.CorrectAnswers++;
+            }
+
+            if (!result.IsGameOver && !result.IsCompleted)
             {
                 _currentAnswer = "";
             }
@@ -236,6 +252,14 @@
         finally
         {
             _isSubmitting = false;
+        }
+    }
+
+    private void ApplySessionState()
+    {
+        if (!string.IsNullOrWhiteSpace(_session?.CurrentScrambledWord))
+        {
+            _currentScrambledWord = _session.CurrentScrambledWord;
         }
     }
 

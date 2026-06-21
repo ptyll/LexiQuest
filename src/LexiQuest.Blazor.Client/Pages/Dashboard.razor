@@ -1,13 +1,16 @@
 @page "/dashboard"
+@using LexiQuest.Blazor.Components.Game
 @using LexiQuest.Blazor.Components.Stats
 @using LexiQuest.Blazor.Services
 @using LexiQuest.Shared.DTOs.Game
+@using LexiQuest.Shared.DTOs.Stats
 @inject IStringLocalizer<Dashboard> L
 @inject NavigationManager NavigationManager
 @inject IUserService UserService
 @inject IStatsService StatsService
+@inject IStreakProtectionClient StreakProtectionClient
 
-<div class="dashboard-page">
+<div class="dashboard-page" data-testid="dashboard-page">
     <div class="dashboard-header">
         <h1>@L["Title"]</h1>
         <p>@L["Welcome"]</p>
@@ -15,7 +18,7 @@
 
     @if (isLoading)
     {
-        <div class="dashboard-skeleton">
+        <div class="dashboard-skeleton" data-testid="dashboard-skeleton" aria-busy="true" aria-label="@L["Loading.Aria"]">
             <TmSkeleton Variant="SkeletonVariant.Rect" Height="120px" />
             <TmSkeleton Variant="SkeletonVariant.Rect" Height="120px" />
             <TmSkeleton Variant="SkeletonVariant.Rect" Height="120px" />
@@ -24,31 +27,54 @@
     }
     else if (stats != null)
     {
-        <div class="stats-grid">
-            <TmStatCard Title="@L["Stat.XP"]"
-                        Value="@stats.TotalXP.ToString()"
-                        Icon="@IconNames.Star"
-                        SubValue="@($"{L["Stat.Level"]} {stats.CurrentLevel}")"
-                        SubValueColor="var(--tm-color-primary)" />
+        <div class="stats-grid" data-testid="dashboard-stats-grid">
+            <section class="dashboard-stat-card" data-testid="dashboard-total-xp-stat">
+                <TmStatCard Title="@L["Stat.XP"]"
+                            Value="@stats.TotalXP.ToString()"
+                            SubValue="@($"{L["Stat.Level"]} {stats.CurrentLevel}")"
+                            SubValueColor="var(--tm-color-primary)" />
+            </section>
 
-            <TmStatCard Title="@L["Stat.Streak"]"
-                        Value="@stats.CurrentStreak.ToString()"
-                        Icon="@IconNames.TrendingUp"
-                        SubValue="@($"Nejdelší: {stats.LongestStreak}")"
-                        SubValueColor="var(--tm-color-warning)" />
+            <section class="dashboard-streak-card">
+                <StreakIndicator CurrentDays="@stats.CurrentStreak"
+                                 FireLevel="@(stats.StreakStatus?.FireLevel ?? "Cold")"
+                                 TimeRemaining="@(stats.StreakStatus?.TimeRemaining)"
+                                 IsAtRisk="@(stats.StreakStatus?.IsAtRisk ?? false)"
+                                 IsPremium="@stats.IsPremium"
+                                 ShieldProtection="@stats.StreakProtection"
+                                 TestId="dashboard-streak-indicator"
+                                 RiskTestId="dashboard-streak-risk"
+                                 TimerTestId="dashboard-streak-timer"
+                                 ShieldActivateTestId="dashboard-shield-activate"
+                                 ShieldActiveTestId="dashboard-shield-active"
+                                 ShieldBuyTestId="dashboard-shield-buy"
+                                 ShieldsRemainingTestId="dashboard-shields-remaining"
+                                 FreezeBadgeTestId="dashboard-freeze-badge"
+                                 OnActivateShield="ActivateShieldAsync"
+                                 OnBuyShields="BuyShieldsAsync" />
+            </section>
 
-            <TmStatCard Title="@L["Stat.Accuracy"]"
-                        Value="@($"{stats.Accuracy}%")"
-                        Icon="@IconNames.Target"
-                        SubValue="@($"{stats.TotalWordsSolved} {GetWordsLabel(stats.TotalWordsSolved)}")"
-                        SubValueColor="var(--tm-color-success)" />
+            <section class="dashboard-stat-card" data-testid="dashboard-accuracy-stat">
+                <TmStatCard Title="@L["Stat.Accuracy"]"
+                            Value="@($"{stats.Accuracy}%")"
+                            SubValue="@($"{stats.TotalWordsSolved} {GetWordsLabel(stats.TotalWordsSolved)}")"
+                            SubValueColor="var(--tm-color-success)" />
+            </section>
 
-            <TmStatCard Title="@L["Stat.AvgTime"]"
-                        Value="@stats.AverageTime"
-                        Icon="@IconNames.Clock"
-                        SubValue="na slovo"
-                        SubValueColor="var(--tm-color-text-secondary)" />
+            <section class="dashboard-stat-card" data-testid="dashboard-average-time-stat">
+                <TmStatCard Title="@L["Stat.AvgTime"]"
+                            Value="@stats.AverageTime"
+                            SubValue="@L["Stat.AvgTime.SubValue"]"
+                            SubValueColor="var(--tm-color-text-secondary)" />
+            </section>
         </div>
+
+        @if (stats.XpProgress != null)
+        {
+            <section class="dashboard-xp-progress" data-testid="dashboard-xp-progress">
+                <XpBar Progress="stats.XpProgress" />
+            </section>
+        }
 
         <div class="dashboard-sections">
             <TmCard Variant="CardVariant.Default"
@@ -83,21 +109,28 @@
     }
     else if (loadError)
     {
-        <TmEmptyState Icon="@IconNames.AlertCircle"
-                      Title="@L["Error.LoadTitle"]"
-                      Description="@L["Error.LoadDescription"]"
-                      ActionText="@L["Button.Retry"]"
-                      OnAction="LoadStatsAsync" />
+        <section class="dashboard-error" data-testid="dashboard-error">
+            <TmEmptyState Icon="@IconNames.AlertCircle"
+                          Title="@L["Error.LoadTitle"]"
+                          Description="@L["Error.LoadDescription"]"
+                          ActionText="@L["Button.Retry"]"
+                          OnAction="LoadStatsAsync" />
+        </section>
     }
 </div>
 
 @code {
-    private UserStatsDto? stats;
+    private UserStatsSummaryDto? stats;
     private bool isLoading = true;
     private bool loadError;
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        if (!firstRender)
+        {
+            return;
+        }
+
         await LoadStatsAsync();
     }
 
@@ -110,6 +143,10 @@
         try
         {
             stats = await StatsService.GetUserStatsAsync();
+        }
+        catch (UnauthorizedAccessException)
+        {
+            NavigationManager.NavigateTo("/login", replace: true);
         }
         catch
         {
@@ -132,10 +169,28 @@
         NavigationManager.NavigateTo(url);
     }
 
+    private async Task ActivateShieldAsync()
+    {
+        var result = await StreakProtectionClient.ActivateShieldAsync();
+        if (result?.Success == true)
+        {
+            await LoadStatsAsync();
+        }
+    }
+
+    private async Task BuyShieldsAsync()
+    {
+        var result = await StreakProtectionClient.PurchaseShieldsAsync(3);
+        if (result?.Success == true)
+        {
+            await LoadStatsAsync();
+        }
+    }
+
     private string GetWordsLabel(int count)
     {
-        if (count == 1) return "slovo";
-        if (count >= 2 && count <= 4) return "slova";
-        return "slov";
+        if (count == 1) return L["Stat.Words.One"].Value;
+        if (count >= 2 && count <= 4) return L["Stat.Words.Few"].Value;
+        return L["Stat.Words.Many"].Value;
     }
 }

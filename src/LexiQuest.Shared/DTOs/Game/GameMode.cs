@@ -9,5 +9,6 @@ public enum GameMode
     Path,
     TimeAttack,
     DailyChallenge,
-    Boss
+    Boss,
+    AIChallenge
 }

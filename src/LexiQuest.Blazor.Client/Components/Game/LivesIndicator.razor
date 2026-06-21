@@ -1,15 +1,16 @@
 @using LexiQuest.Shared.DTOs.Game
 @inject IStringLocalizer<LivesIndicator> L
 
-<div class="lives-indicator">
-    <span class="lives-label">@L["Lives.Label"]</span>
+<div class="lives-indicator" data-testid="game-lives">
+    <span class="lives-label">@L["Label"]</span>
     
     @if (Lives?.IsInfinite == true)
     {
-        <span class="lives-infinite">∞</span>
+        <span class="lives-infinite" data-testid="game-lives-count">∞</span>
     }
     else
     {
+        <span class="lives-count" data-testid="game-lives-count">@Lives?.Current/@Lives?.Max</span>
         <div class="lives-hearts">
             @for (int i = 0; i < (Lives?.Max ?? 0); i++)
             {
@@ -26,11 +27,18 @@
                 </span>
             }
         </div>
+
+        @if (Lives?.Current <= 1)
+        {
+            <span class="lives-warning" data-testid="game-low-lives-warning" role="status" aria-live="polite">
+                @(Lives.Current <= 0 ? L["NoLives"] : L["LowWarning"])
+            </span>
+        }
         
         @if (Lives?.NextRegenAt != null && Lives.Current < Lives.Max)
         {
-            <span class="lives-regen-timer">
-                @L["Tooltip.RegenIn"] @GetTimeRemaining(Lives.NextRegenAt.Value)
+            <span class="lives-regen-timer" data-testid="game-lives-regen">
+                @string.Format(L["Regeneration"], GetTimeRemaining(Lives.NextRegenAt.Value))
             </span>
         }
     }

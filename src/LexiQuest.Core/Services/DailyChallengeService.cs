@@ -10,35 +10,43 @@ namespace LexiQuest.Core.Services;
 
 public class DailyChallengeService : IDailyChallengeService
 {
+    private const int DailyChallengeCoinReward = 20;
+
     private readonly IWordRepository _wordRepository;
     private readonly IDailyChallengeRepository _challengeRepository;
     private readonly IGameSessionService _gameSessionService;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IStringLocalizer<DailyChallengeService> _localizer;
+    private readonly TimeProvider _timeProvider;
+    private readonly ICoinService? _coinService;
 
     public DailyChallengeService(
         IWordRepository wordRepository,
         IDailyChallengeRepository challengeRepository,
         IGameSessionService gameSessionService,
         IUnitOfWork unitOfWork,
-        IStringLocalizer<DailyChallengeService> localizer)
+        IStringLocalizer<DailyChallengeService> localizer,
+        TimeProvider? timeProvider = null,
+        ICoinService? coinService = null)
     {
         _wordRepository = wordRepository;
         _challengeRepository = challengeRepository;
         _gameSessionService = gameSessionService;
         _unitOfWork = unitOfWork;
         _localizer = localizer;
+        _timeProvider = timeProvider ?? TimeProvider.System;
+        _coinService = coinService;
     }
 
     public async Task<DailyChallenge?> GetTodayAsync(CancellationToken cancellationToken = default)
     {
-        var today = DateTime.UtcNow.Date;
+        var today = GetToday();
         return await _challengeRepository.GetByDateAsync(today, cancellationToken);
     }
 
     public async Task<DailyChallenge> GetOrCreateTodayAsync(CancellationToken cancellationToken = default)
     {
-        var today = DateTime.UtcNow.Date;
+        var today = GetToday();
         var existing = await _challengeRepository.GetByDateAsync(today, cancellationToken);
         
         if (existing != null)
@@ -57,6 +65,11 @@ public class DailyChallengeService : IDailyChallengeService
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return challenge;
+    }
+
+    public async Task<bool> HasCompletedTodayAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        return await _challengeRepository.HasUserCompletedAsync(userId, GetToday(), cancellationToken);
     }
 
     public async Task<ChallengeResultDto> SubmitAnswerAsync(
@@ -88,6 +101,16 @@ public class DailyChallengeService : IDailyChallengeService
             var completion = DailyChallengeCompletion.Create(userId, date, timeTaken, totalXP);
             await _challengeRepository.RecordCompletionAsync(completion, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+            if (_coinService != null)
+            {
+                await _coinService.EarnCoinsAsync(
+                    userId,
+                    DailyChallengeCoinReward,
+                    CoinTransactionType.DailyChallenge,
+                    "Dokončení denní výzvy",
+                    cancellationToken);
+            }
         }
 
         var rank = isCorrect ? await GetRankAsync(userId, date, cancellationToken) : 0;
@@ -161,4 +184,6 @@ public class DailyChallengeService : IDailyChallengeService
         var rank = leaderboard.FindIndex(e => e.UserId == userId);
         return rank >= 0 ? rank + 1 : leaderboard.Count + 1;
     }
+
+    private DateTime GetToday() => _timeProvider.GetUtcNow().UtcDateTime.Date;
 }

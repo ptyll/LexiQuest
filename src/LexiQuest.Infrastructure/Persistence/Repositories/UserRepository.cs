@@ -73,6 +73,32 @@ public class UserRepository : IUserRepository
         _context.Users.Update(user);
     }
 
+    public void Delete(User user)
+    {
+        _context.Users.Remove(user);
+    }
+
+    public async Task<List<User>> GetAllAsync(CancellationToken cancellationToken = default)
+    {
+        return await _context.Users
+            .Include(u => u.Stats)
+            .Include(u => u.Streak)
+            .Include(u => u.Preferences)
+            .Include(u => u.Premium)
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<int> CountAsync(CancellationToken cancellationToken = default)
+    {
+        return await _context.Users.CountAsync(cancellationToken);
+    }
+
+    public async Task<int> CountActiveSinceAsync(DateTime sinceUtc, CancellationToken cancellationToken = default)
+    {
+        return await _context.Users.CountAsync(u => u.LastLoginAt != null && u.LastLoginAt >= sinceUtc, cancellationToken);
+    }
+
     public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         return await _context.SaveChangesAsync(cancellationToken);

@@ -41,11 +41,9 @@ public class DailyChallengeService : IDailyChallengeService
     {
         try
         {
-            // This would typically check from an endpoint or local state
-            // For now, return false as default
-            return false;
+            return await _httpClient.GetFromJsonAsync<bool>("api/v1/game/daily/completed");
         }
-        catch
+        catch (HttpRequestException)
         {
             return false;
         }
@@ -55,7 +53,10 @@ public class DailyChallengeService : IDailyChallengeService
     {
         try
         {
-            var response = await _httpClient.PostAsJsonAsync("api/v1/game/daily/submit", new { Answer = answer, TimeTaken = timeTaken });
+            var response = await _httpClient.PostAsJsonAsync(
+                "api/v1/game/daily/submit",
+                new DailyChallengeSubmitRequest(answer, (int)Math.Max(0, timeTaken.TotalMilliseconds)));
+
             if (response.IsSuccessStatusCode)
             {
                 return await response.Content.ReadFromJsonAsync<ChallengeResultDto>();

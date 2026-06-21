@@ -30,7 +30,10 @@ public class MultiplayerGameService : IMultiplayerGameService
     {
         var matchId = Guid.NewGuid();
         var wordCount = settings?.WordCount ?? 15;
-        var timeLimitMinutes = settings?.TimeLimitMinutes ?? 3;
+        var timeLimit = settings?.TimeLimitSeconds is > 0
+            ? TimeSpan.FromSeconds(settings.TimeLimitSeconds.Value)
+            : TimeSpan.FromMinutes(settings?.TimeLimitMinutes ?? 3);
+        var timeLimitMinutes = settings?.TimeLimitMinutes ?? Math.Max(1, (int)Math.Ceiling(timeLimit.TotalMinutes));
         var difficulty = settings?.Difficulty ?? DifficultyLevel.Beginner;
 
         // Get words for the match
@@ -51,9 +54,10 @@ public class MultiplayerGameService : IMultiplayerGameService
             IsPrivateRoom = isPrivateRoom,
             TotalRounds = wordCount,
             TimeLimitMinutes = timeLimitMinutes,
+            TimeLimitSeconds = Math.Max(0, (int)Math.Ceiling(timeLimit.TotalSeconds)),
             Words = matchWords,
             CreatedAt = DateTime.UtcNow,
-            ExpiresAt = DateTime.UtcNow.AddMinutes(timeLimitMinutes),
+            ExpiresAt = DateTime.UtcNow.Add(timeLimit),
             IsActive = true
         };
 
@@ -69,17 +73,27 @@ public class MultiplayerGameService : IMultiplayerGameService
         }
 
         match.StartedAt = DateTime.UtcNow;
+        match.ExpiresAt = match.StartedAt.Value.AddSeconds(match.TimeLimitSeconds);
         match.CurrentRound = 1;
 
-        var seq = ++match.SequenceNumber;
         var word = match.Words[0];
-        return Task.FromResult(new MultiplayerRoundDto(
-            RoundNumber: 1,
-            ScrambledWord: word.Scrambled,
-            WordLength: word.Original.Length,
-            TimeLimit: match.TimeLimitMinutes * 60,
-            SequenceNumber: seq
-        ));
+        return Task.FromResult(CreateRoundDto(match, word, roundNumber: 1));
+    }
+
+    public Task<MultiplayerRoundDto?> GetCurrentRoundAsync(Guid matchId, CancellationToken cancellationToken = default)
+    {
+        if (!_cache.TryGetValue(GetMatchKey(matchId), out MultiplayerMatch? match) || match == null)
+        {
+            return Task.FromResult<MultiplayerRoundDto?>(null);
+        }
+
+        if (!match.IsActive || match.CurrentRound < 1 || match.CurrentRound > match.TotalRounds)
+        {
+            return Task.FromResult<MultiplayerRoundDto?>(null);
+        }
+
+        var word = match.Words[match.CurrentRound - 1];
+        return Task.FromResult<MultiplayerRoundDto?>(CreateRoundDto(match, word, match.CurrentRound));
     }
 
     public Task<(bool IsCorrect, int Score, bool IsMatchComplete)> SubmitAnswerAsync(Guid matchId, Guid playerId, string answer, int timeSpentMs, CancellationToken cancellationToken = default)
@@ -145,10 +159,9 @@ public class MultiplayerGameService : IMultiplayerGameService
             return Task.FromResult<MatchStateDto?>(null);
         }
 
-        var timeRemaining = match.ExpiresAt - DateTime.UtcNow;
-        if (timeRemaining < TimeSpan.Zero)
+        var timeRemaining = GetTimeRemaining(match);
+        if (timeRemaining == TimeSpan.Zero)
         {
-            timeRemaining = TimeSpan.Zero;
             match.IsActive = false;
         }
 
@@ -267,15 +280,44 @@ public class MultiplayerGameService : IMultiplayerGameService
         }
 
         var opponentId = playerId == match.Player1Id ? match.Player2Id : match.Player1Id;
-        var opponentProgress = match.GetOrCreatePlayerProgress(opponentId);
+        return GetPlayerProgressAsync(matchId, opponentId, cancellationToken);
+    }
+
+    public Task<OpponentProgressDto> GetPlayerProgressAsync(Guid matchId, Guid playerId, CancellationToken cancellationToken = default)
+    {
+        if (!_cache.TryGetValue(GetMatchKey(matchId), out MultiplayerMatch? match) || match == null)
+        {
+            throw new InvalidOperationException("Match not found");
+        }
+
+        var playerProgress = match.GetOrCreatePlayerProgress(playerId);
 
         var seq = ++match.SequenceNumber;
         return Task.FromResult(new OpponentProgressDto(
-            CorrectCount: opponentProgress.CorrectCount,
-            TotalAnswered: opponentProgress.TotalAnswered,
-            ComboCount: opponentProgress.CurrentCombo,
+            CorrectCount: playerProgress.CorrectCount,
+            TotalAnswered: playerProgress.TotalAnswered,
+            ComboCount: playerProgress.CurrentCombo,
             SequenceNumber: seq
         ));
+    }
+
+    private static MultiplayerRoundDto CreateRoundDto(MultiplayerMatch match, MatchWord word, int roundNumber)
+    {
+        var seq = ++match.SequenceNumber;
+        var timeRemaining = Math.Max(0, (int)Math.Ceiling(GetTimeRemaining(match).TotalSeconds));
+        return new MultiplayerRoundDto(
+            RoundNumber: roundNumber,
+            ScrambledWord: word.Scrambled,
+            WordLength: word.Original.Length,
+            TimeLimit: timeRemaining,
+            SequenceNumber: seq
+        );
+    }
+
+    private static TimeSpan GetTimeRemaining(MultiplayerMatch match)
+    {
+        var timeRemaining = match.ExpiresAt - DateTime.UtcNow;
+        return timeRemaining > TimeSpan.Zero ? timeRemaining : TimeSpan.Zero;
     }
 
     public Task<bool> IsMatchActiveAsync(Guid matchId, CancellationToken cancellationToken = default)
@@ -286,7 +328,7 @@ public class MultiplayerGameService : IMultiplayerGameService
         }
 
         // Check if match expired
-        if (DateTime.UtcNow > match.ExpiresAt)
+        if (GetTimeRemaining(match) == TimeSpan.Zero)
         {
             match.IsActive = false;
             return Task.FromResult(false);
@@ -338,7 +380,7 @@ public class MultiplayerGameService : IMultiplayerGameService
         }
 
         // Check if match hasn't expired
-        if (DateTime.UtcNow > match.ExpiresAt)
+        if (GetTimeRemaining(match) == TimeSpan.Zero)
         {
             match.IsActive = false;
             return Task.FromResult(false);
@@ -362,6 +404,7 @@ public class MultiplayerGameService : IMultiplayerGameService
         public bool IsPrivateRoom { get; set; }
         public int TotalRounds { get; set; }
         public int TimeLimitMinutes { get; set; }
+        public int TimeLimitSeconds { get; set; }
         public List<MatchWord> Words { get; set; } = new();
         public int CurrentRound { get; set; }
         public bool IsActive { get; set; }

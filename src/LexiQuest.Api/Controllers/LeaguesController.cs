@@ -1,3 +1,4 @@
+using LexiQuest.Api.Extensions;
 using LexiQuest.Core.Interfaces.Services;
 using LexiQuest.Shared.DTOs.Leagues;
 using Microsoft.AspNetCore.Authorization;
@@ -75,10 +76,14 @@ public class LeaguesController : ControllerBase
 
     private Guid? GetCurrentUserId()
     {
-        var userIdClaim = User.FindFirst("sub")?.Value;
-        if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
+        try
+        {
+            return User.GetUserId();
+        }
+        catch (UnauthorizedAccessException)
+        {
             return null;
-        return userId;
+        }
     }
 
     private static string GetTierDescription(Shared.Enums.LeagueTier tier)

@@ -17,7 +17,7 @@ public class XpBarTests : BunitContext
     {
         _localizer = Substitute.For<IStringLocalizer<XpBar>>();
         _localizer["XP.Current", Arg.Any<object[]>()].Returns(x => new LocalizedString("XP.Current", $"{x.Arg<object[]>()[0]}/{x.Arg<object[]>()[1]} XP"));
-        _localizer["Level", Arg.Any<object[]>()].Returns(x => new LocalizedString("Level", $"Level {x.Arg<object[]>()[0]}"));
+        _localizer["Level", Arg.Any<object[]>()].Returns(x => new LocalizedString("Level", $"Úroveň {x.Arg<object[]>()[0]}"));
         
         Services.AddSingleton(_localizer);
         TempoTestHelper.RegisterTempoServices(Services);

@@ -25,16 +25,22 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IUserService, UserService>();
 
         // Game Services
+        services.AddScoped<IGameService, GameService>();
         services.AddScoped<ILeagueService, LeagueService>();
         services.AddScoped<IDailyChallengeService, DailyChallengeService>();
         services.AddScoped<IAchievementService, AchievementService>();
+        services.AddScoped<IBossService, BossService>();
         services.AddScoped<IStatsService, StatsService>();
+        services.AddScoped<IStreakProtectionClient, StreakProtectionClient>();
         services.AddScoped<IGuestGameService, GuestGameService>();
+        services.AddScoped<IPathService, PathService>();
         services.AddScoped<IDictionaryService, DictionaryService>();
         services.AddScoped<IAIChallengeClient, AIChallengeClient>();
         services.AddScoped<IPremiumService, PremiumService>();
+        services.AddScoped<IShopService, ShopService>();
         services.AddScoped<ITeamService, TeamService>();
         services.AddScoped<INotificationService, NotificationService>();
+        services.AddScoped<NotificationRefreshService>();
 
         // SignalR Multiplayer Service
         services.AddScoped<IMatchHubClient, MatchHubClient>();
@@ -50,7 +56,17 @@ public static class ServiceCollectionExtensions
 
         // HttpClient Factory with Authorization Handler
         services.AddTransient<AuthorizationMessageHandler>();
+        services.AddHttpClient("PublicApiClient", client =>
+        {
+            client.BaseAddress = new Uri(configuration.GetValue<string>("ApiBaseUrl") ?? "https://localhost:5000");
+        });
+
         services.AddHttpClient("ApiClient", client =>
+        {
+            client.BaseAddress = new Uri(configuration.GetValue<string>("ApiBaseUrl") ?? "https://localhost:5000");
+        }).AddHttpMessageHandler<AuthorizationMessageHandler>();
+
+        services.AddHttpClient("LexiQuestApi", client =>
         {
             client.BaseAddress = new Uri(configuration.GetValue<string>("ApiBaseUrl") ?? "https://localhost:5000");
         }).AddHttpMessageHandler<AuthorizationMessageHandler>();
@@ -58,6 +74,7 @@ public static class ServiceCollectionExtensions
         // Theme and Toast services
         services.AddScoped<ThemeService>();
         services.AddScoped<ToastService>();
+        services.AddScoped<IToastService, TempoToastServiceAdapter>();
 
         // HttpClient configured to point to API
         services.AddScoped(sp => new HttpClient

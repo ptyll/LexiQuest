@@ -1,14 +1,19 @@
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using System.Text;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using LexiQuest.Api.Endpoints;
 using LexiQuest.Api.Endpoints.Users;
+using LexiQuest.Api.Hubs;
 using LexiQuest.Api.Middleware;
+using LexiQuest.Api.Testing;
 using LexiQuest.Api.Validators;
 using LexiQuest.Core.Domain.Entities;
 using LexiQuest.Core.Interfaces;
 using LexiQuest.Core.Interfaces.Repositories;
 using LexiQuest.Core.Interfaces.Services;
+using LexiQuest.Core.Jobs;
 using LexiQuest.Core.Services;
 using LexiQuest.Core.Services.BossRules;
 using LexiQuest.Core.Validators;
@@ -18,6 +23,7 @@ using LexiQuest.Infrastructure.Auth;
 using LexiQuest.Infrastructure.Persistence;
 using LexiQuest.Infrastructure.Persistence.Repositories;
 using LexiQuest.Shared.DTOs.Auth;
+using LexiQuest.Shared.DTOs.Notifications;
 using LexiQuest.Api.HealthChecks;
 using LexiQuest.Shared.Enums;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -98,6 +104,7 @@ public class Program
 
         // Repositories
         services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
         services.AddScoped<IWordRepository, WordRepository>();
         services.AddScoped<IPasswordResetTokenRepository, PasswordResetTokenRepository>();
         services.AddScoped<ILeagueRepository, LeagueRepository>();
@@ -122,7 +129,17 @@ public class Program
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<ILoginService, LoginService>();
         services.AddScoped<IGameSessionService, GameSessionService>();
-        services.AddScoped<IXpCalculator, XpCalculator>();
+        if (environment.IsEnvironment("E2E"))
+        {
+            services.AddSingleton<E2EXpRuntimeSettings>();
+            services.AddSingleton<E2EStatsRuntimeSettings>();
+            services.AddSingleton<E2EHttpDelayRuntimeSettings>();
+            services.AddScoped<IXpCalculator, E2EXpCalculator>();
+        }
+        else
+        {
+            services.AddScoped<IXpCalculator, XpCalculator>();
+        }
         services.AddScoped<IXpService, Core.Services.XpService>();
         services.AddScoped<ILevelCalculator, LevelCalculator>();
         services.AddScoped<IPasswordResetService, PasswordResetService>();
@@ -131,8 +148,8 @@ public class Program
         services.AddScoped<ILeagueService, LeagueService>();
         services.AddScoped<IDailyChallengeService, DailyChallengeService>();
         services.AddScoped<IAchievementService, AchievementService>();
-        services.AddScoped<ISubscriptionService, SubscriptionService>();
-        services.AddScoped<LexiQuest.Infrastructure.Services.StripeSubscriptionService>();
+        services.AddScoped<StripeSubscriptionService>();
+        services.AddScoped<ISubscriptionService>(sp => sp.GetRequiredService<StripeSubscriptionService>());
         services.AddScoped<IPremiumFeatureService, PremiumFeatureService>();
         services.AddScoped<IStreakProtectionService, StreakProtectionService>();
         services.AddScoped<IStreakService, StreakService>();
@@ -142,14 +159,17 @@ public class Program
         services.AddScoped<IPathService, Infrastructure.Services.PathService>();
         services.AddScoped<ICoinService, CoinService>();
         services.AddScoped<IAIChallengeService, AIChallengeService>();
+        services.AddScoped<IBossGameService, BossGameService>();
+        services.AddScoped<ITeamService, TeamService>();
         services.AddScoped<MarathonBossRules>();
         services.AddScoped<ConditionBossRules>();
         services.AddScoped<TwistBossRules>();
-        services.AddScoped<IMatchmakingService, MatchmakingService>();
+        services.AddSingleton<IMatchmakingService, MatchmakingService>();
         services.AddScoped<IMultiplayerGameService, MultiplayerGameService>();
         services.AddScoped<IMatchHistoryService, MatchHistoryService>();
         services.AddSingleton<IRoomService, RoomService>();
         services.AddSingleton<ILobbyChatService, LobbyChatService>();
+        services.AddSingleton<MultiplayerRuntimeSettings>();
         services.AddScoped<IBossService>(sp =>
         {
             var marathonRules = sp.GetRequiredService<MarathonBossRules>();
@@ -166,7 +186,10 @@ public class Program
         services.AddScoped<IPushService, WebPushService>();
         services.AddScoped<StreakReminderJob>();
         services.AddScoped<DailyChallengeReminderJob>();
+        services.AddScoped<PremiumExpiryReminderJob>();
         services.AddScoped<InactiveReminderJob>();
+        services.AddScoped<LeagueResetJob>();
+        services.AddScoped<RoomCleanupJob>();
 
         // Admin Services
         services.AddScoped<IAdminAuthorizationService, AdminAuthorizationService>();
@@ -176,6 +199,7 @@ public class Program
         // Guest Mode Services
         services.AddScoped<IGuestSessionService, GuestSessionService>();
         services.AddSingleton<IGuestLimiter, GuestLimiter>();
+        services.AddSingleton<IGuestProgressTransferService, GuestProgressTransferService>();
 
         // Password Hasher
         services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
@@ -229,6 +253,47 @@ public class Program
                     ValidateLifetime = true,
                     ClockSkew = TimeSpan.Zero
                 };
+                options.Events = new JwtBearerEvents
+                {
+                    OnMessageReceived = context =>
+                    {
+                        var accessToken = context.Request.Query["access_token"].ToString();
+                        var path = context.HttpContext.Request.Path;
+
+                        if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs"))
+                        {
+                            context.Token = accessToken;
+                        }
+
+                        return Task.CompletedTask;
+                    },
+                    OnTokenValidated = async context =>
+                    {
+                        var userIdClaim = context.Principal?.FindFirst(ClaimTypes.NameIdentifier)
+                                          ?? context.Principal?.FindFirst(JwtRegisteredClaimNames.Sub);
+
+                        if (userIdClaim is null || !Guid.TryParse(userIdClaim.Value, out var userId))
+                        {
+                            return;
+                        }
+
+                        if (context.Principal?.Identity is not ClaimsIdentity identity)
+                        {
+                            return;
+                        }
+
+                        var roleRepository = context.HttpContext.RequestServices.GetRequiredService<IAdminRoleAssignmentRepository>();
+                        var assignments = await roleRepository.GetByUserIdAsync(userId, context.HttpContext.RequestAborted);
+
+                        foreach (var role in assignments.Select(a => a.Role.ToString()).Distinct())
+                        {
+                            if (!identity.HasClaim(ClaimTypes.Role, role))
+                            {
+                                identity.AddClaim(new Claim(ClaimTypes.Role, role));
+                            }
+                        }
+                    }
+                };
             });
 
             services.AddAuthorization();
@@ -260,6 +325,16 @@ public class Program
         // Memory Cache
         services.AddMemoryCache();
         services.AddSingleton<ICacheService, LexiQuest.Infrastructure.Caching.MemoryCacheService>();
+
+        if (environment.IsEnvironment("E2E"))
+        {
+            services.AddSingleton<AdjustableTimeProvider>();
+            services.AddSingleton<TimeProvider>(sp => sp.GetRequiredService<AdjustableTimeProvider>());
+        }
+        else
+        {
+            services.AddSingleton(TimeProvider.System);
+        }
 
         // Health Checks
         services.AddHealthChecks()
@@ -298,11 +373,182 @@ public class Program
         app.UseAuthentication();
         app.UseAuthorization();
 
+        if (environment.IsEnvironment("E2E"))
+        {
+            app.Use(async (context, next) =>
+            {
+                var delaySettings = context.RequestServices.GetRequiredService<E2EHttpDelayRuntimeSettings>();
+                var delay = delaySettings.ConsumeDelayForPath(context.Request.Path);
+                if (delay is not null)
+                {
+                    await delay.WaitAsync(context.RequestAborted);
+                }
+
+                await next();
+            });
+        }
+
         app.MapControllers();
         app.MapGameEndpoints();
         app.MapUserEndpoints();
         app.MapGuestEndpoints();
         app.MapClientErrorEndpoints();
+
+        if (environment.IsEnvironment("E2E"))
+        {
+            var e2e = app.MapGroup("/api/v1/e2e")
+                .WithTags("E2E");
+
+            e2e.MapPost("/time/advance", (E2ETimeAdvanceRequest request, AdjustableTimeProvider timeProvider) =>
+            {
+                timeProvider.Advance(TimeSpan.FromSeconds(request.Seconds));
+                return Results.Ok(new { UtcNow = timeProvider.GetUtcNow() });
+            });
+
+            e2e.MapPost("/state/reset", (
+                AdjustableTimeProvider timeProvider,
+                IGuestLimiter guestLimiter,
+                MultiplayerRuntimeSettings multiplayerSettings,
+                E2EXpRuntimeSettings xpSettings,
+                E2EStatsRuntimeSettings statsSettings,
+                E2EHttpDelayRuntimeSettings httpDelaySettings) =>
+            {
+                timeProvider.Reset();
+                multiplayerSettings.Reset();
+                xpSettings.Reset();
+                statsSettings.Reset();
+                httpDelaySettings.Reset();
+                guestLimiter.Reset("127.0.0.1");
+                guestLimiter.Reset("::1");
+                guestLimiter.Reset("unknown");
+
+                return Results.Ok();
+            });
+
+            e2e.MapPost("/multiplayer/quick-match-time-limit", (
+                E2EQuickMatchTimeLimitRequest request,
+                MultiplayerRuntimeSettings multiplayerSettings) =>
+            {
+                multiplayerSettings.SetQuickMatchTimeLimitSeconds(request.Seconds);
+                return Results.Ok(new { Seconds = multiplayerSettings.QuickMatchTimeLimitSeconds });
+            });
+
+            e2e.MapPost("/xp/fixed-correct-answer", (
+                E2EFixedCorrectAnswerXpRequest request,
+                E2EXpRuntimeSettings xpSettings) =>
+            {
+                xpSettings.SetFixedCorrectAnswerXp(request.Amount);
+                return Results.Ok(new { Amount = xpSettings.FixedCorrectAnswerXp });
+            });
+
+            e2e.MapPost("/stats/fail-next-user-request", (E2EStatsRuntimeSettings statsSettings) =>
+            {
+                statsSettings.FailNextUserStatsRequest();
+                return Results.Ok();
+            });
+
+            e2e.MapPost("/stats/delay-next-user-request", (E2EStatsRuntimeSettings statsSettings) =>
+            {
+                statsSettings.DelayNextUserStatsRequest();
+                return Results.Ok();
+            });
+
+            e2e.MapPost("/stats/release-user-request", (E2EStatsRuntimeSettings statsSettings) =>
+            {
+                statsSettings.ReleaseUserStatsRequest();
+                return Results.Ok();
+            });
+
+            e2e.MapPost("/http/delay-next", (
+                E2EHttpDelayRequest request,
+                E2EHttpDelayRuntimeSettings delaySettings) =>
+            {
+                delaySettings.DelayNextRequest(request.Path);
+                return Results.Ok(new { request.Path });
+            });
+
+            e2e.MapPost("/http/release", (E2EHttpDelayRuntimeSettings delaySettings) =>
+            {
+                delaySettings.ReleaseAll();
+                return Results.Ok();
+            });
+
+            e2e.MapPost("/multiplayer/expire-room", async (
+                E2EExpireRoomRequest request,
+                IRoomService roomService,
+                CancellationToken cancellationToken) =>
+            {
+                var room = await roomService.GetRoomAsync(request.RoomCode, cancellationToken);
+                if (room == null)
+                {
+                    return Results.NotFound();
+                }
+
+                room.Expire();
+                return Results.Ok(new { RoomCode = room.Code, room.Status, room.ExpiresAt });
+            });
+
+            e2e.MapPost("/multiplayer/cleanup-rooms", async (
+                RoomCleanupJob job,
+                CancellationToken cancellationToken) =>
+            {
+                await job.ExecuteAsync(cancellationToken);
+                return Results.Ok();
+            });
+
+            e2e.MapPost("/leagues/reset", async (LeagueResetJob job, CancellationToken cancellationToken) =>
+            {
+                await job.ExecuteAsync(cancellationToken);
+                return Results.Ok();
+            });
+
+            e2e.MapPost("/notifications/send", async (
+                E2ESendNotificationRequest request,
+                IUserRepository userRepository,
+                INotificationService notificationService,
+                CancellationToken cancellationToken) =>
+            {
+                var user = await userRepository.GetByEmailAsync(request.Email, cancellationToken);
+                if (user == null)
+                {
+                    return Results.NotFound();
+                }
+
+                await notificationService.SendAsync(new SendNotificationRequest(
+                    user.Id,
+                    request.Type,
+                    request.Title,
+                    request.Message,
+                    request.Severity,
+                    request.ActionUrl), cancellationToken);
+
+                return Results.Ok();
+            });
+
+            e2e.MapPost("/notifications/run-streak-reminders", async (
+                StreakReminderJob job,
+                CancellationToken cancellationToken) =>
+            {
+                await job.ExecuteAsync(cancellationToken);
+                return Results.Ok();
+            });
+
+            e2e.MapPost("/notifications/run-daily-reminders", async (
+                DailyChallengeReminderJob job,
+                CancellationToken cancellationToken) =>
+            {
+                await job.ExecuteAsync(cancellationToken);
+                return Results.Ok();
+            });
+
+            e2e.MapPost("/premium/run-expiry-reminders", async (
+                PremiumExpiryReminderJob job,
+                CancellationToken cancellationToken) =>
+            {
+                await job.ExecuteAsync(cancellationToken);
+                return Results.Ok();
+            });
+        }
 
         // Health check endpoints
         app.MapHealthChecks("/health", new HealthCheckOptions

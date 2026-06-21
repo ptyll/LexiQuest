@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
   <data name="ConditionBoss_Title" xml:space="preserve">
-    <value>Condition Boss</value>
+    <value>Boss podmínek</value>
   </data>
   <data name="ConditionBoss_Subtitle" xml:space="preserve">
-    <value>15 slov, zakázaná písmena, alternativní řešení</value>
+    <value>15 slov, zakázaná písmena a přesnost pod tlakem</value>
   </data>
   <data name="ConditionBoss_Level" xml:space="preserve">
-    <value>Boss Level</value>
+    <value>Boss výzva</value>
   </data>
   <data name="ConditionBoss_Progress" xml:space="preserve">
     <value>Postup</value>
@@ -40,7 +40,7 @@
     <value>Výborně!</value>
   </data>
   <data name="ConditionBoss_VictoryMessage" xml:space="preserve">
-    <value>Porazil jsi Condition Bosta! Tvá kreativita a schopnost najít alternativy jsou impozantní.</value>
+    <value>Porazil jsi bosse podmínek. Tvá kreativita a schopnost najít bezpečné řešení jsou impozantní.</value>
   </data>
   <data name="ConditionBoss_TotalEarned" xml:space="preserve">
     <value>Celkem získáno</value>
@@ -58,6 +58,6 @@
     <value>Zkusit znovu</value>
   </data>
   <data name="ConditionBoss_BackToDashboard" xml:space="preserve">
-    <value>Zpět na dashboard</value>
+    <value>Zpět na přehled</value>
   </data>
 </root>

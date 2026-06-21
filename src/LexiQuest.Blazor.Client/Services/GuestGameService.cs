@@ -13,7 +13,7 @@ public class GuestGameService : IGuestGameService
 
     public GuestGameService(IHttpClientFactory httpClientFactory)
     {
-        _httpClient = httpClientFactory.CreateClient("ApiClient");
+        _httpClient = httpClientFactory.CreateClient("PublicApiClient");
     }
 
     public async Task<GuestStartResponse?> StartGameAsync()
@@ -52,5 +52,21 @@ public class GuestGameService : IGuestGameService
         }
 
         return await response.Content.ReadFromJsonAsync<GuestAnswerResponse>();
+    }
+
+    public async Task<GuestConvertResponse?> ConvertAsync(Guid sessionId, bool transferProgress)
+    {
+        var request = new GuestConvertRequest(
+            SessionId: sessionId,
+            TransferProgress: transferProgress);
+
+        var response = await _httpClient.PostAsJsonAsync("api/v1/game/guest/convert", request);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            return null;
+        }
+
+        return await response.Content.ReadFromJsonAsync<GuestConvertResponse>();
     }
 }

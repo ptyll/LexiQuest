@@ -49,6 +49,7 @@ public class LeagueResetJobTests
         {
             await _leagueService.Received().AssignUserToLeagueAsync(
                 userId,
+                Arg.Any<LeagueTier>(),
                 Arg.Any<DateTime>(),
                 Arg.Any<DateTime>(),
                 Arg.Any<CancellationToken>());
@@ -76,6 +77,7 @@ public class LeagueResetJobTests
         // Assert
         await _leagueService.Received().AssignUserToLeagueAsync(
             Arg.Is<Guid>(id => promotedUsers.Any(p => p.UserId == id)),
+            LeagueTier.Silver,
             Arg.Any<DateTime>(),
             Arg.Any<DateTime>(),
             Arg.Any<CancellationToken>());
@@ -103,16 +105,18 @@ public class LeagueResetJobTests
         // Demoted users from Silver should go to Bronze
         await _leagueService.Received().AssignUserToLeagueAsync(
             Arg.Is<Guid>(id => demotedUsers.Any(p => p.UserId == id)),
+            LeagueTier.Bronze,
             Arg.Any<DateTime>(),
             Arg.Any<DateTime>(),
             Arg.Any<CancellationToken>());
     }
 
     [Fact]
-    public async Task LeagueResetJob_Execute_ResetsWeeklyXP()
+    public async Task LeagueResetJob_Execute_PreservesPastWeekParticipantResults()
     {
         // Arrange
         var league = CreateLeagueWithRanks(LeagueTier.Gold, 5);
+        var weeklyXpBeforeReset = league.Participants.ToDictionary(p => p.UserId, p => p.WeeklyXP);
         
         _leagueRepository.GetActiveLeaguesAsync(Arg.Any<CancellationToken>())
             .Returns(new List<League> { league });
@@ -122,7 +126,8 @@ public class LeagueResetJobTests
 
         // Assert
         league.IsActive.Should().BeFalse();
-        league.Participants.Should().AllSatisfy(p => p.WeeklyXP.Should().Be(0));
+        league.Participants.Should().AllSatisfy(p =>
+            p.WeeklyXP.Should().Be(weeklyXpBeforeReset[p.UserId]));
     }
 
     [Fact]
@@ -148,6 +153,7 @@ public class LeagueResetJobTests
         var promotedUsers = league.Participants.Where(p => p.Rank <= 3).Select(p => p.UserId).ToList();
         await _leagueService.Received().AssignUserToLeagueAsync(
             Arg.Is<Guid>(id => promotedUsers.Contains(id)),
+            LeagueTier.Legend,
             Arg.Any<DateTime>(),
             Arg.Any<DateTime>(),
             Arg.Any<CancellationToken>());

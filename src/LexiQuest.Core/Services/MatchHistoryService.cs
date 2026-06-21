@@ -129,6 +129,20 @@ public class MatchHistoryService : IMatchHistoryService
         );
     }
 
+    public async Task<MatchResultDto?> GetMatchResultAsync(
+        Guid matchId,
+        Guid playerId,
+        CancellationToken cancellationToken = default)
+    {
+        var match = await _matchResultRepository.GetByMatchIdAsync(matchId, cancellationToken);
+        if (match == null || (match.Player1Id != playerId && match.Player2Id != playerId))
+        {
+            return null;
+        }
+
+        return MapToResultDto(match, playerId);
+    }
+
     public async Task<MatchResult?> GetMatchByIdAsync(
         Guid matchId,
         CancellationToken cancellationToken = default)
@@ -154,6 +168,57 @@ public class MatchHistoryService : IMatchHistoryService
             RoomCode: match.RoomCode,
             SeriesScoreYou: seriesScore?.YourWins,
             SeriesScoreOpponent: seriesScore?.OpponentWins
+        );
+    }
+
+    private static MatchResultDto MapToResultDto(MatchResult match, Guid playerId)
+    {
+        var isPlayer1 = playerId == match.Player1Id;
+
+        var yourUsername = isPlayer1 ? match.Player1Username : match.Player2Username;
+        var opponentUsername = isPlayer1 ? match.Player2Username : match.Player1Username;
+        var yourAvatar = isPlayer1 ? match.Player1Avatar : match.Player2Avatar;
+        var opponentAvatar = isPlayer1 ? match.Player2Avatar : match.Player1Avatar;
+        var yourScore = isPlayer1 ? match.Player1Score : match.Player2Score;
+        var opponentScore = isPlayer1 ? match.Player2Score : match.Player1Score;
+        var yourTime = isPlayer1 ? match.Player1Time : match.Player2Time;
+        var opponentTime = isPlayer1 ? match.Player2Time : match.Player1Time;
+        var yourCombo = isPlayer1 ? match.Player1MaxCombo : match.Player2MaxCombo;
+        var opponentCombo = isPlayer1 ? match.Player2MaxCombo : match.Player1MaxCombo;
+        var yourXp = isPlayer1 ? match.Player1XPEarned : match.Player2XPEarned;
+        var opponentXp = isPlayer1 ? match.Player2XPEarned : match.Player1XPEarned;
+        var yourLeagueXp = isPlayer1 ? match.Player1LeagueXPEarned : match.Player2LeagueXPEarned;
+
+        return new MatchResultDto(
+            WinnerId: match.WinnerId,
+            YourScore: yourScore,
+            OpponentScore: opponentScore,
+            YourTime: yourTime,
+            OpponentTime: opponentTime,
+            XPEarned: yourXp,
+            LeagueXPEarned: yourLeagueXp,
+            IsDraw: match.IsDraw,
+            IsPrivateRoom: match.IsPrivateRoom,
+            RoomCode: match.RoomCode,
+            YourResult: new PlayerMatchResult(
+                Username: yourUsername,
+                Avatar: yourAvatar,
+                CorrectCount: yourScore,
+                TotalTime: yourTime,
+                ComboMax: yourCombo,
+                XPEarned: yourXp
+            ),
+            OpponentResult: new PlayerMatchResult(
+                Username: opponentUsername,
+                Avatar: opponentAvatar,
+                CorrectCount: opponentScore,
+                TotalTime: opponentTime,
+                ComboMax: opponentCombo,
+                XPEarned: opponentXp
+            ),
+            SeriesPlayer1Wins: match.SeriesPlayer1Wins,
+            SeriesPlayer2Wins: match.SeriesPlayer2Wins,
+            BestOf: match.SeriesPlayer1Wins.HasValue && match.SeriesPlayer2Wins.HasValue ? 3 : 1
         );
     }
 }

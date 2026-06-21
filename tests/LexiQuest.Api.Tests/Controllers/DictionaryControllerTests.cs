@@ -7,6 +7,7 @@ using LexiQuest.Api.Extensions;
 using LexiQuest.Core.Domain.Entities;
 using LexiQuest.Core.Interfaces.Services;
 using LexiQuest.Infrastructure.Persistence;
+using LexiQuest.Infrastructure.Services;
 using LexiQuest.Shared.DTOs.Auth;
 using LexiQuest.Shared.DTOs.Dictionaries;
 using LexiQuest.Shared.Enums;
@@ -16,6 +17,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using NSubstitute;
 
 namespace LexiQuest.Api.Tests.Controllers;
@@ -26,17 +28,7 @@ public class DictionaryControllerTests : IClassFixture<WebApplicationFactory<Pro
 
     private WebApplicationFactory<Program> CreateFactory()
     {
-        return new WebApplicationFactory<Program>()
-            .WithWebHostBuilder(builder =>
-            {
-                builder.UseEnvironment("Test");
-
-                builder.ConfigureServices(services =>
-                {
-                    services.AddDbContext<LexiQuestDbContext>(options =>
-                        options.UseInMemoryDatabase(TestDbName));
-                });
-            });
+        return new CustomWebApplicationFactory(TestDbName);
     }
 
     private async Task<(HttpClient Client, WebApplicationFactory<Program> Factory, AuthResponse Auth)> CreateAuthenticatedClientAsync()
@@ -77,6 +69,10 @@ public class DictionaryControllerTests : IClassFixture<WebApplicationFactory<Pro
 
         var authResponse = await registerResponse.Content.ReadFromJsonAsync<AuthResponse>();
         authResponse.Should().NotBeNull();
+
+        var user = await dbContext.Users.SingleAsync(u => u.Email == registerRequest.Email);
+        user.Premium.Activate("Test", DateTime.UtcNow.AddDays(30));
+        await dbContext.SaveChangesAsync();
 
         // Set authorization header
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", authResponse!.AccessToken);

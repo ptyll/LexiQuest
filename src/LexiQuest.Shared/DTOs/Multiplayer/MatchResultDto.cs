@@ -15,8 +15,14 @@ public record MatchResultDto(
     bool IsPrivateRoom,
     string? RoomCode,
     PlayerMatchResult YourResult,
-    PlayerMatchResult OpponentResult
-);
+    PlayerMatchResult OpponentResult,
+    int? SeriesPlayer1Wins = null,
+    int? SeriesPlayer2Wins = null,
+    int BestOf = 1
+)
+{
+    public bool DidYouWin => !IsDraw && XPEarned > OpponentResult.XPEarned;
+}
 
 /// <summary>
 /// DTO for individual player match result.

@@ -5,7 +5,7 @@
 @inject NavigationManager NavigationManager
 @implements IDisposable
 
-<div class="min-h-screen bg-gray-50 dark:bg-gray-900">
+<div class="boss-page boss-page--twist">
     @if (_session == null)
     {
         <TmSkeleton Type="Rectangle" Class="h-32 mb-4" />
@@ -14,7 +14,7 @@
     else
     {
         <!-- Twist Header -->
-        <div class="bg-gradient-to-r from-cyan-800 to-teal-700 text-white p-6 shadow-lg">
+        <div data-testid="twist-header" class="bg-gradient-to-r from-cyan-800 to-teal-700 text-white p-6 shadow-lg">
             <div class="max-w-4xl mx-auto">
                 <div class="flex items-center justify-between mb-4">
                     <div class="flex items-center gap-3">
@@ -33,7 +33,7 @@
                 <div class="mb-4">
                     <div class="flex justify-between text-sm text-cyan-200 mb-1">
                         <span>@L["TwistBoss_Progress"]</span>
-                        <span>@_session.CurrentRound/@_session.TotalRounds</span>
+                        <span data-testid="progress-text">@_session.CurrentRound/@_session.TotalRounds</span>
                     </div>
                     <TmProgressBar 
                         Value="@CalculateProgress()" 
@@ -52,7 +52,7 @@
         </div>
 
         <!-- Game Arena -->
-        <div class="max-w-4xl mx-auto p-6">
+        <div class="boss-arena max-w-4xl mx-auto p-6">
             @if (!_session.IsGameOver && !_session.IsCompleted)
             {
                 <div class="space-y-4">
@@ -148,8 +148,9 @@
 
                         <!-- Answer Input -->
                         <TmFormField Label="@L["TwistBoss_AnswerLabel"]" Class="mb-6">
-                            <TmTextInput 
-                                @bind-Value="_currentAnswer"
+                        <TmTextInput 
+                            data-testid="boss-answer-input"
+                            @bind-Value="_currentAnswer"
                                 Placeholder="@L["TwistBoss_AnswerPlaceholder"]"
                                 Size="InputSize.Large"
                                 Disabled="_isSubmitting"
@@ -158,6 +159,7 @@
 
                         <!-- Submit Button -->
                         <TmButton 
+                            data-testid="boss-submit"
                             Variant="ButtonVariant.Primary"
                             OnClick="SubmitAnswer"
                             Class="w-full"
@@ -176,7 +178,7 @@
         <!-- Victory Modal -->
         @if (_session.IsCompleted)
         {
-            <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div data-testid="victory-modal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
                 <TmCard Variant="CardVariant.Elevated" Class="max-w-md w-full mx-4">
                     <div class="p-6">
                         <div class="flex items-center gap-3 text-green-600 mb-4">
@@ -206,7 +208,7 @@
         <!-- Defeat Modal -->
         @if (_session.IsGameOver && !_session.IsCompleted)
         {
-            <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div data-testid="defeat-modal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
                 <TmCard Variant="CardVariant.Elevated" Class="max-w-md w-full mx-4">
                     <div class="p-6">
                         <div class="flex items-center gap-3 text-red-600 mb-4">
@@ -237,6 +239,7 @@
 
     private BossSessionDto? _session;
     private List<int>? _revealedPositions;
+    private Dictionary<int, string> _revealedLetters = [];
     private int _wordLength = 6;
     private TimeSpan? _timeUntilNextReveal;
     private string _currentAnswer = "";
@@ -246,8 +249,7 @@
     protected override void OnInitialized()
     {
         _session = Session;
-        _revealedPositions = _session?.RevealedPositions ?? new List<int> { 0, 1 };
-        _timeUntilNextReveal = _session?.TimeUntilNextReveal ?? TimeSpan.FromSeconds(3);
+        ApplySessionState();
     }
 
     protected override async Task OnInitializedAsync()
@@ -255,7 +257,7 @@
         if (_session == null)
         {
             _session = await BossService.GetBossStateAsync(SessionId);
-            _revealedPositions = _session?.RevealedPositions ?? new List<int> { 0, 1 };
+            ApplySessionState();
         }
 
         StartRevealTimer();
@@ -288,6 +290,7 @@
         if (state != null)
         {
             _revealedPositions = state.RevealedPositions;
+            _revealedLetters = state.RevealedLetters.ToDictionary(letter => letter.Position, letter => letter.Letter);
             _timeUntilNextReveal = state.TimeUntilNextReveal;
             StateHasChanged();
         }
@@ -335,8 +338,9 @@
 
     private char GetLetterAtPosition(int position)
     {
-        var word = "SLOVOA";
-        return position < word.Length ? word[position] : '?';
+        return _revealedLetters.TryGetValue(position, out var letter) && !string.IsNullOrEmpty(letter)
+            ? letter[0]
+            : '?';
     }
 
     private async Task SubmitAnswer()
@@ -351,16 +355,26 @@
             
             _session!.IsGameOver = result.IsGameOver;
             _session.IsCompleted = result.IsCompleted;
-            _session.TotalXP += result.XPGained;
+            _session.TotalXP = result.TotalXP;
+            _session.CurrentRound = result.CurrentRound;
+            _session.EndedAt = result.EndedAt;
             
-            if (result.IsCorrect && !result.IsCompleted)
+            if (result.NextScrambledWord != null)
             {
-                _session.CurrentRound++;
-                _revealedPositions = new List<int> { 0, 1 };
+                _session.WordLength = result.WordLength ?? _session.WordLength;
+                _wordLength = _session.WordLength;
+                _revealedPositions = result.RevealedPositions ?? new List<int> { 0, 1 };
+                _revealedLetters = result.RevealedLetters?.ToDictionary(letter => letter.Position, letter => letter.Letter) ?? [];
                 _timeUntilNextReveal = TimeSpan.FromSeconds(3);
                 _currentAnswer = "";
             }
-            else if (!result.IsGameOver)
+
+            if (result.IsCorrect)
+            {
+                _session.CorrectAnswers++;
+            }
+
+            if (!result.IsGameOver && !result.IsCompleted)
             {
                 _currentAnswer = "";
             }
@@ -373,6 +387,14 @@
 
     private void ReturnToDashboard() => NavigationManager.NavigateTo("/dashboard");
     private void TryAgain() => NavigationManager.NavigateTo("/game/boss", forceLoad: true);
+
+    private void ApplySessionState()
+    {
+        _wordLength = _session?.WordLength > 0 ? _session.WordLength : 6;
+        _revealedPositions = _session?.RevealedPositions ?? new List<int> { 0, 1 };
+        _revealedLetters = _session?.RevealedLetters?.ToDictionary(letter => letter.Position, letter => letter.Letter) ?? [];
+        _timeUntilNextReveal = _session?.TimeUntilNextReveal ?? TimeSpan.FromSeconds(3);
+    }
 
     public void Dispose()
     {

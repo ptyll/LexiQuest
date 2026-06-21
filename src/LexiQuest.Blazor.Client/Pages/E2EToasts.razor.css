@@ -1,0 +1,19 @@
+.e2e-toast-page {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    max-width: 42rem;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+}
+
+.e2e-toast-page h1 {
+    margin: 0;
+    font-size: 1.75rem;
+}
+
+.e2e-toast-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}

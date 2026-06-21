@@ -127,4 +127,10 @@
   <data name="PasswordStrength.Strong" xml:space="preserve">
     <value>Silné</value>
   </data>
+  <data name="GuestProgress.Title" xml:space="preserve">
+    <value>Pokrok z hraní jako host je připravený</value>
+  </data>
+  <data name="GuestProgress.Description" xml:space="preserve">
+    <value>Po registraci vám připíšeme {0} XP a {1} vyřešených slov.</value>
+  </data>
 </root>

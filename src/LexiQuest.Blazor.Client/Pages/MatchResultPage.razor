@@ -1,0 +1,139 @@
+@page "/multiplayer/result/{MatchId:guid}"
+@namespace LexiQuest.Blazor.Pages
+@inject IMatchHistoryClient MatchHistoryClient
+@inject IMatchHubClient MatchHubClient
+@inject IStringLocalizer<Multiplayer> L
+@inject NavigationManager NavigationManager
+@implements IAsyncDisposable
+
+<div class="match-result-page" data-testid="multiplayer-result-page">
+    @if (_isLoading)
+    {
+        <div class="match-result-state" data-testid="multiplayer-result-loading">
+            <TmSpinner Size="SpinnerSize.Lg" />
+            <span>@L["MatchResult_Loading"]</span>
+        </div>
+    }
+    else if (_result == null)
+    {
+        <div class="match-result-state">
+            <TmEmptyState
+                Icon="🏁"
+                Title="@L["MatchResult_NotFound_Title"]"
+                Description="@L["MatchResult_NotFound_Description"]" />
+            <button type="button"
+                    class="match-result-home"
+                    data-testid="multiplayer-result-home"
+                    @onclick="GoHome">
+                @L["MatchResult_BackToMultiplayer"]
+            </button>
+        </div>
+    }
+    else
+    {
+        <MatchResult
+            IsVisible="true"
+            Result="_result"
+            OnNextMatch="StartNextMatch"
+            OnAcceptRematch="AcceptRematch"
+            OnDeclineRematch="DeclineRematch"
+            RematchRequestSent="_rematchRequestSent"
+            RematchRequestedByOpponent="_rematchRequestedByOpponent"
+            RematchDeclined="_rematchDeclined"
+            OnHome="GoHome" />
+    }
+</div>
+
+@code {
+    [Parameter]
+    public Guid MatchId { get; set; }
+
+    private MatchResultDto? _result;
+    private bool _isLoading = true;
+    private bool _rematchRequestSent;
+    private bool _rematchRequestedByOpponent;
+    private bool _rematchDeclined;
+
+    protected override void OnInitialized()
+    {
+        MatchHubClient.OnRematchRequested += OnRematchRequested;
+        MatchHubClient.OnRematchDeclined += OnRematchDeclined;
+        MatchHubClient.OnRoomStateReset += OnRoomStateReset;
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _isLoading = true;
+        _result = await MatchHistoryClient.GetMatchResultAsync(MatchId);
+
+        if (_result?.IsPrivateRoom == true)
+        {
+            await MatchHubClient.StartAsync();
+        }
+
+        _isLoading = false;
+    }
+
+    private async Task StartNextMatch()
+    {
+        if (_result?.IsPrivateRoom == true && !string.IsNullOrWhiteSpace(_result.RoomCode))
+        {
+            _rematchRequestSent = true;
+            _rematchRequestedByOpponent = false;
+            _rematchDeclined = false;
+            await MatchHubClient.RequestRematchAsync();
+            return;
+        }
+
+        NavigationManager.NavigateTo("/multiplayer/quick-match");
+    }
+
+    private async Task AcceptRematch()
+    {
+        _rematchRequestedByOpponent = false;
+        await MatchHubClient.AcceptRematchAsync();
+    }
+
+    private async Task DeclineRematch()
+    {
+        _rematchRequestedByOpponent = false;
+        await MatchHubClient.DeclineRematchAsync();
+    }
+
+    private void OnRematchRequested(object? sender, Guid playerId)
+    {
+        _rematchRequestSent = false;
+        _rematchRequestedByOpponent = true;
+        _rematchDeclined = false;
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    private void OnRematchDeclined(object? sender, Guid playerId)
+    {
+        _rematchRequestSent = false;
+        _rematchRequestedByOpponent = false;
+        _rematchDeclined = true;
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    private void OnRoomStateReset(object? sender, IReadOnlyList<PlayerReadyStateDto> readyStates)
+    {
+        if (_result?.IsPrivateRoom == true && !string.IsNullOrWhiteSpace(_result.RoomCode))
+        {
+            _ = InvokeAsync(() => NavigationManager.NavigateTo($"/multiplayer/room/{_result.RoomCode}"));
+        }
+    }
+
+    private void GoHome()
+    {
+        NavigationManager.NavigateTo("/multiplayer");
+    }
+
+    public ValueTask DisposeAsync()
+    {
+        MatchHubClient.OnRematchRequested -= OnRematchRequested;
+        MatchHubClient.OnRematchDeclined -= OnRematchDeclined;
+        MatchHubClient.OnRoomStateReset -= OnRoomStateReset;
+        return ValueTask.CompletedTask;
+    }
+}

@@ -5,13 +5,13 @@
 
 <PageTitle>@L["Profile_PageTitle"]</PageTitle>
 
-<div class="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
-    <div class="max-w-4xl mx-auto px-4">
-        <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-8">@L["Profile_Title"]</h1>
+<div class="profile-page" data-testid="profile-page">
+    <div class="profile-container">
+        <h1 class="profile-heading" data-testid="profile-heading">@L["Profile_Title"]</h1>
 
         @if (_isLoading)
         {
-            <div class="space-y-6">
+            <div class="profile-loading" data-testid="profile-loading">
                 <TmSkeleton Type="Rectangle" Height="200px" />
                 <TmSkeleton Type="Rectangle" Height="300px" />
             </div>
@@ -25,85 +25,103 @@
         }
         else
         {
-            <div class="space-y-8">
+            <div class="profile-stack">
                 <!-- User Info Section -->
-                <TmCard Variant="CardVariant.Elevated" Class="p-6">
-                    <div class="flex items-center gap-6">
-                        <TmAvatar Src="@_profile.AvatarUrl" Alt="@_profile.Username" Size="AvatarSize.Lg" />
-                        <div>
-                            <h2 class="text-2xl font-bold text-gray-900 dark:text-white">@_profile.Username</h2>
-                            <p class="text-gray-500 dark:text-gray-400">@_profile.Email</p>
-                            <p class="text-sm text-gray-400 dark:text-gray-500 mt-1">
-                                @L["Profile_MemberSince", _profile.CreatedAt.ToString("dd.MM.yyyy")]
-                            </p>
+                <div data-testid="profile-summary-card">
+                    <TmCard Variant="CardVariant.Elevated">
+                        <div class="profile-card-content profile-summary">
+                            <TmAvatar Src="@_profile.AvatarUrl" Alt="@_profile.Username" Size="AvatarSize.Lg" />
+                            <div class="profile-summary-copy">
+                                <h2>@_profile.Username</h2>
+                                <p class="profile-email">@_profile.Email</p>
+                                <p class="profile-member-since">
+                                    @L["Profile_MemberSince", _profile.CreatedAt.ToString("dd.MM.yyyy")]
+                                </p>
+                                @if (_profile.IsPremium)
+                                {
+                                    <div class="profile-premium-badge" data-testid="profile-premium-badge">
+                                        <TmBadge Variant="BadgeVariant.Success">
+                                            @L["Profile_PremiumBadge"] - @GetPremiumPlanLabel(_profile.PremiumPlan)
+                                        </TmBadge>
+                                    </div>
+                                }
+                            </div>
                         </div>
-                    </div>
-                </TmCard>
+                    </TmCard>
+                </div>
 
                 <!-- Stats Section -->
-                <TmCard Variant="CardVariant.Elevated" Class="p-6">
-                    <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-6">@L["Profile_StatsTitle"]</h2>
-                    <div class="grid grid-cols-2 md:grid-cols-3 gap-6">
-                        <div class="text-center">
-                            <div class="flex justify-center mb-2">
-                                <TmIcon Name="star" Class="text-yellow-500" />
-                            </div>
-                            <div class="text-2xl font-bold text-gray-900 dark:text-white">@_profile.Stats.Level</div>
-                            <div class="text-sm text-gray-500">@L["Profile_Level"]</div>
-                        </div>
+                <div data-testid="profile-stats-card">
+                    <TmCard Variant="CardVariant.Elevated">
+                        <div class="profile-card-content">
+                            <h2 class="profile-card-title">@L["Profile_StatsTitle"]</h2>
+                            <div class="profile-stats-grid">
+                                <div class="profile-stat" data-testid="profile-stat-level">
+                                    <div class="profile-stat-icon profile-stat-icon-level">
+                                        <TmIcon Name="@IconNames.Star" />
+                                    </div>
+                                    <div class="profile-stat-value">@_profile.Stats.Level</div>
+                                    <div class="profile-stat-label">@L["Profile_Level"]</div>
+                                </div>
 
-                        <div class="text-center">
-                            <div class="flex justify-center mb-2">
-                                <TmIcon Name="zap" Class="text-blue-500" />
-                            </div>
-                            <div class="text-2xl font-bold text-gray-900 dark:text-white">@_profile.Stats.TotalXP.ToString("N0")</div>
-                            <div class="text-sm text-gray-500">@L["Profile_TotalXP"]</div>
-                        </div>
+                                <div class="profile-stat" data-testid="profile-stat-xp">
+                                    <div class="profile-stat-icon profile-stat-icon-xp">
+                                        <TmIcon Name="@IconNames.Zap" />
+                                    </div>
+                                    <div class="profile-stat-value">@_profile.Stats.TotalXP.ToString("N0")</div>
+                                    <div class="profile-stat-label">@L["Profile_TotalXP"]</div>
+                                </div>
 
-                        <div class="text-center">
-                            <div class="flex justify-center mb-2">
-                                <TmIcon Name="book-open" Class="text-green-500" />
-                            </div>
-                            <div class="text-2xl font-bold text-gray-900 dark:text-white">@_profile.Stats.WordsSolved.ToString("N0")</div>
-                            <div class="text-sm text-gray-500">@L["Profile_WordsSolved"]</div>
-                        </div>
+                                <div class="profile-stat" data-testid="profile-stat-words">
+                                    <div class="profile-stat-icon profile-stat-icon-words">
+                                        <TmIcon Name="@IconNames.FileText" />
+                                    </div>
+                                    <div class="profile-stat-value">@_profile.Stats.WordsSolved.ToString("N0")</div>
+                                    <div class="profile-stat-label">@L["Profile_WordsSolved"]</div>
+                                </div>
 
-                        <div class="text-center">
-                            <div class="flex justify-center mb-2">
-                                <TmIcon Name="flame" Class="text-orange-500" />
-                            </div>
-                            <div class="text-2xl font-bold text-gray-900 dark:text-white">@_profile.Stats.CurrentStreak</div>
-                            <div class="text-sm text-gray-500">@L["Profile_CurrentStreak"]</div>
-                        </div>
+                                <div class="profile-stat" data-testid="profile-stat-current-streak">
+                                    <div class="profile-stat-icon profile-stat-icon-current-streak">
+                                        <TmIcon Name="@IconNames.Fire" />
+                                    </div>
+                                    <div class="profile-stat-value">@_profile.Stats.CurrentStreak</div>
+                                    <div class="profile-stat-label">@L["Profile_CurrentStreak"]</div>
+                                </div>
 
-                        <div class="text-center">
-                            <div class="flex justify-center mb-2">
-                                <TmIcon Name="trophy" Class="text-purple-500" />
-                            </div>
-                            <div class="text-2xl font-bold text-gray-900 dark:text-white">@_profile.Stats.LongestStreak</div>
-                            <div class="text-sm text-gray-500">@L["Profile_LongestStreak"]</div>
-                        </div>
+                                <div class="profile-stat" data-testid="profile-stat-longest-streak">
+                                    <div class="profile-stat-icon profile-stat-icon-longest-streak">
+                                        <TmIcon Name="@IconNames.Trophy" />
+                                    </div>
+                                    <div class="profile-stat-value">@_profile.Stats.LongestStreak</div>
+                                    <div class="profile-stat-label">@L["Profile_LongestStreak"]</div>
+                                </div>
 
-                        <div class="text-center">
-                            <div class="flex justify-center mb-2">
-                                <TmIcon Name="target" Class="text-red-500" />
+                                <div class="profile-stat" data-testid="profile-stat-accuracy">
+                                    <div class="profile-stat-icon profile-stat-icon-accuracy">
+                                        <TmIcon Name="@IconNames.Target" />
+                                    </div>
+                                    <div class="profile-stat-value">@($"{_profile.Stats.Accuracy:N0}%")</div>
+                                    <div class="profile-stat-label">@L["Profile_Accuracy"]</div>
+                                </div>
                             </div>
-                            <div class="text-2xl font-bold text-gray-900 dark:text-white">@(_profile.Stats.Accuracy.ToString("P0"))</div>
-                            <div class="text-sm text-gray-500">@L["Profile_Accuracy"]</div>
                         </div>
-                    </div>
-                </TmCard>
+                    </TmCard>
+                </div>
 
                 <!-- Achievements Section -->
-                <TmCard Variant="CardVariant.Elevated" Class="p-6">
-                    <div class="flex items-center justify-between">
-                        <h2 class="text-xl font-semibold text-gray-900 dark:text-white">@L["Profile_AchievementsTitle"]</h2>
-                        <TmBadge Variant="BadgeVariant.Info">
-                            @L["Profile_AchievementsCount"]
-                        </TmBadge>
-                    </div>
-                    <p class="text-gray-500 dark:text-gray-400 mt-2">@L["Profile_AchievementsDescription"]</p>
-                </TmCard>
+                <div data-testid="profile-achievements-card">
+                    <TmCard Variant="CardVariant.Elevated">
+                        <div class="profile-card-content">
+                            <div class="profile-achievements-heading">
+                                <h2 class="profile-card-title">@L["Profile_AchievementsTitle"]</h2>
+                                <TmBadge Variant="BadgeVariant.Info">
+                                    @L["Profile_AchievementsCount"]
+                                </TmBadge>
+                            </div>
+                            <p class="profile-achievements-description">@L["Profile_AchievementsDescription"]</p>
+                        </div>
+                    </TmCard>
+                </div>
             </div>
         }
     </div>
@@ -129,5 +147,16 @@
         {
             _isLoading = false;
         }
+    }
+
+    private string GetPremiumPlanLabel(string? plan)
+    {
+        return plan switch
+        {
+            "Monthly" => L["Profile_PremiumPlanMonthly"].Value,
+            "Yearly" => L["Profile_PremiumPlanYearly"].Value,
+            "Lifetime" => L["Profile_PremiumPlanLifetime"].Value,
+            _ => plan ?? L["Profile_PremiumPlanUnknown"].Value
+        };
     }
 }

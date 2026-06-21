@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Difficulty.Beginner" xml:space="preserve">
+    <value>Začátečník</value>
+  </data>
+  <data name="Difficulty.Intermediate" xml:space="preserve">
+    <value>Pokročilý</value>
+  </data>
+  <data name="Difficulty.Advanced" xml:space="preserve">
+    <value>Expert</value>
+  </data>
+  <data name="Difficulty.Expert" xml:space="preserve">
+    <value>Mistr</value>
+  </data>
+  <data name="Reason.GeneralPractice" xml:space="preserve">
+    <value>Obecný trénink pro stabilní zlepšování</value>
+  </data>
+  <data name="Reason.WeakLetters" xml:space="preserve">
+    <value>Obsahuje slabé písmeno: {0}</value>
+  </data>
+  <data name="Reason.SpeedTraining" xml:space="preserve">
+    <value>Krátké slovo pro rychlostní trénink</value>
+  </data>
+  <data name="Reason.PreviousMistake" xml:space="preserve">
+    <value>Dříve špatně zodpovězené slovo</value>
+  </data>
+  <data name="Reason.Pattern" xml:space="preserve">
+    <value>Vzor: slovo s {0} písmeny</value>
+  </data>
+  <data name="Tip.WeakLetters" xml:space="preserve">
+    <value>Trénujte slova obsahující písmena: {0}.</value>
+  </data>
+  <data name="Tip.SlowCategory" xml:space="preserve">
+    <value>Zkuste zrychlit u obtížnosti {0}.</value>
+  </data>
+  <data name="Tip.WeakCategory" xml:space="preserve">
+    <value>Procvičte si více slov z obtížnosti {0}.</value>
+  </data>
+  <data name="Tip.NoData" xml:space="preserve">
+    <value>Zatím nemáme dost dat pro přesné tipy. Odehrajte několik her a AI výzva se zpřesní.</value>
+  </data>
+  <data name="Tip.NoWeakness" xml:space="preserve">
+    <value>Daří se vám stabilně. Zkuste vyšší obtížnost pro další výzvu.</value>
+  </data>
+</root>

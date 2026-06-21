@@ -12,4 +12,5 @@ public interface IDictionaryService
     Task<DictionaryWordDto> AddWordAsync(Guid dictionaryId, AddWordRequest request);
     Task<ImportResultDto> ImportCsvAsync(Guid dictionaryId, string csvContent);
     Task<ImportResultDto> ImportTxtAsync(Guid dictionaryId, string txtContent);
+    Task<ImportResultDto> ImportJsonAsync(Guid dictionaryId, string jsonContent);
 }

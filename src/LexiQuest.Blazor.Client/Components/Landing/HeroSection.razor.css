@@ -45,6 +45,10 @@
     animation: fadeInUp 0.6s ease-out 0.1s both;
 }
 
+.hero-tagline:focus {
+    outline: none;
+}
+
 .hero-subtitle {
     font-size: 1.25rem;
     color: var(--tm-color-text-secondary);

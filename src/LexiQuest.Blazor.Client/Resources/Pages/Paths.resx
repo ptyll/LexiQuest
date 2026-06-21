@@ -32,6 +32,27 @@
   <data name="Title" xml:space="preserve">
     <value>Cesty</value>
   </data>
+  <data name="Subtitle" xml:space="preserve">
+    <value>Vyber si cestu podle obtížnosti a postupně odemykej další výzvy.</value>
+  </data>
+  <data name="Status.Locked" xml:space="preserve">
+    <value>Zamčeno</value>
+  </data>
+  <data name="Status.Unlocked" xml:space="preserve">
+    <value>Odemčeno</value>
+  </data>
+  <data name="Levels" xml:space="preserve">
+    <value>úrovní</value>
+  </data>
+  <data name="Progress.Label" xml:space="preserve">
+    <value>{0}% dokončeno</value>
+  </data>
+  <data name="Button.Start" xml:space="preserve">
+    <value>Začít</value>
+  </data>
+  <data name="Button.Continue" xml:space="preserve">
+    <value>Pokračovat</value>
+  </data>
   <data name="Path.Progress" xml:space="preserve">
     <value>Postup: {0}/{1}</value>
   </data>
@@ -51,9 +72,9 @@
     <value>Pokročilý</value>
   </data>
   <data name="Difficulty.Advanced" xml:space="preserve">
-    <value>Expert</value>
+    <value>Náročný</value>
   </data>
   <data name="Difficulty.Expert" xml:space="preserve">
-    <value>Mistr</value>
+    <value>Expert</value>
   </data>
 </root>

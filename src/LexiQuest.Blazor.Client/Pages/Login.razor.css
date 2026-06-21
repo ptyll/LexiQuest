@@ -1,74 +1,128 @@
-/* Login Page - Layout only, using Tempo.Blazor design tokens */
+/* Login Page - focused auth layout with resilient Tempo token fallbacks */
 
 .login-page {
     display: flex;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
-    padding: var(--tm-spacing-4);
-    background: var(--tm-color-bg-secondary);
+    padding: var(--tm-spacing-4, 1rem);
+    background:
+        radial-gradient(circle at top left, rgba(59, 130, 246, 0.08), transparent 28rem),
+        var(--tm-color-bg-secondary, #f8fafc);
+    color: var(--tm-color-text-primary, #111827);
+    font-family: var(--tm-font-family, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif);
 }
 
-.login-card {
-    width: 100%;
-    max-width: 420px;
-    padding: var(--tm-spacing-8);
+.login-page ::deep .login-card {
+    width: min(100%, 420px);
+    padding: var(--tm-spacing-8, 2rem);
+    border: 1px solid var(--tm-color-border, #d7dde8);
+    border-radius: 0.75rem;
+    background: var(--tm-color-surface, #ffffff);
+    box-shadow: 0 18px 45px rgba(15, 23, 42, 0.11);
 }
 
 .login-header {
+    margin-bottom: var(--tm-spacing-6, 1.5rem);
     text-align: center;
-    margin-bottom: var(--tm-spacing-6);
 }
 
 .login-brand {
+    margin: 0 0 var(--tm-spacing-2, 0.5rem);
+    color: var(--tm-color-primary, #2563eb);
     font-size: 2rem;
-    font-weight: 700;
-    color: var(--tm-color-primary);
-    margin: 0 0 var(--tm-spacing-4);
+    font-weight: 800;
+    line-height: 1;
 }
 
 .login-title {
+    margin: 0 0 var(--tm-spacing-1, 0.25rem);
+    color: var(--tm-color-text-primary, #0f172a);
     font-size: 1.5rem;
-    font-weight: 600;
-    color: var(--tm-color-text-primary);
-    margin: 0 0 var(--tm-spacing-2);
+    font-weight: 800;
+    line-height: 1.15;
+}
+
+.login-title:focus {
+    outline: none;
 }
 
 .login-subtitle {
-    font-size: 0.875rem;
-    color: var(--tm-color-text-secondary);
     margin: 0;
+    color: var(--tm-color-text-secondary, #475569);
+    font-size: 0.95rem;
 }
 
 .login-alert {
-    margin-bottom: var(--tm-spacing-4);
+    margin-bottom: var(--tm-spacing-4, 1rem);
 }
 
 .login-form-fields {
     display: flex;
     flex-direction: column;
-    gap: var(--tm-spacing-4);
-    margin-bottom: var(--tm-spacing-6);
+    gap: var(--tm-spacing-4, 1rem);
+    margin-bottom: var(--tm-spacing-6, 1.5rem);
 }
 
-.login-submit-btn {
-    margin-bottom: var(--tm-spacing-4);
+.login-page ::deep label {
+    color: var(--tm-color-text-primary, #111827);
+    font-family: inherit;
+    font-size: 0.95rem;
+    font-weight: 700;
+}
+
+.login-page ::deep input:not([type="checkbox"]) {
+    width: 100%;
+    min-height: 2.5rem;
+    padding: 0.625rem 0.75rem;
+    border: 1px solid var(--tm-color-border, #cbd5e1);
+    border-radius: 0.5rem;
+    background: var(--tm-color-surface, #ffffff);
+    color: var(--tm-color-text-primary, #111827);
+    font: inherit;
+}
+
+.login-page ::deep input:not([type="checkbox"]):focus {
+    border-color: var(--tm-color-primary, #2563eb);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.16);
+    outline: none;
+}
+
+.login-page ::deep input[type="checkbox"] {
+    width: 1rem;
+    height: 1rem;
+    margin: 0;
+    accent-color: var(--tm-color-primary, #2563eb);
+}
+
+.login-page ::deep button {
+    font-family: inherit;
+    font-weight: 700;
+}
+
+[data-testid="login-submit"] {
+    display: block;
+    margin-bottom: var(--tm-spacing-4, 1rem);
+}
+
+.login-page ::deep .login-submit-btn {
+    min-height: 2.625rem;
 }
 
 .login-links {
+    margin-bottom: var(--tm-spacing-4, 1rem);
     text-align: center;
-    margin-bottom: var(--tm-spacing-4);
 }
 
 .login-forgot-link {
-    font-size: 0.875rem;
+    font-size: 0.95rem;
 }
 
 .login-divider {
     display: flex;
     align-items: center;
-    margin: var(--tm-spacing-4) 0;
-    color: var(--tm-color-text-muted);
+    margin: var(--tm-spacing-4, 1rem) 0;
+    color: var(--tm-color-text-muted, #64748b);
     font-size: 0.875rem;
 }
 
@@ -77,42 +131,45 @@
     content: '';
     flex: 1;
     height: 1px;
-    background: var(--tm-color-border);
+    background: var(--tm-color-border, #d7dde8);
 }
 
 .login-divider span {
-    padding: 0 var(--tm-spacing-3);
+    padding: 0 var(--tm-spacing-3, 0.75rem);
 }
 
 .login-google-btn {
-    margin-bottom: var(--tm-spacing-6);
+    margin-bottom: var(--tm-spacing-6, 1.5rem);
 }
 
 .google-icon {
-    margin-right: var(--tm-spacing-2);
+    margin-right: var(--tm-spacing-2, 0.5rem);
 }
 
 .login-register-prompt {
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: var(--tm-spacing-2);
-    font-size: 0.875rem;
-    color: var(--tm-color-text-secondary);
+    gap: var(--tm-spacing-2, 0.5rem);
+    color: var(--tm-color-text-secondary, #64748b);
+    font-size: 0.95rem;
 }
 
 .login-register-link {
-    font-weight: 500;
+    color: var(--tm-color-primary, #2563eb);
+    font-weight: 700;
+    text-decoration: underline;
+    text-underline-offset: 3px;
 }
 
-/* Responsive adjustments */
 @media (max-width: 480px) {
     .login-page {
-        padding: var(--tm-spacing-2);
+        align-items: flex-start;
+        padding: var(--tm-spacing-2, 0.5rem);
     }
 
-    .login-card {
-        padding: var(--tm-spacing-6);
+    .login-page ::deep .login-card {
+        padding: var(--tm-spacing-6, 1.5rem);
     }
 
     .login-brand {

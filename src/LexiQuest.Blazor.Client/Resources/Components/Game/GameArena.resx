@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" msdata:Ordinal="0" />
+              <xsd:attribute name="xml:space" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="GameArena.Aria" xml:space="preserve">
+    <value>Herní plocha</value>
+  </data>
+  <data name="Button.Back" xml:space="preserve">
+    <value>Zpět</value>
+  </data>
+  <data name="Button.Submit" xml:space="preserve">
+    <value>Potvrdit</value>
+  </data>
+  <data name="Button.Submitting" xml:space="preserve">
+    <value>Odesílám...</value>
+  </data>
+  <data name="Button.Skip" xml:space="preserve">
+    <value>Přeskočit</value>
+  </data>
+  <data name="Button.Continue" xml:space="preserve">
+    <value>Pokračovat</value>
+  </data>
+  <data name="Level.Name" xml:space="preserve">
+    <value>Kolo {0}</value>
+  </data>
+  <data name="Level.Progress" xml:space="preserve">
+    <value>Slovo {0} z {1}</value>
+  </data>
+  <data name="Answer.Placeholder" xml:space="preserve">
+    <value>Napiš slovo...</value>
+  </data>
+  <data name="Combo.Multiplier" xml:space="preserve">
+    <value>x{0} COMBO!</value>
+  </data>
+  <data name="Feedback.Correct" xml:space="preserve">
+    <value>Správně! +{0} XP</value>
+  </data>
+  <data name="Feedback.Wrong" xml:space="preserve">
+    <value>Špatně!</value>
+  </data>
+  <data name="SpeedBonus.Label" xml:space="preserve">
+    <value>bonus za rychlost</value>
+  </data>
+  <data name="CorrectAnswer.Was" xml:space="preserve">
+    <value>Správná odpověď: {0}</value>
+  </data>
+  <data name="LevelComplete.Title" xml:space="preserve">
+    <value>Úroveň dokončena!</value>
+  </data>
+  <data name="LevelComplete.XP" xml:space="preserve">
+    <value>Získal jsi {0} XP</value>
+  </data>
+  <data name="GameOver.Title" xml:space="preserve">
+    <value>Konec hry</value>
+  </data>
+  <data name="GameOver.Description" xml:space="preserve">
+    <value>Došly ti životy. Zkus další hru, až se životy obnoví.</value>
+  </data>
+</root>

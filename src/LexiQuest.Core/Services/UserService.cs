@@ -5,6 +5,7 @@ using LexiQuest.Core.Interfaces.Repositories;
 using LexiQuest.Core.Interfaces.Services;
 using LexiQuest.Core.Models;
 using LexiQuest.Shared.DTOs.Auth;
+using LexiQuest.Shared.DTOs.Game;
 using LexiQuest.Shared.DTOs.Users;
 using LexiQuest.Shared.Enums;
 using Microsoft.AspNetCore.Identity;
@@ -19,19 +20,28 @@ public class UserService : IUserService
     private readonly IPasswordHasher<User> _passwordHasher;
     private readonly IStringLocalizer<UserService> _localizer;
     private readonly ITokenService _tokenService;
+    private readonly IEmailService _emailService;
+    private readonly IGuestProgressTransferService _guestProgressTransferService;
+    private readonly ILeagueService _leagueService;
 
     public UserService(
         IUserRepository userRepository,
         IUnitOfWork unitOfWork,
         IPasswordHasher<User> passwordHasher,
         IStringLocalizer<UserService> localizer,
-        ITokenService tokenService)
+        ITokenService tokenService,
+        IEmailService emailService,
+        IGuestProgressTransferService guestProgressTransferService,
+        ILeagueService leagueService)
     {
         _userRepository = userRepository;
         _unitOfWork = unitOfWork;
         _passwordHasher = passwordHasher;
         _localizer = localizer;
         _tokenService = tokenService;
+        _emailService = emailService;
+        _guestProgressTransferService = guestProgressTransferService;
+        _leagueService = leagueService;
     }
 
     public async Task<UserProfileDto?> GetProfileAsync(Guid userId, CancellationToken cancellationToken = default)
@@ -54,6 +64,11 @@ public class UserService : IUserService
         }
 
         user.UpdateProfile(request.Username, request.Email);
+        if (request.AvatarUrl is not null)
+        {
+            user.UpdateAvatar(request.AvatarUrl);
+        }
+
         await _unitOfWork.SaveChangesAsync(cancellationToken);
         return true;
     }
@@ -126,6 +141,26 @@ public class UserService : IUserService
         return false;
     }
 
+    public async Task<bool> DeactivateAccountAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        var user = await _userRepository.GetByIdAsync(userId, cancellationToken);
+        if (user == null) return false;
+
+        user.LockAccountUntil(DateTime.UtcNow.AddYears(100));
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        return true;
+    }
+
+    public async Task<bool> DeleteAccountAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        var user = await _userRepository.GetByIdAsync(userId, cancellationToken);
+        if (user == null) return false;
+
+        _userRepository.Delete(user);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        return true;
+    }
+
     public async Task<Result<AuthResponse>> RegisterAsync(RegisterRequest request, CancellationToken cancellationToken = default)
     {
         // Check if email already exists
@@ -147,8 +182,22 @@ public class UserService : IUserService
         var passwordHash = _passwordHasher.HashPassword(user, request.Password);
         user.SetPasswordHash(passwordHash);
 
+        if (!string.IsNullOrWhiteSpace(request.GuestProgressToken))
+        {
+            var guestProgress = _guestProgressTransferService.ConsumeTransferToken(request.GuestProgressToken);
+            if (guestProgress is null)
+            {
+                return Result.Failure<AuthResponse>(new Error("GuestProgress.Invalid", _localizer["Error.GuestProgressInvalid"]));
+            }
+
+            ApplyGuestProgress(user, guestProgress);
+        }
+
         await _userRepository.AddAsync(user, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
+        var (weekStart, weekEnd) = GetCurrentLeagueWeek();
+        await _leagueService.AssignUserToLeagueAsync(user.Id, weekStart, weekEnd, cancellationToken);
+        await _emailService.SendWelcomeEmailAsync(user.Email, user.Username, cancellationToken);
 
         // Generate tokens for auto-login after registration
         var accessToken = _tokenService.GenerateAccessToken(user);
@@ -171,6 +220,27 @@ public class UserService : IUserService
         });
     }
 
+    private static (DateTime WeekStart, DateTime WeekEnd) GetCurrentLeagueWeek()
+    {
+        var today = DateTime.UtcNow.Date;
+        var daysSinceMonday = ((int)today.DayOfWeek - (int)DayOfWeek.Monday + 7) % 7;
+        var weekStart = today.AddDays(-daysSinceMonday);
+        return (weekStart, weekStart.AddDays(7));
+    }
+
+    private static void ApplyGuestProgress(User user, GuestSessionProgress progress)
+    {
+        if (progress.TotalXp > 0)
+        {
+            user.Stats.AddXP(progress.TotalXp);
+        }
+
+        for (var i = 0; i < progress.WordsSolved; i++)
+        {
+            user.Stats.UpdateAccuracy(isCorrect: true);
+        }
+    }
+
     private static UserProfileDto MapToProfileDto(User user)
     {
         return new UserProfileDto
@@ -180,6 +250,9 @@ public class UserService : IUserService
             Email = user.Email,
             AvatarUrl = user.AvatarUrl,
             CreatedAt = user.CreatedAt,
+            IsPremium = user.Premium?.IsActive(DateTime.UtcNow) ?? false,
+            PremiumPlan = user.Premium?.Plan,
+            PremiumExpiresAt = user.Premium?.ExpiresAt,
             Stats = new UserStatsDto
             {
                 Level = user.Stats?.Level ?? 1,

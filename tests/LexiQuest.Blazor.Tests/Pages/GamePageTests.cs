@@ -15,6 +15,7 @@ public class GamePageTests : BunitContext
 {
     private readonly IStringLocalizer<Game> _localizer;
     private readonly IGameService _gameService;
+    private readonly IToastService _toastService;
 
     public GamePageTests()
     {
@@ -27,34 +28,49 @@ public class GamePageTests : BunitContext
         _localizer["Retry"].Returns(new LocalizedString("Retry", "Try Again"));
         _localizer["Error_StartingGame"].Returns(new LocalizedString("Error_StartingGame", "Failed to start game"));
         _localizer["Error_LoadingGame"].Returns(new LocalizedString("Error_LoadingGame", "Failed to load game"));
+        _localizer["OfflineTraining"].Returns(new LocalizedString("OfflineTraining", "Offline training"));
+        _localizer["AchievementUnlocked.Toast"].Returns(new LocalizedString("AchievementUnlocked.Toast", "Úspěch odemčen: {0}"));
 
         _gameService = Substitute.For<IGameService>();
+        _toastService = Substitute.For<IToastService>();
 
         // Mock localizers for child components
         var gameArenaLocalizer = Substitute.For<IStringLocalizer<LexiQuest.Blazor.Components.Game.GameArena>>();
-        gameArenaLocalizer["Button_Back"].Returns(new LocalizedString("Button_Back", "Back"));
-        gameArenaLocalizer["Button_Submit"].Returns(new LocalizedString("Button_Submit", "Submit"));
-        gameArenaLocalizer["Button_Submitting"].Returns(new LocalizedString("Button_Submitting", "Submitting..."));
-        gameArenaLocalizer["Button_Skip"].Returns(new LocalizedString("Button_Skip", "Skip"));
-        gameArenaLocalizer["Button_Continue"].Returns(new LocalizedString("Button_Continue", "Continue"));
-        gameArenaLocalizer["Answer_Placeholder"].Returns(new LocalizedString("Answer_Placeholder", "Enter answer"));
-        gameArenaLocalizer["Level_Name"].Returns(new LocalizedString("Level_Name", "Round {0}"));
-        gameArenaLocalizer["Level_Progress"].Returns(new LocalizedString("Level_Progress", "{0} / {1}"));
-        gameArenaLocalizer["Combo_Multiplier"].Returns(new LocalizedString("Combo_Multiplier", "x{0} Combo"));
-        gameArenaLocalizer["Feedback_Correct"].Returns(new LocalizedString("Feedback_Correct", "Correct! +{0} XP"));
-        gameArenaLocalizer["Feedback_Wrong"].Returns(new LocalizedString("Feedback_Wrong", "Wrong answer!"));
-        gameArenaLocalizer["SpeedBonus_Label"].Returns(new LocalizedString("SpeedBonus_Label", "Speed Bonus"));
-        gameArenaLocalizer["Correct_Answer_Was"].Returns(new LocalizedString("Correct_Answer_Was", "Correct answer was: {0}"));
-        gameArenaLocalizer["LevelComplete_Title"].Returns(new LocalizedString("LevelComplete_Title", "Level Complete!"));
-        gameArenaLocalizer["LevelComplete_XP"].Returns(new LocalizedString("LevelComplete_XP", "Total XP earned: {0}"));
+        gameArenaLocalizer["GameArena.Aria"].Returns(new LocalizedString("GameArena.Aria", "Game arena"));
+        gameArenaLocalizer["Button.Back"].Returns(new LocalizedString("Button.Back", "Back"));
+        gameArenaLocalizer["Button.Submit"].Returns(new LocalizedString("Button.Submit", "Submit"));
+        gameArenaLocalizer["Button.Submitting"].Returns(new LocalizedString("Button.Submitting", "Submitting..."));
+        gameArenaLocalizer["Button.Skip"].Returns(new LocalizedString("Button.Skip", "Skip"));
+        gameArenaLocalizer["Button.Continue"].Returns(new LocalizedString("Button.Continue", "Continue"));
+        gameArenaLocalizer["Answer.Placeholder"].Returns(new LocalizedString("Answer.Placeholder", "Enter answer"));
+        gameArenaLocalizer["Level.Name"].Returns(new LocalizedString("Level.Name", "Round {0}"));
+        gameArenaLocalizer["Level.Progress"].Returns(new LocalizedString("Level.Progress", "{0} / {1}"));
+        gameArenaLocalizer["Combo.Multiplier"].Returns(new LocalizedString("Combo.Multiplier", "x{0} Combo"));
+        gameArenaLocalizer["Feedback.Correct"].Returns(new LocalizedString("Feedback.Correct", "Correct! +{0} XP"));
+        gameArenaLocalizer["Feedback.Wrong"].Returns(new LocalizedString("Feedback.Wrong", "Wrong answer!"));
+        gameArenaLocalizer["SpeedBonus.Label"].Returns(new LocalizedString("SpeedBonus.Label", "Speed Bonus"));
+        gameArenaLocalizer["CorrectAnswer.Was"].Returns(new LocalizedString("CorrectAnswer.Was", "Correct answer was: {0}"));
+        gameArenaLocalizer["LevelComplete.Title"].Returns(new LocalizedString("LevelComplete.Title", "Level Complete!"));
+        gameArenaLocalizer["LevelComplete.XP"].Returns(new LocalizedString("LevelComplete.XP", "Total XP earned: {0}"));
+        gameArenaLocalizer["GameOver.Title"].Returns(new LocalizedString("GameOver.Title", "Game over"));
+        gameArenaLocalizer["GameOver.Description"].Returns(new LocalizedString("GameOver.Description", "No lives remaining."));
 
         var gameTimerLocalizer = Substitute.For<IStringLocalizer<LexiQuest.Blazor.Components.Game.GameTimer>>();
         gameTimerLocalizer["TimeRemaining"].Returns(new LocalizedString("TimeRemaining", "Time: {0}"));
 
+        var livesIndicatorLocalizer = Substitute.For<IStringLocalizer<LexiQuest.Blazor.Components.Game.LivesIndicator>>();
+        livesIndicatorLocalizer["Label"].Returns(new LocalizedString("Label", "Lives"));
+        livesIndicatorLocalizer["Regeneration"].Returns(new LocalizedString("Regeneration", "Next life in: {0}"));
+        livesIndicatorLocalizer["NoLives"].Returns(new LocalizedString("NoLives", "No lives"));
+        livesIndicatorLocalizer["LowWarning"].Returns(new LocalizedString("LowWarning", "Last life"));
+
         Services.AddSingleton(_localizer);
         Services.AddSingleton(gameArenaLocalizer);
         Services.AddSingleton(gameTimerLocalizer);
+        Services.AddSingleton(livesIndicatorLocalizer);
         Services.AddSingleton(_gameService);
+        Services.AddSingleton(_toastService);
+        Services.AddSingleton<NotificationRefreshService>();
         TempoTestHelper.RegisterTempoServices(Services);
     }
 

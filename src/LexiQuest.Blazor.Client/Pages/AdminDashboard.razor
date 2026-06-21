@@ -7,7 +7,7 @@
 
 <PageTitle>@L["Title"] - LexiQuest</PageTitle>
 
-<div class="admin-dashboard-page">
+<div class="admin-dashboard-page" data-testid="admin-dashboard-page">
     <div class="admin-header">
         <h1>@L["Title"]</h1>
         <p>@L["Subtitle"]</p>
@@ -24,30 +24,38 @@
     }
     else if (_stats != null)
     {
-        <div class="stats-grid">
-            <TmStatCard Title="@L["Stat.TotalUsers"]"
-                        Value="@_stats.TotalUsers.ToString()"
-                        Icon="@IconNames.Users"
-                        SubValue="@L["Stat.TotalUsers.Sub"]"
-                        SubValueColor="var(--tm-color-primary)" />
+        <div class="stats-grid" data-testid="admin-dashboard-stats">
+            <div class="admin-stat-card" data-testid="admin-stat-total-users" data-value="@_stats.TotalUsers">
+                <div class="admin-stat-value">@_stats.TotalUsers</div>
+                <div class="admin-stat-copy">
+                    <div class="admin-stat-title">@L["Stat.TotalUsers"]</div>
+                    <div class="admin-stat-subtitle">@L["Stat.TotalUsers.Sub"]</div>
+                </div>
+            </div>
 
-            <TmStatCard Title="@L["Stat.ActiveToday"]"
-                        Value="@_stats.ActiveToday.ToString()"
-                        Icon="@IconNames.Activity"
-                        SubValue="@L["Stat.ActiveToday.Sub"]"
-                        SubValueColor="var(--tm-color-success)" />
+            <div class="admin-stat-card" data-testid="admin-stat-active-today" data-value="@_stats.ActiveToday">
+                <div class="admin-stat-value">@_stats.ActiveToday</div>
+                <div class="admin-stat-copy">
+                    <div class="admin-stat-title">@L["Stat.ActiveToday"]</div>
+                    <div class="admin-stat-subtitle">@L["Stat.ActiveToday.Sub"]</div>
+                </div>
+            </div>
 
-            <TmStatCard Title="@L["Stat.TotalWords"]"
-                        Value="@_stats.TotalWords.ToString()"
-                        Icon="@IconNames.FileText"
-                        SubValue="@L["Stat.TotalWords.Sub"]"
-                        SubValueColor="var(--tm-color-warning)" />
+            <div class="admin-stat-card" data-testid="admin-stat-total-words" data-value="@_stats.TotalWords">
+                <div class="admin-stat-value">@_stats.TotalWords</div>
+                <div class="admin-stat-copy">
+                    <div class="admin-stat-title">@L["Stat.TotalWords"]</div>
+                    <div class="admin-stat-subtitle">@L["Stat.TotalWords.Sub"]</div>
+                </div>
+            </div>
 
-            <TmStatCard Title="@L["Stat.DailyChallenges"]"
-                        Value="@_stats.DailyChallenges.ToString()"
-                        Icon="@IconNames.Calendar"
-                        SubValue="@L["Stat.DailyChallenges.Sub"]"
-                        SubValueColor="var(--tm-color-info)" />
+            <div class="admin-stat-card" data-testid="admin-stat-daily-challenges" data-value="@_stats.DailyChallenges">
+                <div class="admin-stat-value">@_stats.DailyChallenges</div>
+                <div class="admin-stat-copy">
+                    <div class="admin-stat-title">@L["Stat.DailyChallenges"]</div>
+                    <div class="admin-stat-subtitle">@L["Stat.DailyChallenges.Sub"]</div>
+                </div>
+            </div>
         </div>
 
         <div class="quick-links">
@@ -55,16 +63,20 @@
                     Header="@L["QuickLinks.Title"]"
                     HeaderIcon="@IconNames.Zap">
                 <div class="link-buttons">
-                    <TmButton Variant="ButtonVariant.Primary"
-                              OnClick="NavigateToWords"
-                              Icon="@IconNames.FileText">
-                        @L["QuickLinks.Words"]
-                    </TmButton>
-                    <TmButton Variant="ButtonVariant.Secondary"
-                              OnClick="NavigateToUsers"
-                              Icon="@IconNames.Users">
-                        @L["QuickLinks.Users"]
-                    </TmButton>
+                    <span data-testid="admin-link-words">
+                        <TmButton Variant="ButtonVariant.Primary"
+                                  OnClick="NavigateToWords"
+                                  Icon="@IconNames.FileText">
+                            @L["QuickLinks.Words"]
+                        </TmButton>
+                    </span>
+                    <span data-testid="admin-link-users">
+                        <TmButton Variant="ButtonVariant.Secondary"
+                                  OnClick="NavigateToUsers"
+                                  Icon="@IconNames.Users">
+                            @L["QuickLinks.Users"]
+                        </TmButton>
+                    </span>
                 </div>
             </TmCard>
         </div>

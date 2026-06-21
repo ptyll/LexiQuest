@@ -1,0 +1,46 @@
+.path-detail-page {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: var(--tm-spacing-6, 1.5rem);
+}
+
+.path-detail-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.path-detail-header h1 {
+    margin: 0 0 0.4rem;
+    color: #111827;
+    font-size: 1.875rem;
+    line-height: 1.2;
+}
+
+.path-detail-header p {
+    margin: 0;
+    color: #64748b;
+}
+
+.path-map-section {
+    padding: 1rem;
+    border: 1px solid #dbe3ef;
+    border-radius: 8px;
+    background: #ffffff;
+    box-shadow: 0 10px 22px rgba(15, 23, 42, 0.07);
+}
+
+.btn {
+    min-height: 40px;
+    padding: 0.55rem 0.8rem;
+    border-radius: 8px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.btn-secondary {
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    color: #334155;
+}

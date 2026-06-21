@@ -20,4 +20,9 @@ public interface IMatchHistoryClient
     /// Gets multiplayer statistics for the current user.
     /// </summary>
     Task<MultiplayerStatsDto> GetStatsAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets completed match result for the current user.
+    /// </summary>
+    Task<MatchResultDto?> GetMatchResultAsync(Guid matchId, CancellationToken cancellationToken = default);
 }

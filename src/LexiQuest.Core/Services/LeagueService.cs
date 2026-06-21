@@ -11,29 +11,45 @@ namespace LexiQuest.Core.Services;
 public class LeagueService : ILeagueService
 {
     private readonly ILeagueRepository _leagueRepository;
+    private readonly IUserRepository? _userRepository;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IStringLocalizer<LeagueService> _localizer;
 
-    public LeagueService(ILeagueRepository leagueRepository, IUnitOfWork unitOfWork, IStringLocalizer<LeagueService> localizer)
+    public LeagueService(
+        ILeagueRepository leagueRepository,
+        IUnitOfWork unitOfWork,
+        IStringLocalizer<LeagueService> localizer,
+        IUserRepository? userRepository = null)
     {
         _leagueRepository = leagueRepository;
+        _userRepository = userRepository;
         _unitOfWork = unitOfWork;
         _localizer = localizer;
     }
 
     public async Task AssignUserToLeagueAsync(Guid userId, DateTime weekStart, DateTime weekEnd, CancellationToken cancellationToken = default)
     {
-        // Find an active Bronze league with space
-        var league = await _leagueRepository.GetActiveLeagueForTierAsync(LeagueTier.Bronze, cancellationToken);
+        await AssignUserToLeagueAsync(userId, LeagueTier.Bronze, weekStart, weekEnd, cancellationToken);
+    }
+
+    public async Task AssignUserToLeagueAsync(Guid userId, LeagueTier tier, DateTime weekStart, DateTime weekEnd, CancellationToken cancellationToken = default)
+    {
+        var league = await _leagueRepository.GetActiveLeagueForTierAndWeekAsync(tier, weekStart, cancellationToken);
         
         if (league == null || league.IsFull)
         {
-            // Create new league
-            league = League.Create(LeagueTier.Bronze, weekStart, weekEnd);
+            league = League.Create(tier, weekStart, weekEnd);
+            league.AddParticipant(userId);
             await _leagueRepository.AddAsync(league, cancellationToken);
         }
+        else
+        {
+            if (league.Participants.Any(p => p.UserId == userId))
+                throw new InvalidOperationException("User is already in this league");
 
-        league.AddParticipant(userId);
+            await _leagueRepository.AddParticipantAsync(league.Id, userId, cancellationToken);
+        }
+        
         await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
 
@@ -89,20 +105,43 @@ public class LeagueService : ILeagueService
             return new List<LeagueParticipantDto>();
 
         league.UpdateRanks();
+        var (promotionThreshold, demotionThreshold) = GetThresholds(league.Tier, league.Participants.Count);
+        var hasDemotionZone = demotionThreshold <= league.Participants.Count;
+        var usernames = await GetUsernamesAsync(league.Participants.Select(p => p.UserId), cancellationToken);
 
         return league.Participants
             .OrderBy(p => p.Rank)
             .Select(p => new LeagueParticipantDto(
                 UserId: p.UserId,
-                Username: "", // Will be filled by caller with user data
+                Username: usernames.GetValueOrDefault(p.UserId, ""),
                 AvatarUrl: null,
                 Rank: p.Rank,
                 WeeklyXP: p.WeeklyXP,
                 IsCurrentUser: p.UserId == userId,
-                IsPromoted: p.IsPromoted,
-                IsDemoted: p.IsDemoted
+                IsPromoted: p.Rank <= promotionThreshold,
+                IsDemoted: hasDemotionZone && p.Rank >= demotionThreshold
             ))
             .ToList();
+    }
+
+    private async Task<Dictionary<Guid, string>> GetUsernamesAsync(IEnumerable<Guid> userIds, CancellationToken cancellationToken)
+    {
+        if (_userRepository is null)
+        {
+            return new Dictionary<Guid, string>();
+        }
+
+        var result = new Dictionary<Guid, string>();
+        foreach (var userId in userIds.Distinct())
+        {
+            var user = await _userRepository.GetByIdAsync(userId, cancellationToken);
+            if (user is not null)
+            {
+                result[userId] = user.Username;
+            }
+        }
+
+        return result;
     }
 
     public Task CalculatePromotionsAndDemotionsAsync(League league, CancellationToken cancellationToken = default)
@@ -143,18 +182,49 @@ public class LeagueService : ILeagueService
 
     public async Task<List<LeagueHistoryDto>> GetLeagueHistoryAsync(Guid userId, CancellationToken cancellationToken = default)
     {
-        // This would require a new repository method for historical data
-        // For now, return empty list
-        return new List<LeagueHistoryDto>();
+        var leagues = await _leagueRepository.GetLeagueHistoryForUserAsync(userId, cancellationToken);
+
+        return leagues
+            .Select(league => (League: league, Participant: league.Participants.FirstOrDefault(p => p.UserId == userId)))
+            .Where(entry => entry.Participant is not null)
+            .Select(entry => new LeagueHistoryDto(
+                LeagueId: entry.League.Id,
+                Tier: entry.League.Tier,
+                WeekStart: entry.League.WeekStart,
+                WeekEnd: entry.League.WeekEnd,
+                FinalRank: entry.Participant!.Rank,
+                WeeklyXP: entry.Participant.WeeklyXP,
+                ChangeStatus: GetChangeStatus(entry.Participant),
+                XPEarned: entry.Participant.IsPromoted ? GetRewards(entry.League.Tier) : 0
+            ))
+            .ToList();
+    }
+
+    private static LeagueChangeStatus GetChangeStatus(LeagueParticipant participant)
+    {
+        if (participant.IsPromoted) return LeagueChangeStatus.Promoted;
+        if (participant.IsDemoted) return LeagueChangeStatus.Demoted;
+        return LeagueChangeStatus.Stayed;
     }
 
     private static (int PromotionCount, int DemotionCount) GetPromotionDemotionCounts(LeagueTier tier, int participantCount)
     {
-        return tier switch
+        var requestedPromotionCount = tier switch
         {
-            LeagueTier.Legend => (3, Math.Min(10, participantCount / 2)),
-            _ => (5, 5)
+            LeagueTier.Legend => 3,
+            _ => 5
         };
+        var requestedDemotionCount = tier switch
+        {
+            LeagueTier.Legend => Math.Min(10, participantCount / 2),
+            _ => 5
+        };
+
+        var promotionCount = Math.Min(requestedPromotionCount, participantCount);
+        var remainingAfterPromotion = Math.Max(0, participantCount - promotionCount);
+        var demotionCount = Math.Min(requestedDemotionCount, remainingAfterPromotion);
+
+        return (promotionCount, demotionCount);
     }
 
     private static (int PromotionThreshold, int DemotionThreshold) GetThresholds(LeagueTier tier, int participantCount)

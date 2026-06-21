@@ -16,9 +16,10 @@ public class LivesIndicatorTests : BunitContext
     public LivesIndicatorTests()
     {
         _localizer = Substitute.For<IStringLocalizer<LivesIndicator>>();
-        _localizer["Lives.Label"].Returns(new LocalizedString("Lives.Label", "Životy"));
-        _localizer["Tooltip.Full"].Returns(new LocalizedString("Tooltip.Full", "Všechny životy"));
-        _localizer["Tooltip.RegenIn"].Returns(new LocalizedString("Tooltip.RegenIn", "Další život za"));
+        _localizer["Label"].Returns(new LocalizedString("Label", "Životy"));
+        _localizer["Regeneration"].Returns(new LocalizedString("Regeneration", "Další život za: {0}"));
+        _localizer["NoLives"].Returns(new LocalizedString("NoLives", "Žádné životy!"));
+        _localizer["LowWarning"].Returns(new LocalizedString("LowWarning", "Poslední život"));
         
         Services.AddSingleton(_localizer);
         TempoTestHelper.RegisterTempoServices(Services);
@@ -93,6 +94,26 @@ public class LivesIndicatorTests : BunitContext
 
         // Assert
         cut.Find(".lives-regen-timer").Should().NotBeNull();
+    }
+
+    [Fact]
+    public void LivesIndicator_OneLife_ShowsLowLivesWarning()
+    {
+        // Arrange
+        var livesStatus = new LivesStatus(
+            Current: 1,
+            Max: 5,
+            NextRegenAt: DateTime.UtcNow.AddMinutes(15),
+            IsInfinite: false
+        );
+
+        // Act
+        var cut = Render<LivesIndicator>(parameters => parameters
+            .Add(p => p.Lives, livesStatus)
+        );
+
+        // Assert
+        cut.Find("[data-testid='game-low-lives-warning']").TextContent.Should().Contain("Poslední život");
     }
 
     [Fact]

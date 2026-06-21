@@ -122,4 +122,178 @@
   <data name="Error.DeleteFailed" xml:space="preserve">
     <value>Nepodařilo se smazat slovo.</value>
   </data>
+  <data name="Button.Stats" xml:space="preserve">
+    <value>Statistiky</value>
+  </data>
+  <data name="Button.Export" xml:space="preserve">
+    <value>Export</value>
+  </data>
+  <data name="Button.Import" xml:space="preserve">
+    <value>Import</value>
+  </data>
+  <data name="Button.Edit" xml:space="preserve">
+    <value>Upravit</value>
+  </data>
+  <data name="Button.ApplyFilters" xml:space="preserve">
+    <value>Použít filtry</value>
+  </data>
+  <data name="Button.ResetFilters" xml:space="preserve">
+    <value>Vymazat</value>
+  </data>
+  <data name="Button.Columns" xml:space="preserve">
+    <value>Sloupce</value>
+  </data>
+  <data name="Button.Close" xml:space="preserve">
+    <value>Zavřít</value>
+  </data>
+  <data name="Filter.Difficulty" xml:space="preserve">
+    <value>Obtížnost</value>
+  </data>
+  <data name="Filter.Category" xml:space="preserve">
+    <value>Kategorie</value>
+  </data>
+  <data name="Filter.MinLength" xml:space="preserve">
+    <value>Min. délka</value>
+  </data>
+  <data name="Filter.MaxLength" xml:space="preserve">
+    <value>Max. délka</value>
+  </data>
+  <data name="Filter.AllDifficulty" xml:space="preserve">
+    <value>Všechny obtížnosti</value>
+  </data>
+  <data name="Filter.AllCategories" xml:space="preserve">
+    <value>Všechny kategorie</value>
+  </data>
+  <data name="Column.Word" xml:space="preserve">
+    <value>Slovo</value>
+  </data>
+  <data name="Column.Difficulty" xml:space="preserve">
+    <value>Obtížnost</value>
+  </data>
+  <data name="Column.Category" xml:space="preserve">
+    <value>Kategorie</value>
+  </data>
+  <data name="Column.Length" xml:space="preserve">
+    <value>Délka</value>
+  </data>
+  <data name="Modal.Edit.Title" xml:space="preserve">
+    <value>Upravit slovo</value>
+  </data>
+  <data name="Modal.Import.Title" xml:space="preserve">
+    <value>Import slov z CSV</value>
+  </data>
+  <data name="Import.Csv" xml:space="preserve">
+    <value>CSV obsah</value>
+  </data>
+  <data name="Import.Placeholder" xml:space="preserve">
+    <value>slovo,Beginner,Everyday</value>
+  </data>
+  <data name="Import.Result" xml:space="preserve">
+    <value>Importováno: {0}, přeskočeno: {1}, chyby: {2}</value>
+  </data>
+  <data name="Stats.Title" xml:space="preserve">
+    <value>Statistiky slovníku</value>
+  </data>
+  <data name="Stats.TotalWords" xml:space="preserve">
+    <value>Celkem slov</value>
+  </data>
+  <data name="Stats.Distribution" xml:space="preserve">
+    <value>Rozdělení podle obtížnosti</value>
+  </data>
+  <data name="Stats.SuccessRates" xml:space="preserve">
+    <value>Úspěšnost</value>
+  </data>
+  <data name="Success.WordUpdated" xml:space="preserve">
+    <value>Slovo bylo úspěšně upraveno.</value>
+  </data>
+  <data name="Success.Imported" xml:space="preserve">
+    <value>Import byl dokončen.</value>
+  </data>
+  <data name="Success.Exported" xml:space="preserve">
+    <value>CSV export byl stažen.</value>
+  </data>
+  <data name="Error.UpdateFailed" xml:space="preserve">
+    <value>Nepodařilo se upravit slovo.</value>
+  </data>
+  <data name="Error.ImportFailed" xml:space="preserve">
+    <value>Nepodařilo se importovat slova.</value>
+  </data>
+  <data name="Error.ExportFailed" xml:space="preserve">
+    <value>Nepodařilo se exportovat CSV.</value>
+  </data>
+  <data name="Error.StatsFailed" xml:space="preserve">
+    <value>Nepodařilo se načíst statistiky slovníku.</value>
+  </data>
+  <data name="Difficulty.Beginner" xml:space="preserve">
+    <value>Začátečník</value>
+  </data>
+  <data name="Difficulty.Intermediate" xml:space="preserve">
+    <value>Pokročilý</value>
+  </data>
+  <data name="Difficulty.Advanced" xml:space="preserve">
+    <value>Expert</value>
+  </data>
+  <data name="Difficulty.Expert" xml:space="preserve">
+    <value>Mistr</value>
+  </data>
+  <data name="Category.Animals" xml:space="preserve">
+    <value>Zvířata</value>
+  </data>
+  <data name="Category.Food" xml:space="preserve">
+    <value>Jídlo</value>
+  </data>
+  <data name="Category.Science" xml:space="preserve">
+    <value>Věda</value>
+  </data>
+  <data name="Category.Nature" xml:space="preserve">
+    <value>Příroda</value>
+  </data>
+  <data name="Category.Sports" xml:space="preserve">
+    <value>Sport</value>
+  </data>
+  <data name="Category.Technology" xml:space="preserve">
+    <value>Technologie</value>
+  </data>
+  <data name="Category.History" xml:space="preserve">
+    <value>Historie</value>
+  </data>
+  <data name="Category.Art" xml:space="preserve">
+    <value>Umění</value>
+  </data>
+  <data name="Category.Music" xml:space="preserve">
+    <value>Hudba</value>
+  </data>
+  <data name="Category.Geography" xml:space="preserve">
+    <value>Zeměpis</value>
+  </data>
+  <data name="Category.Everyday" xml:space="preserve">
+    <value>Každodenní</value>
+  </data>
+  <data name="Category.Abstract" xml:space="preserve">
+    <value>Abstraktní</value>
+  </data>
+  <data name="Category.Colors" xml:space="preserve">
+    <value>Barvy</value>
+  </data>
+  <data name="Category.Household" xml:space="preserve">
+    <value>Domácnost</value>
+  </data>
+  <data name="Category.Professions" xml:space="preserve">
+    <value>Profese</value>
+  </data>
+  <data name="Category.Transport" xml:space="preserve">
+    <value>Doprava</value>
+  </data>
+  <data name="Category.Body" xml:space="preserve">
+    <value>Tělo</value>
+  </data>
+  <data name="Category.Clothing" xml:space="preserve">
+    <value>Oblečení</value>
+  </data>
+  <data name="Category.Weather" xml:space="preserve">
+    <value>Počasí</value>
+  </data>
+  <data name="Category.Time" xml:space="preserve">
+    <value>Čas</value>
+  </data>
 </root>

@@ -30,6 +30,11 @@ public class SubscriptionService : ISubscriptionService
         return subscription?.IsActive == true ? subscription : null;
     }
 
+    public Task<Subscription?> GetSubscriptionAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        return _subscriptionRepository.GetByUserIdAsync(userId);
+    }
+
     public async Task<bool> IsPremiumAsync(Guid userId, CancellationToken cancellationToken = default)
     {
         var subscription = await _subscriptionRepository.GetByUserIdAsync(userId);
@@ -55,6 +60,30 @@ public class SubscriptionService : ISubscriptionService
 
         await _subscriptionRepository.AddAsync(subscription);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task<Subscription> ActivateSubscriptionForUserAsync(
+        Guid userId,
+        string stripeSubscriptionId,
+        SubscriptionPlan plan,
+        DateTime startedAt,
+        DateTime expiresAt,
+        CancellationToken cancellationToken = default)
+    {
+        var subscription = await _subscriptionRepository.GetByUserIdAsync(userId);
+        if (subscription == null)
+        {
+            subscription = Subscription.Create(userId, plan, stripeSubscriptionId, startedAt, expiresAt);
+            await _subscriptionRepository.AddAsync(subscription);
+        }
+        else
+        {
+            subscription.Reactivate(plan, stripeSubscriptionId, startedAt, expiresAt);
+            _subscriptionRepository.Update(subscription);
+        }
+
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        return subscription;
     }
 
     public async Task CancelSubscriptionAsync(Guid userId, CancellationToken cancellationToken = default)

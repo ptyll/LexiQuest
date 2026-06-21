@@ -37,6 +37,28 @@
     margin-bottom: var(--tm-spacing-6);
 }
 
+.dashboard-streak-card {
+    min-height: 120px;
+}
+
+.dashboard-stat-card {
+    min-width: 0;
+}
+
+.dashboard-streak-card ::deep .streak-indicator {
+    height: 100%;
+    justify-content: center;
+}
+
+.dashboard-xp-progress {
+    margin-bottom: var(--tm-spacing-6);
+}
+
+.dashboard-error {
+    max-width: 640px;
+    margin: var(--tm-spacing-8) auto 0;
+}
+
 .dashboard-sections {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));

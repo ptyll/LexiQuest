@@ -10,4 +10,5 @@ public class DictionaryDto
     public int WordCount { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
+    public List<DictionaryWordDto> Words { get; set; } = new();
 }

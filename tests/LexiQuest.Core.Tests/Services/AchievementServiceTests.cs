@@ -4,6 +4,7 @@ using LexiQuest.Core.Interfaces;
 using LexiQuest.Core.Interfaces.Repositories;
 using LexiQuest.Core.Interfaces.Services;
 using LexiQuest.Core.Services;
+using LexiQuest.Shared.DTOs.Notifications;
 using LexiQuest.Shared.Enums;
 using Microsoft.Extensions.Localization;
 using NSubstitute;
@@ -17,6 +18,7 @@ public class AchievementServiceTests
     private readonly IUserAchievementRepository _userAchievementRepository;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IStringLocalizer<AchievementService> _localizer;
+    private readonly INotificationService _notificationService;
     private readonly AchievementService _sut;
 
     public AchievementServiceTests()
@@ -25,14 +27,18 @@ public class AchievementServiceTests
         _userAchievementRepository = Substitute.For<IUserAchievementRepository>();
         _unitOfWork = Substitute.For<IUnitOfWork>();
         _localizer = Substitute.For<IStringLocalizer<AchievementService>>();
+        _notificationService = Substitute.For<INotificationService>();
         
         _localizer[Arg.Any<string>()].Returns(ci => new LocalizedString(ci.Arg<string>(), ci.Arg<string>()));
+        _localizer["Notification.AchievementUnlocked.Title"].Returns(new LocalizedString("Notification.AchievementUnlocked.Title", "Úspěch odemčen"));
+        _localizer["Notification.AchievementUnlocked.Message"].Returns(new LocalizedString("Notification.AchievementUnlocked.Message", "Odemkli jste úspěch {0}."));
         
         _sut = new AchievementService(
             _achievementRepository,
             _userAchievementRepository,
             _unitOfWork,
-            _localizer);
+            _localizer,
+            notificationService: _notificationService);
     }
 
     [Fact]
@@ -163,6 +169,32 @@ public class AchievementServiceTests
 
         // Assert
         result.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task AchievementService_CheckWordSolved_FirstWord_SendsAchievementNotification()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var achievement = CreateAchievement("first_word", AchievementCategory.Performance, 1);
+        var userAchievement = UserAchievement.Create(userId, achievement.Id);
+
+        _achievementRepository.GetByKeyAsync("first_word").Returns(achievement);
+        _userAchievementRepository.GetByUserAndAchievementAsync(userId, achievement.Id).Returns(userAchievement);
+
+        // Act
+        await _sut.CheckWordSolvedAsync(userId, 1);
+
+        // Assert
+        await _notificationService.Received(1).SendAsync(
+            Arg.Is<SendNotificationRequest>(request =>
+                request.UserId == userId &&
+                request.Type == NotificationType.AchievementUnlocked &&
+                request.Title == "Úspěch odemčen" &&
+                request.Message == "Odemkli jste úspěch first_word." &&
+                request.Severity == NotificationSeverity.Success &&
+                request.ActionUrl == "/achievements"),
+            Arg.Any<CancellationToken>());
     }
 
     private static Achievement CreateAchievement(string key, AchievementCategory category, int requiredValue, int xpReward = 10)

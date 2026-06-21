@@ -9,6 +9,9 @@
   <data name="Result_Draw_Title" xml:space="preserve">
     <value>🤝 REMÍZA!</value>
   </data>
+  <data name="Result_Draw_Message" xml:space="preserve">
+    <value>Oba hráči skončili se stejným výsledkem.</value>
+  </data>
   <data name="Result_XP_Won" xml:space="preserve">
     <value>⭐ +{0} XP</value>
   </data>
@@ -31,10 +34,25 @@
     <value>Domů</value>
   </data>
   <data name="Button_Rematch" xml:space="preserve">
-    <value>Rematch</value>
+    <value>Hrát znovu</value>
   </data>
   <data name="Button_Revenge" xml:space="preserve">
     <value>Odveta</value>
+  </data>
+  <data name="Button_AcceptRematch" xml:space="preserve">
+    <value>Přijmout</value>
+  </data>
+  <data name="Button_DeclineRematch" xml:space="preserve">
+    <value>Odmítnout</value>
+  </data>
+  <data name="Rematch_Pending" xml:space="preserve">
+    <value>Čeká se na soupeře...</value>
+  </data>
+  <data name="Rematch_Request" xml:space="preserve">
+    <value>Soupeř chce odvetu.</value>
+  </data>
+  <data name="Rematch_Declined" xml:space="preserve">
+    <value>Soupeř odvetu odmítl.</value>
   </data>
   <data name="Player_You" xml:space="preserve">
     <value>Vy</value>
@@ -46,7 +64,7 @@
     <value>Správně</value>
   </data>
   <data name="PrivateRoom_NoLeagueXP" xml:space="preserve">
-    <value>Private room zápasy nedávají liga XP</value>
+    <value>Soukromé místnosti nepřidávají ligové XP</value>
   </data>
   <data name="Series_Score" xml:space="preserve">
     <value>Série: {0}:{1}</value>

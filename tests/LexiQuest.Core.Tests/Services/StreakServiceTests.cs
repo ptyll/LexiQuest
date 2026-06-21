@@ -104,6 +104,22 @@ public class StreakServiceTests
     }
 
     [Fact]
+    public async Task StreakService_CheckStreak_WithinFortyEightHoursAcrossTwoCalendarDays_Increments()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var fortySevenHoursAgo = DateTime.UtcNow.AddHours(-47);
+        var user = CreateUserWithStreak(userId, currentDays: 5, lastActivity: fortySevenHoursAgo);
+        _userRepository.GetByIdAsync(userId, Arg.Any<CancellationToken>()).Returns(user);
+
+        // Act
+        var result = await _sut.CheckStreakAsync(userId);
+
+        // Assert
+        result.CurrentDays.Should().Be(6);
+    }
+
+    [Fact]
     public async Task StreakService_CheckStreak_UpdatesLongest_WhenCurrentExceeds()
     {
         // Arrange

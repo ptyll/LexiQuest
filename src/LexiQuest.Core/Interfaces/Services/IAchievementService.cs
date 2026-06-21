@@ -13,4 +13,10 @@ public interface IAchievementService
     Task<List<AchievementDto>> GetUserAchievementsAsync(Guid userId, CancellationToken cancellationToken = default);
 }
 
-public record AchievementUnlockResult(Guid AchievementId, string AchievementKey, string Name, int XPEarned);
+public record AchievementUnlockResult(
+    Guid AchievementId,
+    string AchievementKey,
+    string Name,
+    int XPEarned,
+    string Description = "",
+    string? IconName = null);

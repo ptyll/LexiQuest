@@ -1,11 +1,17 @@
 @using LexiQuest.Shared.DTOs.Game
 @inject IStringLocalizer<PathMap> L
 
-<div class="path-map">
+<div class="path-map" data-testid="path-map">
     <div class="path-levels">
         @foreach (var level in Levels.OrderBy(l => l.LevelNumber))
         {
-            <div class="level-node @GetLevelCssClass(level)" @onclick="() => OnLevelClick(level)">
+            <button type="button"
+                    class="level-node @GetLevelCssClass(level)"
+                    data-testid="path-level"
+                    data-level-number="@level.LevelNumber"
+                    aria-label="@string.Format(GetLocalizedText("Level.Aria", "Úroveň {0}"), level.LevelNumber)"
+                    disabled="@(level.Status == "Locked")"
+                    @onclick="() => OnLevelClick(level)">
                 @if (level.IsBoss)
                 {
                     <span class="level-icon">👑</span>
@@ -20,7 +26,7 @@
                 }
                 
                 <span class="level-number">@level.LevelNumber</span>
-            </div>
+            </button>
             
             @if (level.LevelNumber < Levels.Count)
             {
@@ -63,5 +69,11 @@
         {
             await OnLevelSelected.InvokeAsync(level);
         }
+    }
+
+    private string GetLocalizedText(string key, string fallback)
+    {
+        var localized = L[key];
+        return localized is null || localized.ResourceNotFound ? fallback : localized.Value;
     }
 }

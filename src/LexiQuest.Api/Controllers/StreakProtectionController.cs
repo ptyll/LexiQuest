@@ -14,13 +14,16 @@ public class StreakProtectionController : ControllerBase
 {
     private readonly IStreakProtectionService _streakProtectionService;
     private readonly IPremiumFeatureService _premiumFeatureService;
+    private readonly ICoinService _coinService;
 
     public StreakProtectionController(
         IStreakProtectionService streakProtectionService,
-        IPremiumFeatureService premiumFeatureService)
+        IPremiumFeatureService premiumFeatureService,
+        ICoinService coinService)
     {
         _streakProtectionService = streakProtectionService;
         _premiumFeatureService = premiumFeatureService;
+        _coinService = coinService;
     }
 
     [HttpGet("protection")]
@@ -53,10 +56,9 @@ public class StreakProtectionController : ControllerBase
     {
         var userId = User.GetUserId();
 
-        // Check if user has shield feature available
-        var hasShieldFeature = await _premiumFeatureService.HasFeatureAsync(userId, Core.Domain.Enums.PremiumFeature.StreakShield);
+        var isPremium = await _premiumFeatureService.IsPremiumAsync(userId);
 
-        var result = await _streakProtectionService.ActivateShieldAsync(userId, cancellationToken);
+        var result = await _streakProtectionService.ActivateShieldAsync(userId, isPremium, cancellationToken);
 
         if (!result)
         {
@@ -88,20 +90,22 @@ public class StreakProtectionController : ControllerBase
 
         if (!result)
         {
+            var balance = await _coinService.GetBalanceAsync(userId, cancellationToken);
             return BadRequest(new PurchaseShieldsResponse(
                 Success: false,
                 Message: "Nepodařilo se zakoupit shieldy.",
                 TotalShields: 0,
-                RemainingCoins: 0));
+                RemainingCoins: balance));
         }
 
         var protection = await _streakProtectionService.GetProtectionAsync(userId, cancellationToken);
+        var remainingCoins = await _coinService.GetBalanceAsync(userId, cancellationToken);
 
         return Ok(new PurchaseShieldsResponse(
             Success: true,
             Message: $"Úspěšně zakoupeno {request.Quantity} shieldů!",
             TotalShields: protection?.ShieldsRemaining ?? 0,
-            RemainingCoins: 0)); // TODO: Get actual coin balance from user
+            RemainingCoins: remainingCoins));
     }
 
     [HttpPost("shield/emergency")]
@@ -121,18 +125,21 @@ public class StreakProtectionController : ControllerBase
 
         if (!result)
         {
+            var balance = await _coinService.GetBalanceAsync(userId, cancellationToken);
             return BadRequest(new EmergencyShieldResponse(
                 Success: false,
                 Message: "Nepodařilo se zakoupit emergency shield.",
                 IsShieldActive: false,
-                RemainingCoins: 0));
+                RemainingCoins: balance));
         }
+
+        var remainingCoins = await _coinService.GetBalanceAsync(userId, cancellationToken);
 
         return Ok(new EmergencyShieldResponse(
             Success: true,
             Message: "Emergency shield byl úspěšně aktivován!",
             IsShieldActive: true,
-            RemainingCoins: 0)); // TODO: Get actual coin balance from user
+            RemainingCoins: remainingCoins));
     }
 
     [HttpGet("shield/can-activate-free")]

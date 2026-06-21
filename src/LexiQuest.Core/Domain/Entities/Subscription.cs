@@ -38,6 +38,16 @@ public class Subscription
         Status = SubscriptionStatus.Cancelled;
     }
 
+    public void Reactivate(SubscriptionPlan plan, string stripeSubscriptionId, DateTime startedAt, DateTime expiresAt)
+    {
+        Plan = plan;
+        StripeSubscriptionId = stripeSubscriptionId;
+        StartedAt = startedAt;
+        ExpiresAt = expiresAt;
+        CancelledAt = null;
+        Status = SubscriptionStatus.Active;
+    }
+
     public void Extend(DateTime newExpiresAt)
     {
         ExpiresAt = newExpiresAt;

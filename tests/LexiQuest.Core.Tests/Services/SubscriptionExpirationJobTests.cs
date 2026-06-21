@@ -3,7 +3,9 @@ using LexiQuest.Core.Domain.Entities;
 using LexiQuest.Core.Domain.Enums;
 using LexiQuest.Core.Interfaces;
 using LexiQuest.Core.Interfaces.Repositories;
+using LexiQuest.Core.Interfaces.Services;
 using LexiQuest.Core.Services;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using Xunit;
@@ -212,5 +214,97 @@ public class SubscriptionExpirationJobTests
         subscription2.Status.Should().Be(SubscriptionStatus.Expired);
         user2.Premium.IsPremium.Should().BeFalse();
         await _unitOfWork.Received(1).SaveChangesAsync();
+    }
+}
+
+public class PremiumExpiryReminderJobTests
+{
+    private readonly ISubscriptionRepository _subscriptionRepository;
+    private readonly IUserRepository _userRepository;
+    private readonly IEmailService _emailService;
+    private readonly IStringLocalizer<PremiumExpiryReminderJob> _localizer;
+    private readonly ILogger<PremiumExpiryReminderJob> _logger;
+    private readonly PremiumExpiryReminderJob _job;
+
+    public PremiumExpiryReminderJobTests()
+    {
+        _subscriptionRepository = Substitute.For<ISubscriptionRepository>();
+        _userRepository = Substitute.For<IUserRepository>();
+        _emailService = Substitute.For<IEmailService>();
+        _localizer = Substitute.For<IStringLocalizer<PremiumExpiryReminderJob>>();
+        _logger = Substitute.For<ILogger<PremiumExpiryReminderJob>>();
+
+        _localizer["PremiumExpiry.Title"].Returns(new LocalizedString("PremiumExpiry.Title", "Premium brzy vyprší"));
+        _localizer["PremiumExpiry.Message"].Returns(new LocalizedString(
+            "PremiumExpiry.Message",
+            "Vaše Premium členství vyprší {0}. Obnovte ho včas, ať nepřijdete o prémiové funkce."));
+
+        _job = new PremiumExpiryReminderJob(
+            _subscriptionRepository,
+            _userRepository,
+            _emailService,
+            _localizer,
+            _logger);
+    }
+
+    [Fact]
+    public async Task PremiumExpiryReminderJob_ExpiringWithinThreeDays_SendsEmail()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var expiresAt = new DateTime(2026, 6, 23, 12, 0, 0, DateTimeKind.Utc);
+        var subscription = Subscription.Create(
+            userId,
+            SubscriptionPlan.Monthly,
+            "sub_123",
+            expiresAt.AddMonths(-1),
+            expiresAt);
+
+        var user = User.Create("premium@test.com", "premiumuser");
+        typeof(User).GetProperty("Id")?.SetValue(user, userId);
+
+        _subscriptionRepository
+            .GetActiveSubscriptionsExpiringBetweenAsync(Arg.Any<DateTime>(), Arg.Any<DateTime>(), Arg.Any<CancellationToken>())
+            .Returns(new List<Subscription> { subscription });
+        _userRepository.GetByIdAsync(userId, Arg.Any<CancellationToken>()).Returns(user);
+
+        // Act
+        await _job.ExecuteAsync();
+
+        // Assert
+        await _emailService.Received(1).SendNotificationEmailAsync(
+            "premium@test.com",
+            "Premium brzy vyprší",
+            Arg.Is<string>(message =>
+                message.Contains("23.06.2026", StringComparison.Ordinal)
+                && message.Contains("prémiové funkce", StringComparison.Ordinal)),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task PremiumExpiryReminderJob_LifetimeSubscription_DoesNotSendEmail()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var subscription = Subscription.Create(
+            userId,
+            SubscriptionPlan.Lifetime,
+            "sub_lifetime",
+            DateTime.UtcNow.AddDays(-1),
+            DateTime.UtcNow.AddDays(2));
+
+        _subscriptionRepository
+            .GetActiveSubscriptionsExpiringBetweenAsync(Arg.Any<DateTime>(), Arg.Any<DateTime>(), Arg.Any<CancellationToken>())
+            .Returns(new List<Subscription> { subscription });
+
+        // Act
+        await _job.ExecuteAsync();
+
+        // Assert
+        await _emailService.DidNotReceive().SendNotificationEmailAsync(
+            Arg.Any<string>(),
+            Arg.Any<string>(),
+            Arg.Any<string>(),
+            Arg.Any<CancellationToken>());
     }
 }

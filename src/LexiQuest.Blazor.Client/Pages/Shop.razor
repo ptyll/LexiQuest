@@ -10,86 +10,48 @@
 
 <PageTitle>@L["Title"] - LexiQuest</PageTitle>
 
-<div class="shop-page">
+<div class="shop-page" data-testid="shop-page">
     <div class="shop-header">
         <div class="header-content">
             <h1 class="page-title">@L["Title"]</h1>
             <p class="page-subtitle">@L["Subtitle"]</p>
         </div>
-        <div class="coin-balance">
+        <div class="coin-balance" data-testid="shop-coin-balance">
             <TmBadge Variant="BadgeVariant.Warning" Icon="@IconNames.Star">
                 @L["Coins_Balance"] @UserCoins
             </TmBadge>
         </div>
     </div>
 
-    <TmTabs @bind-ActiveTabId="ActiveCategory" Variant="TabVariant.Line" Class="shop-tabs">
-        <TmTabPanel Id="" Title="@L["Tab_All"]">
-            <div class="shop-grid">
-                @foreach (var item in FilteredItems)
-                {
-                    <ShopItemCard
-                        Item="item"
-                        IsOwned="IsItemOwned(item.Id)"
-                        IsEquipped="IsItemEquipped(item.Id)"
-                        OnPurchase="() => PurchaseItem(item)"
-                        OnEquip="() => EquipItem(item.Id)" />
-                }
-            </div>
-        </TmTabPanel>
-        <TmTabPanel Id="Avatar" Title="@L["Tab_Avatars"]">
-            <div class="shop-grid">
-                @foreach (var item in FilteredItems.Where(i => i.Category == "Avatar"))
-                {
-                    <ShopItemCard
-                        Item="item"
-                        IsOwned="IsItemOwned(item.Id)"
-                        IsEquipped="IsItemEquipped(item.Id)"
-                        OnPurchase="() => PurchaseItem(item)"
-                        OnEquip="() => EquipItem(item.Id)" />
-                }
-            </div>
-        </TmTabPanel>
-        <TmTabPanel Id="Frame" Title="@L["Tab_Frames"]">
-            <div class="shop-grid">
-                @foreach (var item in FilteredItems.Where(i => i.Category == "Frame"))
-                {
-                    <ShopItemCard
-                        Item="item"
-                        IsOwned="IsItemOwned(item.Id)"
-                        IsEquipped="IsItemEquipped(item.Id)"
-                        OnPurchase="() => PurchaseItem(item)"
-                        OnEquip="() => EquipItem(item.Id)" />
-                }
-            </div>
-        </TmTabPanel>
-        <TmTabPanel Id="Theme" Title="@L["Tab_Themes"]">
-            <div class="shop-grid">
-                @foreach (var item in FilteredItems.Where(i => i.Category == "Theme"))
-                {
-                    <ShopItemCard
-                        Item="item"
-                        IsOwned="IsItemOwned(item.Id)"
-                        IsEquipped="IsItemEquipped(item.Id)"
-                        OnPurchase="() => PurchaseItem(item)"
-                        OnEquip="() => EquipItem(item.Id)" />
-                }
-            </div>
-        </TmTabPanel>
-        <TmTabPanel Id="Shield" Title="@L["Tab_Shields"]">
-            <div class="shop-grid">
-                @foreach (var item in FilteredItems.Where(i => i.Category == "Shield"))
-                {
-                    <ShopItemCard
-                        Item="item"
-                        IsOwned="IsItemOwned(item.Id)"
-                        IsEquipped="IsItemEquipped(item.Id)"
-                        OnPurchase="() => PurchaseItem(item)"
-                        OnEquip="() => EquipItem(item.Id)" />
-                }
-            </div>
-        </TmTabPanel>
-    </TmTabs>
+    <nav class="shop-tabs" data-testid="shop-tabs" aria-label="@L["Title"]">
+        <button type="button" class="@GetCategoryClass("")" data-testid="shop-tab-all" @onclick='() => SetCategory("")'>@L["Tab_All"]</button>
+        <button type="button" class="@GetCategoryClass("Avatar")" data-testid="shop-tab-avatar" @onclick='() => SetCategory("Avatar")'>@L["Tab_Avatars"]</button>
+        <button type="button" class="@GetCategoryClass("Frame")" data-testid="shop-tab-frame" @onclick='() => SetCategory("Frame")'>@L["Tab_Frames"]</button>
+        <button type="button" class="@GetCategoryClass("Theme")" data-testid="shop-tab-theme" @onclick='() => SetCategory("Theme")'>@L["Tab_Themes"]</button>
+        <button type="button" class="@GetCategoryClass("Boost")" data-testid="shop-tab-boost" @onclick='() => SetCategory("Boost")'>@L["Tab_Boosts"]</button>
+    </nav>
+
+    @if (!FilteredItems.Any())
+    {
+        <div class="shop-empty">
+            @L["Empty_Category"]
+        </div>
+    }
+    else
+    {
+        <div class="shop-grid">
+            @foreach (var item in FilteredItems)
+            {
+                <ShopItemCard
+                    Item="item"
+                    IsOwned="IsItemOwned(item.Id)"
+                    IsEquipped="IsItemEquipped(item.Id)"
+                    IsPremium="IsPremium"
+                    OnPurchase="() => PurchaseItem(item)"
+                    OnEquip="() => EquipItem(item.Id)" />
+            }
+        </div>
+    }
 </div>
 
 @code {
@@ -125,9 +87,9 @@
             UserCoins = await coinsTask;
             IsPremium = await premiumTask;
         }
-        catch (Exception ex)
+        catch
         {
-            ToastService.ShowError($"{L["Load_Error"]}: {ex.Message}");
+            ToastService.ShowError(L["Load_Error"]);
         }
     }
 
@@ -166,9 +128,9 @@
                 ToastService.ShowError(result.ErrorMessage ?? L["Purchase_Error"]);
             }
         }
-        catch (Exception ex)
+        catch
         {
-            ToastService.ShowError($"{L["Purchase_Error"]}: {ex.Message}");
+            ToastService.ShowError(L["Purchase_Error"]);
         }
     }
 
@@ -190,9 +152,19 @@
                 ToastService.ShowError(result.ErrorMessage ?? L["Equip_Error"]);
             }
         }
-        catch (Exception ex)
+        catch
         {
-            ToastService.ShowError($"{L["Equip_Error"]}: {ex.Message}");
+            ToastService.ShowError(L["Equip_Error"]);
         }
+    }
+
+    private void SetCategory(string category)
+    {
+        ActiveCategory = category;
+    }
+
+    private string GetCategoryClass(string category)
+    {
+        return ActiveCategory == category ? "shop-tab active" : "shop-tab";
     }
 }

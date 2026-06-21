@@ -17,10 +17,248 @@ namespace LexiQuest.Infrastructure.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.3")
+                .HasAnnotation("ProductVersion", "10.0.5")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+
+            modelBuilder.Entity("LexiQuest.Core.Domain.Entities.Achievement", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("IconName")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("RequiredValue")
+                        .HasColumnType("int");
+
+                    b.Property<int>("XPReward")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Category");
+
+                    b.HasIndex("Key")
+                        .IsUnique();
+
+                    b.ToTable("Achievements", (string)null);
+                });
+
+            modelBuilder.Entity("LexiQuest.Core.Domain.Entities.AdminRoleAssignment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("AssignedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("UserId", "Role")
+                        .IsUnique();
+
+                    b.ToTable("AdminRoleAssignments");
+                });
+
+            modelBuilder.Entity("LexiQuest.Core.Domain.Entities.CoinTransaction", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Amount")
+                        .HasColumnType("int");
+
+                    b.Property<int>("BalanceAfter")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedAt");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("CoinTransaction");
+                });
+
+            modelBuilder.Entity("LexiQuest.Core.Domain.Entities.CustomDictionary", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<bool>("IsPublic")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("WordCount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IsPublic");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("CustomDictionaries");
+                });
+
+            modelBuilder.Entity("LexiQuest.Core.Domain.Entities.DailyChallenge", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Modifier")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("WordId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Date")
+                        .IsUnique();
+
+                    b.ToTable("DailyChallenges", (string)null);
+                });
+
+            modelBuilder.Entity("LexiQuest.Core.Domain.Entities.DailyChallengeCompletion", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("ChallengeDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CompletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<TimeSpan>("TimeTaken")
+                        .HasColumnType("time");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("XPEarned")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ChallengeDate");
+
+                    b.HasIndex("UserId", "ChallengeDate")
+                        .IsUnique();
+
+                    b.ToTable("DailyChallengeCompletions", (string)null);
+                });
+
+            modelBuilder.Entity("LexiQuest.Core.Domain.Entities.DictionaryWord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("DictionaryId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Difficulty")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Word")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DictionaryId");
+
+                    b.HasIndex("DictionaryId", "Word")
+                        .IsUnique();
+
+                    b.ToTable("DictionaryWords");
+                });
 
             modelBuilder.Entity("LexiQuest.Core.Domain.Entities.GameRound", b =>
                 {
@@ -31,19 +269,45 @@ namespace LexiQuest.Infrastructure.Migrations
                     b.Property<DateTime?>("AnsweredAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<Guid>("GameSessionId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<bool>("IsCorrect")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Scrambled")
+                    b.Property<string>("CorrectAnswer")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<string>("ForbiddenLetters")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsCompleted")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsCorrect")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("RevealedLettersCount")
+                        .HasColumnType("int");
+
+                    b.Property<string>("RevealedPositions")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("RoundNumber")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ScrambledWord")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<Guid>("SessionId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<DateTime?>("StartedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<int>("TimeLimitSeconds")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TimeSpentMs")
+                        .HasColumnType("int");
 
                     b.Property<string>("UserAnswer")
                         .HasMaxLength(100)
@@ -57,7 +321,9 @@ namespace LexiQuest.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("GameSessionId");
+                    b.HasIndex("RoundNumber");
+
+                    b.HasIndex("SessionId");
 
                     b.ToTable("GameRounds", (string)null);
                 });
@@ -68,11 +334,29 @@ namespace LexiQuest.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<int>("CurrentLevel")
+                    b.Property<int?>("BossType")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ComboCount")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CorrectAnswers")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CurrentRound")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Difficulty")
                         .HasColumnType("int");
 
                     b.Property<DateTime?>("EndedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("ForbiddenLetters")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("LevelNumber")
+                        .HasColumnType("int");
 
                     b.Property<int>("LivesRemaining")
                         .HasColumnType("int");
@@ -83,10 +367,16 @@ namespace LexiQuest.Infrastructure.Migrations
                     b.Property<Guid?>("PathId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<int>("RevealedLettersCount")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("StartedAt")
                         .HasColumnType("datetime2");
 
                     b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TotalRounds")
                         .HasColumnType("int");
 
                     b.Property<int>("TotalXP")
@@ -101,7 +391,447 @@ namespace LexiQuest.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
+                    b.HasIndex("UserId", "StartedAt");
+
                     b.ToTable("GameSessions", (string)null);
+                });
+
+            modelBuilder.Entity("LexiQuest.Core.Domain.Entities.League", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("Tier")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("WeekEnd")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("WeekStart")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("WeekStart");
+
+                    b.HasIndex("Tier", "IsActive");
+
+                    b.ToTable("Leagues", (string)null);
+                });
+
+            modelBuilder.Entity("LexiQuest.Core.Domain.Entities.LeagueParticipant", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsDemoted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<bool>("IsPromoted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<Guid>("LeagueId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Rank")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("WeeklyXP")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LeagueId");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("WeeklyXP");
+
+                    b.HasIndex("UserId", "LeagueId");
+
+                    b.ToTable("LeagueParticipants", (string)null);
+                });
+
+            modelBuilder.Entity("LexiQuest.Core.Domain.Entities.LearningPath", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Difficulty")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("TimePerWord")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TotalLevels")
+                        .HasColumnType("int");
+
+                    b.Property<int>("WordLengthMax")
+                        .HasColumnType("int");
+
+                    b.Property<int>("WordLengthMin")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("LearningPaths");
+                });
+
+            modelBuilder.Entity("LexiQuest.Core.Domain.Entities.MatchResult", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CompletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Difficulty")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsDraw")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsPrivateRoom")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid>("MatchId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Player1Avatar")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<Guid>("Player1Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Player1LeagueXPEarned")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Player1MaxCombo")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Player1Score")
+                        .HasColumnType("int");
+
+                    b.Property<TimeSpan>("Player1Time")
+                        .HasColumnType("time");
+
+                    b.Property<string>("Player1Username")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<int>("Player1XPEarned")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Player2Avatar")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<Guid>("Player2Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Player2LeagueXPEarned")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Player2MaxCombo")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Player2Score")
+                        .HasColumnType("int");
+
+                    b.Property<TimeSpan>("Player2Time")
+                        .HasColumnType("time");
+
+                    b.Property<string>("Player2Username")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<int>("Player2XPEarned")
+                        .HasColumnType("int");
+
+                    b.Property<string>("RoomCode")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<int?>("SeriesPlayer1Wins")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("SeriesPlayer2Wins")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("StartedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("TimeLimitMinutes")
+                        .HasColumnType("int");
+
+                    b.Property<Guid?>("WinnerId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("WordCount")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CompletedAt");
+
+                    b.HasIndex("IsPrivateRoom");
+
+                    b.HasIndex("MatchId")
+                        .IsUnique();
+
+                    b.HasIndex("Player1Id");
+
+                    b.HasIndex("Player2Id");
+
+                    b.ToTable("MatchResults", (string)null);
+                });
+
+            modelBuilder.Entity("LexiQuest.Core.Domain.Entities.Notification", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ActionUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsRead")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<DateTime?>("ReadAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Severity")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedAt");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("UserId", "IsRead");
+
+                    b.ToTable("Notifications", (string)null);
+                });
+
+            modelBuilder.Entity("LexiQuest.Core.Domain.Entities.NotificationPreference", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("AchievementNotifications")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<bool>("DailyChallengeReminder")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<bool>("EmailEnabled")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<bool>("LeagueUpdates")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<bool>("PushEnabled")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<bool>("StreakReminder")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<TimeSpan>("StreakReminderTime")
+                        .HasColumnType("time");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.ToTable("NotificationPreferences", (string)null);
+                });
+
+            modelBuilder.Entity("LexiQuest.Core.Domain.Entities.PasswordResetToken", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsUsed")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<DateTime?>("UsedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Token")
+                        .IsUnique();
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("PasswordResetTokens", (string)null);
+                });
+
+            modelBuilder.Entity("LexiQuest.Core.Domain.Entities.PathLevel", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsBoss")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsPerfect")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid?>("LearningPathId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("LevelNumber")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("PathId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LearningPathId");
+
+                    b.ToTable("PathLevels");
+                });
+
+            modelBuilder.Entity("LexiQuest.Core.Domain.Entities.PushSubscription", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Auth")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Endpoint")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<string>("P256dh")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Endpoint")
+                        .IsUnique();
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("PushSubscriptions", (string)null);
                 });
 
             modelBuilder.Entity("LexiQuest.Core.Domain.Entities.RefreshToken", b =>
@@ -141,11 +871,318 @@ namespace LexiQuest.Infrastructure.Migrations
                     b.ToTable("RefreshTokens", (string)null);
                 });
 
+            modelBuilder.Entity("LexiQuest.Core.Domain.Entities.ShopItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("AvailableUntil")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("ImageUrl")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<bool>("IsLimited")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<bool>("IsPremiumOnly")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("Price")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Rarity")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Category");
+
+                    b.HasIndex("IsLimited");
+
+                    b.HasIndex("IsPremiumOnly");
+
+                    b.ToTable("ShopItems");
+                });
+
+            modelBuilder.Entity("LexiQuest.Core.Domain.Entities.StreakProtection", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("FreezeUsedThisWeek")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<bool>("IsShieldActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<DateTime?>("LastShieldActivatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("ShieldsRemaining")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.ToTable("StreakProtections");
+                });
+
+            modelBuilder.Entity("LexiQuest.Core.Domain.Entities.Subscription", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("CancelledAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Plan")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("StartedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("StripeSubscriptionId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExpiresAt");
+
+                    b.HasIndex("Status");
+
+                    b.HasIndex("StripeSubscriptionId")
+                        .IsUnique();
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.ToTable("Subscriptions");
+                });
+
+            modelBuilder.Entity("LexiQuest.Core.Domain.Entities.Team", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<Guid>("LeaderId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("LogoUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<string>("Tag")
+                        .IsRequired()
+                        .HasMaxLength(4)
+                        .HasColumnType("nvarchar(4)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LeaderId");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.HasIndex("Tag")
+                        .IsUnique();
+
+                    b.ToTable("Teams", (string)null);
+                });
+
+            modelBuilder.Entity("LexiQuest.Core.Domain.Entities.TeamInvite", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("InvitedByUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("InvitedUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<Guid>("TeamId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("InvitedUserId");
+
+                    b.HasIndex("Status");
+
+                    b.HasIndex("TeamId", "InvitedUserId");
+
+                    b.ToTable("TeamInvites", (string)null);
+                });
+
+            modelBuilder.Entity("LexiQuest.Core.Domain.Entities.TeamJoinRequest", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Message")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime?>("ProcessedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<Guid>("TeamId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Status");
+
+                    b.HasIndex("TeamId", "UserId");
+
+                    b.ToTable("TeamJoinRequests", (string)null);
+                });
+
+            modelBuilder.Entity("LexiQuest.Core.Domain.Entities.TeamMember", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<long>("AllTimeXP")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasDefaultValue(0L);
+
+                    b.Property<DateTime>("JoinedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("TeamId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("WeeklyXP")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.Property<int>("Wins")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TeamId");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("UserId", "TeamId")
+                        .IsUnique();
+
+                    b.ToTable("TeamMembers", (string)null);
+                });
+
             modelBuilder.Entity("LexiQuest.Core.Domain.Entities.User", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("AvatarUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("CoinBalance")
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
@@ -156,40 +1193,158 @@ namespace LexiQuest.Infrastructure.Migrations
                         .HasColumnType("nvarchar(256)");
 
                     b.Property<int>("FailedLoginAttempts")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(0);
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("LastLifeLostAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<DateTime?>("LastLoginAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<int>("LivesRemaining")
+                        .HasColumnType("int");
+
                     b.Property<DateTime?>("LockoutEnd")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("MaxLives")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("NextLifeRegenAt")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("PasswordHash")
                         .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("StripeCustomerId")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Username")
                         .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("nvarchar(30)");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("Email")
                         .IsUnique();
 
-                    b.HasIndex("LockoutEnd");
-
                     b.HasIndex("Username")
                         .IsUnique();
 
-                    b.ToTable("Users", (string)null);
+                    b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("LexiQuest.Core.Domain.Entities.UserAchievement", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("AchievementId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsUnlocked")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<int>("Progress")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.Property<DateTime?>("UnlockedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("UserId", "AchievementId")
+                        .IsUnique();
+
+                    b.ToTable("UserAchievements", (string)null);
+                });
+
+            modelBuilder.Entity("LexiQuest.Core.Domain.Entities.UserInventoryItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsEquipped")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<DateTime>("PurchasedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("ShopItemId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("UserId", "IsEquipped");
+
+                    b.HasIndex("UserId", "ShopItemId")
+                        .IsUnique();
+
+                    b.ToTable("UserInventoryItems");
+                });
+
+            modelBuilder.Entity("LexiQuest.Core.Domain.Entities.UserPathLevelProgress", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CompletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsPerfect")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("LevelNumber")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("PathId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("PathLevelId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PathId");
+
+                    b.HasIndex("PathLevelId");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("UserId", "PathId", "LevelNumber")
+                        .IsUnique();
+
+                    b.ToTable("UserPathLevelProgresses", (string)null);
                 });
 
             modelBuilder.Entity("LexiQuest.Core.Domain.Entities.Word", b =>
@@ -231,11 +1386,45 @@ namespace LexiQuest.Infrastructure.Migrations
                     b.ToTable("Words", (string)null);
                 });
 
+            modelBuilder.Entity("LexiQuest.Core.Domain.Entities.CoinTransaction", b =>
+                {
+                    b.HasOne("LexiQuest.Core.Domain.Entities.User", null)
+                        .WithMany("CoinTransactions")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("LexiQuest.Core.Domain.Entities.GameRound", b =>
                 {
                     b.HasOne("LexiQuest.Core.Domain.Entities.GameSession", null)
                         .WithMany("Rounds")
-                        .HasForeignKey("GameSessionId")
+                        .HasForeignKey("SessionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("LexiQuest.Core.Domain.Entities.LeagueParticipant", b =>
+                {
+                    b.HasOne("LexiQuest.Core.Domain.Entities.League", null)
+                        .WithMany("Participants")
+                        .HasForeignKey("LeagueId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("LexiQuest.Core.Domain.Entities.PathLevel", b =>
+                {
+                    b.HasOne("LexiQuest.Core.Domain.Entities.LearningPath", null)
+                        .WithMany("Levels")
+                        .HasForeignKey("LearningPathId");
+                });
+
+            modelBuilder.Entity("LexiQuest.Core.Domain.Entities.TeamMember", b =>
+                {
+                    b.HasOne("LexiQuest.Core.Domain.Entities.Team", null)
+                        .WithMany("Members")
+                        .HasForeignKey("TeamId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
@@ -248,17 +1437,36 @@ namespace LexiQuest.Infrastructure.Migrations
                                 .HasColumnType("uniqueidentifier");
 
                             b1.Property<DateTime?>("ExpiresAt")
-                                .HasColumnType("datetime2")
-                                .HasColumnName("PremiumExpiresAt");
+                                .HasColumnType("datetime2");
 
                             b1.Property<bool>("IsPremium")
-                                .HasColumnType("bit")
-                                .HasColumnName("IsPremium");
+                                .HasColumnType("bit");
 
                             b1.Property<string>("Plan")
-                                .HasMaxLength(50)
-                                .HasColumnType("nvarchar(50)")
-                                .HasColumnName("PremiumPlan");
+                                .HasColumnType("nvarchar(max)");
+
+                            b1.HasKey("UserId");
+
+                            b1.ToTable("Users");
+
+                            b1.WithOwner()
+                                .HasForeignKey("UserId");
+                        });
+
+                    b.OwnsOne("LexiQuest.Core.Domain.ValueObjects.PrivacySettings", "Privacy", b1 =>
+                        {
+                            b1.Property<Guid>("UserId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<bool>("LeaderboardVisible")
+                                .HasColumnType("bit");
+
+                            b1.Property<string>("ProfileVisibility")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)");
+
+                            b1.Property<bool>("StatsSharingEnabled")
+                                .HasColumnType("bit");
 
                             b1.HasKey("UserId");
 
@@ -274,16 +1482,13 @@ namespace LexiQuest.Infrastructure.Migrations
                                 .HasColumnType("uniqueidentifier");
 
                             b1.Property<int>("CurrentDays")
-                                .HasColumnType("int")
-                                .HasColumnName("StreakCurrentDays");
+                                .HasColumnType("int");
 
                             b1.Property<DateTime?>("LastActivityDate")
-                                .HasColumnType("datetime2")
-                                .HasColumnName("StreakLastActivityDate");
+                                .HasColumnType("datetime2");
 
                             b1.Property<int>("LongestDays")
-                                .HasColumnType("int")
-                                .HasColumnName("StreakLongestDays");
+                                .HasColumnType("int");
 
                             b1.HasKey("UserId");
 
@@ -298,25 +1503,36 @@ namespace LexiQuest.Infrastructure.Migrations
                             b1.Property<Guid>("UserId")
                                 .HasColumnType("uniqueidentifier");
 
+                            b1.Property<bool>("AchievementNotificationsEnabled")
+                                .HasColumnType("bit");
+
                             b1.Property<bool>("AnimationsEnabled")
-                                .HasColumnType("bit")
-                                .HasColumnName("AnimationsEnabled");
+                                .HasColumnType("bit");
+
+                            b1.Property<bool>("DailyChallengeReminderEnabled")
+                                .HasColumnType("bit");
+
+                            b1.Property<bool>("EmailNotificationsEnabled")
+                                .HasColumnType("bit");
 
                             b1.Property<string>("Language")
                                 .IsRequired()
-                                .HasMaxLength(10)
-                                .HasColumnType("nvarchar(10)")
-                                .HasColumnName("Language");
+                                .HasColumnType("nvarchar(max)");
+
+                            b1.Property<bool>("LeagueUpdatesEnabled")
+                                .HasColumnType("bit");
+
+                            b1.Property<bool>("PushNotificationsEnabled")
+                                .HasColumnType("bit");
 
                             b1.Property<bool>("SoundsEnabled")
-                                .HasColumnType("bit")
-                                .HasColumnName("SoundsEnabled");
+                                .HasColumnType("bit");
 
-                            b1.Property<string>("Theme")
-                                .IsRequired()
-                                .HasMaxLength(20)
-                                .HasColumnType("nvarchar(20)")
-                                .HasColumnName("Theme");
+                            b1.Property<TimeSpan?>("StreakReminderTime")
+                                .HasColumnType("time");
+
+                            b1.Property<int>("Theme")
+                                .HasColumnType("int");
 
                             b1.HasKey("UserId");
 
@@ -332,28 +1548,23 @@ namespace LexiQuest.Infrastructure.Migrations
                                 .HasColumnType("uniqueidentifier");
 
                             b1.Property<double>("Accuracy")
-                                .HasColumnType("float")
-                                .HasColumnName("Accuracy");
+                                .HasColumnType("float");
 
                             b1.Property<TimeSpan>("AverageResponseTime")
-                                .HasColumnType("time")
-                                .HasColumnName("AverageResponseTime");
+                                .HasColumnType("time");
 
                             b1.Property<string>("League")
                                 .IsRequired()
                                 .HasColumnType("nvarchar(max)");
 
                             b1.Property<int>("Level")
-                                .HasColumnType("int")
-                                .HasColumnName("Level");
+                                .HasColumnType("int");
 
                             b1.Property<int>("TotalWordsSolved")
-                                .HasColumnType("int")
-                                .HasColumnName("TotalWordsSolved");
+                                .HasColumnType("int");
 
                             b1.Property<int>("TotalXP")
-                                .HasColumnType("int")
-                                .HasColumnName("TotalXP");
+                                .HasColumnType("int");
 
                             b1.HasKey("UserId");
 
@@ -369,6 +1580,9 @@ namespace LexiQuest.Infrastructure.Migrations
                     b.Navigation("Premium")
                         .IsRequired();
 
+                    b.Navigation("Privacy")
+                        .IsRequired();
+
                     b.Navigation("Stats")
                         .IsRequired();
 
@@ -379,6 +1593,26 @@ namespace LexiQuest.Infrastructure.Migrations
             modelBuilder.Entity("LexiQuest.Core.Domain.Entities.GameSession", b =>
                 {
                     b.Navigation("Rounds");
+                });
+
+            modelBuilder.Entity("LexiQuest.Core.Domain.Entities.League", b =>
+                {
+                    b.Navigation("Participants");
+                });
+
+            modelBuilder.Entity("LexiQuest.Core.Domain.Entities.LearningPath", b =>
+                {
+                    b.Navigation("Levels");
+                });
+
+            modelBuilder.Entity("LexiQuest.Core.Domain.Entities.Team", b =>
+                {
+                    b.Navigation("Members");
+                });
+
+            modelBuilder.Entity("LexiQuest.Core.Domain.Entities.User", b =>
+                {
+                    b.Navigation("CoinTransactions");
                 });
 #pragma warning restore 612, 618
         }

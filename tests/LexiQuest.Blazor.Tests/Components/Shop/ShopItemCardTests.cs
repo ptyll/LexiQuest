@@ -26,6 +26,11 @@ public class ShopItemCardTests : BunitContext
         _localizer["Button_Equip"].Returns(new LocalizedString("Button_Equip", "Nasadit"));
         _localizer["Button_Buy"].Returns(new LocalizedString("Button_Buy", "Koupit"));
         _localizer["Button_Equipped"].Returns(new LocalizedString("Button_Equipped", "Nasazeno"));
+        _localizer["Label_Limited"].Returns(new LocalizedString("Label_Limited", "Limitované"));
+        _localizer["Rarity_Common"].Returns(new LocalizedString("Rarity_Common", "Běžný"));
+        _localizer["Rarity_Rare"].Returns(new LocalizedString("Rarity_Rare", "Vzácný"));
+        _localizer["Rarity_Epic"].Returns(new LocalizedString("Rarity_Epic", "Epický"));
+        _localizer["Rarity_Legendary"].Returns(new LocalizedString("Rarity_Legendary", "Legendární"));
 
         _tmLocalizer = Substitute.For<ITmLocalizer>();
         _tmLocalizer["TmCard.Title"].Returns(new LocalizedString("TmCard.Title", ""));

@@ -132,6 +132,7 @@ public static class GuestEndpoints
         group.MapPost("/game/guest/convert", async (
             GuestConvertRequest request,
             IGuestSessionService guestSessionService,
+            IGuestProgressTransferService guestProgressTransferService,
             CancellationToken cancellationToken) =>
         {
             try
@@ -142,15 +143,19 @@ public static class GuestEndpoints
                 // End the guest session
                 var session = guestSessionService.EndGame(request.SessionId);
 
-                // Note: Actual user registration would be handled by IUserService
-                // This endpoint returns the progress that should be transferred
+                var transferredXp = request.TransferProgress ? progress.TotalXp : 0;
+                var transferredWordsSolved = request.TransferProgress ? progress.WordsSolved : 0;
+                var transferToken = request.TransferProgress
+                    ? guestProgressTransferService.CreateTransferToken(progress)
+                    : null;
 
                 var response = new GuestConvertResponse(
                     Success: true,
                     UserId: null, // Would be set after actual registration
                     Message: "Guest progress ready for transfer. Complete registration to save.",
-                    TransferredXp: request.TransferProgress ? progress.TotalXp : 0,
-                    TransferredWordsSolved: request.TransferProgress ? progress.WordsSolved : 0
+                    TransferredXp: transferredXp,
+                    TransferredWordsSolved: transferredWordsSolved,
+                    TransferToken: transferToken
                 );
 
                 return Results.Ok(response);

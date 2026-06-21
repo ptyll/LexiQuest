@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
   <data name="TwistBoss_Title" xml:space="preserve">
-    <value>Twist Boss</value>
+    <value>Boss odhalení</value>
   </data>
   <data name="TwistBoss_Subtitle" xml:space="preserve">
     <value>12 slov, postupné odhalování, bonus za rychlost</value>
   </data>
   <data name="TwistBoss_Level" xml:space="preserve">
-    <value>Boss Level</value>
+    <value>Boss výzva</value>
   </data>
   <data name="TwistBoss_Progress" xml:space="preserve">
     <value>Postup</value>
@@ -46,7 +46,7 @@
     <value>Úžasné!</value>
   </data>
   <data name="TwistBoss_VictoryMessage" xml:space="preserve">
-    <value>Porazil jsi Twist Bosta! Tvá rychlost a intuice jsou fenomenální.</value>
+    <value>Porazil jsi bosse odhalení. Tvá rychlost a intuice jsou fenomenální.</value>
   </data>
   <data name="TwistBoss_TotalEarned" xml:space="preserve">
     <value>Celkem získáno</value>
@@ -64,6 +64,6 @@
     <value>Zkusit znovu</value>
   </data>
   <data name="TwistBoss_BackToDashboard" xml:space="preserve">
-    <value>Zpět na dashboard</value>
+    <value>Zpět na přehled</value>
   </data>
 </root>

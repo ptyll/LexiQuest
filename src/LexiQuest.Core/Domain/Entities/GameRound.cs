@@ -30,7 +30,8 @@ public class GameRound
         Guid wordId,
         string scrambledWord,
         string correctAnswer,
-        int timeLimitSeconds)
+        int timeLimitSeconds,
+        DateTime? startedAt = null)
     {
         return new GameRound
         {
@@ -41,7 +42,7 @@ public class GameRound
             ScrambledWord = scrambledWord,
             CorrectAnswer = correctAnswer,
             TimeLimitSeconds = timeLimitSeconds,
-            StartedAt = DateTime.UtcNow,
+            StartedAt = startedAt ?? DateTime.UtcNow,
             IsCorrect = false,
             IsCompleted = false,
             XPEarned = 0

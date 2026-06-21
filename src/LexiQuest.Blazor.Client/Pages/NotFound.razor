@@ -1,0 +1,12 @@
+@page "/{*Path:nonfile}"
+@layout LandingLayout
+@inject IStringLocalizer<NotFound> L
+
+<PageTitle>@L["Title"]</PageTitle>
+
+<NotFoundContent />
+
+@code {
+    [Parameter]
+    public string? Path { get; set; }
+}

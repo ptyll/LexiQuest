@@ -12,19 +12,19 @@ public class RoomSettingsValidator : AbstractValidator<RoomSettingsDto>
     {
         RuleFor(x => x.WordCount)
             .Must(BeValidWordCount)
-            .WithMessage("WordCount must be 10, 15, or 20.");
+            .WithMessage("Počet slov musí být 10, 15 nebo 20.");
 
         RuleFor(x => x.TimeLimitMinutes)
             .Must(BeValidTimeLimit)
-            .WithMessage("TimeLimitMinutes must be 2, 3, or 5.");
+            .WithMessage("Časový limit musí být 2, 3 nebo 5 minut.");
 
         RuleFor(x => x.BestOf)
             .Must(BeValidBestOf)
-            .WithMessage("BestOf must be 1, 3, or 5.");
+            .WithMessage("Série musí být na 1, 3 nebo 5 her.");
 
         RuleFor(x => x.Difficulty)
             .IsInEnum()
-            .WithMessage("Invalid difficulty level.");
+            .WithMessage("Neplatná obtížnost.");
     }
 
     private static bool BeValidWordCount(int wordCount) =>

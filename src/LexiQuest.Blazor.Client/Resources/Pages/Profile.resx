@@ -42,12 +42,72 @@
     <value>Člen od</value>
   </data>
   <data name="Level" xml:space="preserve">
-    <value>Level {0}</value>
+    <value>Úroveň {0}</value>
   </data>
   <data name="EditProfile" xml:space="preserve">
     <value>Upravit profil</value>
   </data>
   <data name="Avatar.Change" xml:space="preserve">
     <value>Změnit avatar</value>
+  </data>
+  <data name="Profile_PageTitle" xml:space="preserve">
+    <value>Profil</value>
+  </data>
+  <data name="Profile_Title" xml:space="preserve">
+    <value>Můj profil</value>
+  </data>
+  <data name="Profile_LoadError" xml:space="preserve">
+    <value>Profil se nepodařilo načíst</value>
+  </data>
+  <data name="Profile_LoadErrorDescription" xml:space="preserve">
+    <value>Zkuste stránku obnovit nebo se znovu přihlaste.</value>
+  </data>
+  <data name="Profile_MemberSince" xml:space="preserve">
+    <value>Členem od {0}</value>
+  </data>
+  <data name="Profile_PremiumBadge" xml:space="preserve">
+    <value>Premium</value>
+  </data>
+  <data name="Profile_PremiumPlanMonthly" xml:space="preserve">
+    <value>Měsíční</value>
+  </data>
+  <data name="Profile_PremiumPlanYearly" xml:space="preserve">
+    <value>Roční</value>
+  </data>
+  <data name="Profile_PremiumPlanLifetime" xml:space="preserve">
+    <value>Doživotní</value>
+  </data>
+  <data name="Profile_PremiumPlanUnknown" xml:space="preserve">
+    <value>Aktivní plán</value>
+  </data>
+  <data name="Profile_StatsTitle" xml:space="preserve">
+    <value>Statistiky</value>
+  </data>
+  <data name="Profile_Level" xml:space="preserve">
+    <value>Úroveň</value>
+  </data>
+  <data name="Profile_TotalXP" xml:space="preserve">
+    <value>Celkové XP</value>
+  </data>
+  <data name="Profile_WordsSolved" xml:space="preserve">
+    <value>Vyřešená slova</value>
+  </data>
+  <data name="Profile_CurrentStreak" xml:space="preserve">
+    <value>Aktuální série</value>
+  </data>
+  <data name="Profile_LongestStreak" xml:space="preserve">
+    <value>Nejdelší série</value>
+  </data>
+  <data name="Profile_Accuracy" xml:space="preserve">
+    <value>Přesnost</value>
+  </data>
+  <data name="Profile_AchievementsTitle" xml:space="preserve">
+    <value>Úspěchy</value>
+  </data>
+  <data name="Profile_AchievementsCount" xml:space="preserve">
+    <value>Brzy</value>
+  </data>
+  <data name="Profile_AchievementsDescription" xml:space="preserve">
+    <value>Přehled odemčených úspěchů najdete v samostatné sekci.</value>
   </data>
 </root>

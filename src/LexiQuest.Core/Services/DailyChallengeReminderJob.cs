@@ -2,6 +2,7 @@ using LexiQuest.Core.Interfaces.Repositories;
 using LexiQuest.Core.Interfaces.Services;
 using LexiQuest.Shared.DTOs.Notifications;
 using LexiQuest.Shared.Enums;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 
 namespace LexiQuest.Core.Services;
@@ -13,15 +14,18 @@ public class DailyChallengeReminderJob
 {
     private readonly IUserRepository _userRepository;
     private readonly INotificationService _notificationService;
+    private readonly IStringLocalizer<DailyChallengeReminderJob> _localizer;
     private readonly ILogger<DailyChallengeReminderJob> _logger;
 
     public DailyChallengeReminderJob(
         IUserRepository userRepository,
         INotificationService notificationService,
+        IStringLocalizer<DailyChallengeReminderJob> localizer,
         ILogger<DailyChallengeReminderJob> logger)
     {
         _userRepository = userRepository;
         _notificationService = notificationService;
+        _localizer = localizer;
         _logger = logger;
     }
 
@@ -36,8 +40,8 @@ public class DailyChallengeReminderJob
             await _notificationService.SendAsync(new SendNotificationRequest(
                 user.Id,
                 NotificationType.DailyChallenge,
-                "Daily Challenge",
-                "A new daily challenge is available! Can you beat today's challenge?",
+                _localizer["Notification.DailyChallenge.Title"],
+                _localizer["Notification.DailyChallenge.Message"],
                 NotificationSeverity.Info,
                 "/daily-challenge"), cancellationToken);
         }

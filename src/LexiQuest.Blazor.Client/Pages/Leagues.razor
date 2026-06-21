@@ -5,7 +5,7 @@
 @inject ILeagueService LeagueService
 @inject IStringLocalizer<Leagues> L
 
-<div class="leagues-page">
+<div class="leagues-page" data-testid="leagues-page">
     @if (isLoading)
     {
         <div class="loading-state">
@@ -30,23 +30,25 @@
                 <div class="tier-header-content">
                     <TmIcon Name="@GetTierIcon(leagueInfo.Tier)"   />
                     <div class="tier-info">
-                        <h1>@GetTierName(leagueInfo.Tier)</h1>
+                        <h1 data-testid="league-tier">@GetTierName(leagueInfo.Tier)</h1>
                         <p>@L["WeekInfo", leagueInfo.WeekStart.ToString("dd.MM"), leagueInfo.WeekEnd.ToString("dd.MM")]</p>
                     </div>
                 </div>
             </TmCard>
         </div>
 
-        <div class="time-remaining-card">
+        <div class="time-remaining-card @GetCountdownContainerClass(leagueInfo.WeekEnd)">
             <TmCard>
-                <div class="time-remaining-content">
+                <div class="@GetCountdownContentClass(leagueInfo.WeekEnd)"
+                     data-testid="league-reset-countdown"
+                     data-state="@GetCountdownState(leagueInfo.WeekEnd)">
                     <TmIcon Name="clock" />
                     <span>@L["TimeRemaining", FormatTimeRemaining(leagueInfo.WeekEnd)]</span>
                 </div>
             </TmCard>
         </div>
 
-        <div class="user-position-card">
+        <div class="user-position-card" data-testid="league-user-position">
             <TmCard Variant="CardVariant.Elevated">
                 <div class="rank-display">#@leagueInfo.CurrentRank / @leagueInfo.TotalParticipants</div>
                 <div class="xp-display">@leagueInfo.UserXP XP</div>
@@ -70,7 +72,10 @@
                             <div class="progress-bar">
                                 <div class="progress-fill" style="width: @GetProgressPercentage()%"></div>
                                 <div class="progress-marker promotion-marker" style="left: @GetPromotionMarkerPosition()%"></div>
-                                <div class="progress-marker demotion-marker" style="left: @GetDemotionMarkerPosition()%"></div>
+                                @if (HasDemotionZone())
+                                {
+                                    <div class="progress-marker demotion-marker" style="left: @GetDemotionMarkerPosition()%"></div>
+                                }
                             </div>
                             <div class="progress-label">
                                 <span>@L["Progress.CurrentRank", leagueInfo.CurrentRank, leagueInfo.TotalParticipants]</span>
@@ -78,8 +83,8 @@
                         </div>
                         <div class="threshold demotion-threshold">
                             <span class="threshold-label">@L["Progress.Demotion"]</span>
-                            <span class="threshold-value">@L["Progress.BelowN", leagueInfo.DemotionThreshold]</span>
-                            @if (leagueInfo.CurrentRank >= leagueInfo.DemotionThreshold)
+                            <span class="threshold-value">@GetDemotionThresholdText()</span>
+                            @if (HasDemotionZone() && leagueInfo.CurrentRank >= leagueInfo.DemotionThreshold)
                             {
                                 <TmBadge Variant="BadgeVariant.Danger">@L["Progress.InDanger"]</TmBadge>
                             }
@@ -91,10 +96,10 @@
 
         <div class="leaderboard-section">
             <h2>@L["LeaderboardTitle"]</h2>
-            <div class="leaderboard">
+            <div class="leaderboard" data-testid="league-leaderboard">
                 @foreach (var p in leaderboard)
                 {
-                    <div class="leaderboard-row @GetRowClass(p)">
+                    <div class="leaderboard-row @GetRowClass(p)" data-testid="@GetRowTestId(p)">
                         <span class="rank">#@p.Rank</span>
                         <span class="avatar">@GetInitials(p.Username)</span>
                         <span>@p.Username</span>
@@ -106,7 +111,7 @@
 
         @if (leagueHistory.Any())
         {
-            <div class="history-section">
+            <div class="history-section" data-testid="league-history">
                 <h2>@L["History.Title"]</h2>
                 @foreach (var entry in leagueHistory)
                 {
@@ -137,7 +142,7 @@
 
         @if (leagueRewards.Any())
         {
-            <div class="rewards-section">
+            <div class="rewards-section" data-testid="league-rewards">
                 <h2>@L["Rewards.Title"]</h2>
                 <div class="rewards-grid">
                     @foreach (var reward in leagueRewards)
@@ -197,10 +202,19 @@
 
     private string GetRowClass(LeagueParticipantDto p)
     {
-        if (p.IsCurrentUser) return "is-current-user";
-        if (p.IsPromoted) return "promotion-zone";
-        if (p.IsDemoted) return "demotion-zone";
-        return "";
+        var classes = new List<string>();
+        if (p.IsCurrentUser) classes.Add("is-current-user");
+        if (p.IsPromoted) classes.Add("promotion-zone");
+        if (p.IsDemoted) classes.Add("demotion-zone");
+        return string.Join(" ", classes);
+    }
+
+    private static string GetRowTestId(LeagueParticipantDto p)
+    {
+        if (p.IsCurrentUser) return "league-current-user-row";
+        if (p.IsPromoted) return "league-promotion-zone";
+        if (p.IsDemoted) return "league-demotion-zone";
+        return "league-row";
     }
 
     private static string GetInitials(string username)
@@ -221,6 +235,25 @@
         return $"{remaining.Minutes}m";
     }
 
+    private static string GetCountdownState(DateTime weekEnd)
+    {
+        var remaining = weekEnd - DateTime.UtcNow;
+        if (remaining <= TimeSpan.Zero) return "ended";
+        if (remaining <= TimeSpan.FromHours(6)) return "critical";
+        if (remaining <= TimeSpan.FromHours(24)) return "warning";
+        return "normal";
+    }
+
+    private static string GetCountdownContainerClass(DateTime weekEnd)
+    {
+        return $"is-{GetCountdownState(weekEnd)}";
+    }
+
+    private static string GetCountdownContentClass(DateTime weekEnd)
+    {
+        return $"time-remaining-content is-{GetCountdownState(weekEnd)}";
+    }
+
     private int GetProgressPercentage()
     {
         if (leagueInfo == null || leagueInfo.TotalParticipants == 0) return 0;
@@ -236,7 +269,28 @@
     private int GetDemotionMarkerPosition()
     {
         if (leagueInfo == null || leagueInfo.TotalParticipants == 0) return 0;
-        return (int)(100.0 * (leagueInfo.TotalParticipants - leagueInfo.DemotionThreshold) / leagueInfo.TotalParticipants);
+        return Math.Clamp((int)(100.0 * (leagueInfo.TotalParticipants - leagueInfo.DemotionThreshold) / leagueInfo.TotalParticipants), 0, 100);
+    }
+
+    private bool HasDemotionZone()
+    {
+        return leagueInfo != null && leagueInfo.DemotionThreshold <= leagueInfo.TotalParticipants;
+    }
+
+    private string GetDemotionThresholdText()
+    {
+        if (HasDemotionZone())
+        {
+            var belowText = L["Progress.BelowN", leagueInfo!.DemotionThreshold];
+            return string.IsNullOrWhiteSpace(belowText?.Value)
+                ? $"Od #{leagueInfo.DemotionThreshold}"
+                : belowText.Value;
+        }
+
+        var noDemotionText = L["Progress.NoDemotion"];
+        return string.IsNullOrWhiteSpace(noDemotionText?.Value)
+            ? "Bez sestupu"
+            : noDemotionText.Value;
     }
 
     private static BadgeVariant GetChangeStatusVariant(LeagueChangeStatus status) => status switch

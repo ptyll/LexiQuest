@@ -32,6 +32,8 @@ public class ShopPageTests : BunitContext
         SetupLocalizer();
         SetupCardLocalizer();
 
+        _premiumService.IsPremiumAsync().Returns(Task.FromResult(false));
+
         Services.AddSingleton(_shopService);
         Services.AddSingleton(_premiumService);
         Services.AddSingleton(_toastService);
@@ -47,7 +49,11 @@ public class ShopPageTests : BunitContext
         _cardLocalizer["Button_Equip"].Returns(new LocalizedString("Button_Equip", "Nasadit"));
         _cardLocalizer["Button_Buy"].Returns(new LocalizedString("Button_Buy", "Koupit"));
         _cardLocalizer["Button_Equipped"].Returns(new LocalizedString("Button_Equipped", "Nasazeno"));
-        _cardLocalizer["Label_Limited"].Returns(new LocalizedString("Label_Limited", "Limited"));
+        _cardLocalizer["Label_Limited"].Returns(new LocalizedString("Label_Limited", "Limitované"));
+        _cardLocalizer["Rarity_Common"].Returns(new LocalizedString("Rarity_Common", "Běžný"));
+        _cardLocalizer["Rarity_Rare"].Returns(new LocalizedString("Rarity_Rare", "Vzácný"));
+        _cardLocalizer["Rarity_Epic"].Returns(new LocalizedString("Rarity_Epic", "Epický"));
+        _cardLocalizer["Rarity_Legendary"].Returns(new LocalizedString("Rarity_Legendary", "Legendární"));
     }
 
     private void SetupLocalizer()
@@ -58,11 +64,15 @@ public class ShopPageTests : BunitContext
         _localizer["Tab_Avatars"].Returns(new LocalizedString("Tab_Avatars", "Avatary"));
         _localizer["Tab_Frames"].Returns(new LocalizedString("Tab_Frames", "Rámečky"));
         _localizer["Tab_Themes"].Returns(new LocalizedString("Tab_Themes", "Témata"));
-        _localizer["Tab_Shields"].Returns(new LocalizedString("Tab_Shields", "Štíty"));
+        _localizer["Tab_Boosts"].Returns(new LocalizedString("Tab_Boosts", "Boosty"));
         _localizer["Coins_Balance"].Returns(new LocalizedString("Coins_Balance", "Mince:"));
         _localizer["Premium_Required"].Returns(new LocalizedString("Premium_Required", "Vyžaduje Premium"));
         _localizer["Purchase_Success"].Returns(new LocalizedString("Purchase_Success", "Nákup úspěšný!"));
         _localizer["Purchase_Error"].Returns(new LocalizedString("Purchase_Error", "Nákup selhal"));
+        _localizer["Equip_Success"].Returns(new LocalizedString("Equip_Success", "Předmět nasazen"));
+        _localizer["Equip_Error"].Returns(new LocalizedString("Equip_Error", "Nasazení selhalo"));
+        _localizer["Load_Error"].Returns(new LocalizedString("Load_Error", "Obchod se nepodařilo načíst."));
+        _localizer["Empty_Category"].Returns(new LocalizedString("Empty_Category", "V této kategorii zatím nic není."));
 
         _tmLocalizer["TmTabs.Tab"].Returns(new LocalizedString("TmTabs.Tab", ""));
         _tmLocalizer["TmCard.Title"].Returns(new LocalizedString("TmCard.Title", ""));
@@ -184,7 +194,7 @@ public class ShopPageTests : BunitContext
         cut.Markup.Should().Contain("Avatary");
         cut.Markup.Should().Contain("Rámečky");
         cut.Markup.Should().Contain("Témata");
-        cut.Markup.Should().Contain("Štíty");
+        cut.Markup.Should().Contain("Boosty");
     }
 
     [Fact]

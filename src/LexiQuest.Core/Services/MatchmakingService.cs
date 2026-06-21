@@ -9,6 +9,7 @@ namespace LexiQuest.Core.Services;
 public class MatchmakingService : IMatchmakingService
 {
     private readonly ConcurrentDictionary<Guid, QueuedPlayer> _queue = new();
+    private readonly object _queueLock = new();
     private readonly TimeSpan _matchmakingTimeout;
     private readonly Timer _matchingTimer;
     private readonly Timer _timeoutTimer;
@@ -35,9 +36,20 @@ public class MatchmakingService : IMatchmakingService
 
     public Task<bool> JoinQueueAsync(Guid userId, int level, string username, string? avatar, CancellationToken cancellationToken = default)
     {
+        var result = JoinQueueInternal(userId, level, username, avatar, allowOutsideTolerance: false);
+        return Task.FromResult(result.Joined);
+    }
+
+    public Task<MatchmakingJoinResult> JoinQueueAndTryMatchAsync(Guid userId, int level, string username, string? avatar, CancellationToken cancellationToken = default)
+    {
+        return Task.FromResult(JoinQueueInternal(userId, level, username, avatar, allowOutsideTolerance: false));
+    }
+
+    private MatchmakingJoinResult JoinQueueInternal(Guid userId, int level, string username, string? avatar, bool allowOutsideTolerance)
+    {
         if (_queue.ContainsKey(userId))
         {
-            return Task.FromResult(false);
+            return new MatchmakingJoinResult(false, null);
         }
 
         var player = new QueuedPlayer
@@ -49,13 +61,33 @@ public class MatchmakingService : IMatchmakingService
             JoinedAt = DateTime.UtcNow
         };
 
-        _queue.TryAdd(userId, player);
-        return Task.FromResult(true);
+        MatchFoundEventArgs? match = null;
+        lock (_queueLock)
+        {
+            if (!_queue.TryAdd(userId, player))
+            {
+                return new MatchmakingJoinResult(false, null);
+            }
+
+            match = TryCreateBestMatchFor(player, allowOutsideTolerance);
+        }
+
+        if (match != null)
+        {
+            OnMatchFound?.Invoke(this, match);
+        }
+
+        return new MatchmakingJoinResult(true, match);
     }
 
     public Task<bool> CancelQueueAsync(Guid userId, CancellationToken cancellationToken = default)
     {
-        var removed = _queue.TryRemove(userId, out _);
+        bool removed;
+        lock (_queueLock)
+        {
+            removed = _queue.TryRemove(userId, out _);
+        }
+
         return Task.FromResult(removed);
     }
 
@@ -71,9 +103,25 @@ public class MatchmakingService : IMatchmakingService
 
     private void TryMatchPlayers()
     {
+        List<MatchFoundEventArgs> matches;
+        lock (_queueLock)
+        {
+            matches = TryMatchPlayersCore();
+        }
+
+        foreach (var match in matches)
+        {
+            OnMatchFound?.Invoke(this, match);
+        }
+    }
+
+    private List<MatchFoundEventArgs> TryMatchPlayersCore()
+    {
+        var matches = new List<MatchFoundEventArgs>();
+
         if (_queue.Count < 2)
         {
-            return;
+            return matches;
         }
 
         var players = _queue.Values.OrderBy(p => p.JoinedAt).ToList();
@@ -99,21 +147,9 @@ public class MatchmakingService : IMatchmakingService
 
                 var levelDiff = Math.Abs(player1.Level - player2.Level);
                 
-                // Prefer players within level tolerance
                 if (levelDiff <= LevelTolerance)
                 {
                     // Lower score is better (level diff is primary, wait time secondary)
-                    var score = levelDiff * 1000 + (int)(DateTime.UtcNow - player2.JoinedAt).TotalSeconds;
-                    
-                    if (score < bestMatchScore)
-                    {
-                        bestMatchScore = score;
-                        bestMatch = player2;
-                    }
-                }
-                // If no match within tolerance found yet, consider anyone
-                else if (bestMatch == null)
-                {
                     var score = levelDiff * 1000 + (int)(DateTime.UtcNow - player2.JoinedAt).TotalSeconds;
                     
                     if (score < bestMatchScore)
@@ -127,7 +163,7 @@ public class MatchmakingService : IMatchmakingService
             if (bestMatch != null)
             {
                 // Create match
-                CreateMatch(player1, bestMatch);
+                matches.Add(CreateMatch(player1, bestMatch));
                 matchedPlayers.Add(player1.UserId);
                 matchedPlayers.Add(bestMatch.UserId);
                 
@@ -136,13 +172,58 @@ public class MatchmakingService : IMatchmakingService
                 _queue.TryRemove(bestMatch.UserId, out _);
             }
         }
+
+        return matches;
     }
 
-    private void CreateMatch(QueuedPlayer player1, QueuedPlayer player2)
+    private MatchFoundEventArgs? TryCreateBestMatchFor(QueuedPlayer player, bool allowOutsideTolerance)
+    {
+        if (_queue.Count < 2)
+        {
+            return null;
+        }
+
+        QueuedPlayer? bestMatch = null;
+        var bestMatchScore = int.MaxValue;
+
+        foreach (var candidate in _queue.Values.OrderBy(p => p.JoinedAt))
+        {
+            if (candidate.UserId == player.UserId)
+            {
+                continue;
+            }
+
+            var levelDiff = Math.Abs(player.Level - candidate.Level);
+            if (!allowOutsideTolerance && levelDiff > LevelTolerance)
+            {
+                continue;
+            }
+
+            var score = levelDiff * 1000 + (int)(DateTime.UtcNow - candidate.JoinedAt).TotalSeconds;
+            if (score < bestMatchScore)
+            {
+                bestMatchScore = score;
+                bestMatch = candidate;
+            }
+        }
+
+        if (bestMatch == null)
+        {
+            return null;
+        }
+
+        _queue.TryRemove(player.UserId, out _);
+        _queue.TryRemove(bestMatch.UserId, out _);
+        return player.JoinedAt <= bestMatch.JoinedAt
+            ? CreateMatch(player, bestMatch)
+            : CreateMatch(bestMatch, player);
+    }
+
+    private static MatchFoundEventArgs CreateMatch(QueuedPlayer player1, QueuedPlayer player2)
     {
         var matchId = Guid.NewGuid();
         
-        OnMatchFound?.Invoke(this, new MatchFoundEventArgs
+        return new MatchFoundEventArgs
         {
             MatchId = matchId,
             Player1Id = player1.UserId,
@@ -153,20 +234,29 @@ public class MatchmakingService : IMatchmakingService
             Player2Level = player2.Level,
             Player1Avatar = player1.Avatar,
             Player2Avatar = player2.Avatar
-        });
+        };
     }
 
     private void CheckTimeouts()
     {
         var now = DateTime.UtcNow;
-        var timedOutPlayers = _queue
-            .Where(p => now - p.Value.JoinedAt > _matchmakingTimeout)
-            .Select(p => p.Value)
-            .ToList();
+        List<QueuedPlayer> timedOutPlayers;
+
+        lock (_queueLock)
+        {
+            timedOutPlayers = _queue
+                .Where(p => now - p.Value.JoinedAt > _matchmakingTimeout)
+                .Select(p => p.Value)
+                .ToList();
+
+            foreach (var player in timedOutPlayers)
+            {
+                _queue.TryRemove(player.UserId, out _);
+            }
+        }
 
         foreach (var player in timedOutPlayers)
         {
-            _queue.TryRemove(player.UserId, out _);
             OnMatchmakingTimeout?.Invoke(this, new MatchmakingTimeoutEventArgs { UserId = player.UserId });
         }
     }

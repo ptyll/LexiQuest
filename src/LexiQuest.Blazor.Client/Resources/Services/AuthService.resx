@@ -13,7 +13,10 @@
     <value>Chyba při registraci: {0}</value>
   </data>
   <data name="Error.Login.InvalidCredentials" xml:space="preserve">
-    <value>Neplatný email nebo heslo.</value>
+    <value>Nesprávný email nebo heslo</value>
+  </data>
+  <data name="Error.Login.AccountLocked" xml:space="preserve">
+    <value>Účet je dočasně zablokován. Zkuste to znovu za 15 minut.</value>
   </data>
   <data name="Error.Login.Failed" xml:space="preserve">
     <value>Přihlášení se nezdařilo. Zkuste to prosím později.</value>

@@ -133,7 +133,7 @@ public class DictionaryServiceEdgeCaseTests
         // Arrange
         var userId = Guid.NewGuid();
         var dict = CreateDictionaryForUser(userId);
-        var longWord = new string('a', 51); // Exceeds 50 char limit
+        var longWord = new string('a', 21); // Exceeds 20 char limit
         var csv = $"{longWord},Beginner";
 
         // Act
@@ -150,7 +150,7 @@ public class DictionaryServiceEdgeCaseTests
         // Arrange
         var userId = Guid.NewGuid();
         var dict = CreateDictionaryForUser(userId);
-        var longWord = new string('a', 51);
+        var longWord = new string('a', 21);
 
         // Act
         var result = await _sut.ImportWordsFromTxtAsync(dict.Id, userId, longWord);
@@ -161,12 +161,12 @@ public class DictionaryServiceEdgeCaseTests
     }
 
     [Fact]
-    public async Task ImportCsv_WordExactly50Chars_Succeeds()
+    public async Task ImportCsv_WordExactly20Chars_Succeeds()
     {
         // Arrange
         var userId = Guid.NewGuid();
         var dict = CreateDictionaryForUser(userId);
-        var word = new string('a', 50); // Exactly at limit
+        var word = new string('a', 20); // Exactly at limit
 
         // Act
         var result = await _sut.ImportWordsFromCsvAsync(dict.Id, userId, word);

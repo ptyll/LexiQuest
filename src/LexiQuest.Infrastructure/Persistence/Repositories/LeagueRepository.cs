@@ -39,6 +39,15 @@ public class LeagueRepository : ILeagueRepository
             .FirstOrDefaultAsync(cancellationToken);
     }
 
+    public async Task<League?> GetActiveLeagueForTierAndWeekAsync(LeagueTier tier, DateTime weekStart, CancellationToken cancellationToken = default)
+    {
+        return await _context.Leagues
+            .Include(l => l.Participants)
+            .Where(l => l.Tier == tier && l.IsActive && l.WeekStart == weekStart)
+            .OrderBy(l => l.CreatedAt)
+            .FirstOrDefaultAsync(cancellationToken);
+    }
+
     public async Task<List<League>> GetActiveLeaguesAsync(CancellationToken cancellationToken = default)
     {
         return await _context.Leagues
@@ -55,9 +64,24 @@ public class LeagueRepository : ILeagueRepository
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<List<League>> GetLeagueHistoryForUserAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        return await _context.Leagues
+            .Include(l => l.Participants)
+            .Where(l => !l.IsActive)
+            .Where(l => l.Participants.Any(p => p.UserId == userId))
+            .OrderByDescending(l => l.WeekEnd)
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task AddAsync(League league, CancellationToken cancellationToken = default)
     {
         await _context.Leagues.AddAsync(league, cancellationToken);
+    }
+
+    public async Task AddParticipantAsync(Guid leagueId, Guid userId, CancellationToken cancellationToken = default)
+    {
+        await _context.LeagueParticipants.AddAsync(LeagueParticipant.Create(userId, leagueId), cancellationToken);
     }
 
     public void Update(League league)

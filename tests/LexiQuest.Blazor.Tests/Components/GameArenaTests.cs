@@ -12,33 +12,48 @@ namespace LexiQuest.Blazor.Tests.Components;
 public class GameArenaTests : BunitContext
 {
     private readonly IStringLocalizer<GameArena> _localizer;
+    private readonly IStringLocalizer<LivesIndicator> _livesLocalizer;
 
     public GameArenaTests()
     {
         _localizer = Substitute.For<IStringLocalizer<GameArena>>();
+        _livesLocalizer = Substitute.For<IStringLocalizer<LivesIndicator>>();
         SetupLocalizer();
+        SetupLivesLocalizer();
 
         Services.AddSingleton(_localizer);
+        Services.AddSingleton(_livesLocalizer);
         TempoTestHelper.RegisterTempoServices(Services);
     }
 
     private void SetupLocalizer()
     {
-        _localizer["Button_Back"].Returns(new LocalizedString("Button_Back", "Back"));
-        _localizer["Button_Submit"].Returns(new LocalizedString("Button_Submit", "Submit"));
-        _localizer["Button_Submitting"].Returns(new LocalizedString("Button_Submitting", "Submitting..."));
-        _localizer["Button_Skip"].Returns(new LocalizedString("Button_Skip", "Skip"));
-        _localizer["Button_Continue"].Returns(new LocalizedString("Button_Continue", "Continue"));
-        _localizer["Answer_Placeholder"].Returns(new LocalizedString("Answer_Placeholder", "Enter your answer"));
-        _localizer["Level_Name"].Returns(new LocalizedString("Level_Name", "Round {0}"));
-        _localizer["Level_Progress"].Returns(new LocalizedString("Level_Progress", "{0} / {1}"));
-        _localizer["Combo_Multiplier"].Returns(new LocalizedString("Combo_Multiplier", "x{0} Combo"));
-        _localizer["Feedback_Correct"].Returns(new LocalizedString("Feedback_Correct", "Correct! +{0} XP"));
-        _localizer["Feedback_Wrong"].Returns(new LocalizedString("Feedback_Wrong", "Wrong answer!"));
-        _localizer["SpeedBonus_Label"].Returns(new LocalizedString("SpeedBonus_Label", "Speed Bonus"));
-        _localizer["Correct_Answer_Was"].Returns(new LocalizedString("Correct_Answer_Was", "Correct answer was: {0}"));
-        _localizer["LevelComplete_Title"].Returns(new LocalizedString("LevelComplete_Title", "Level Complete!"));
-        _localizer["LevelComplete_XP"].Returns(new LocalizedString("LevelComplete_XP", "Total XP earned: {0}"));
+        _localizer["GameArena.Aria"].Returns(new LocalizedString("GameArena.Aria", "Game arena"));
+        _localizer["Button.Back"].Returns(new LocalizedString("Button.Back", "Back"));
+        _localizer["Button.Submit"].Returns(new LocalizedString("Button.Submit", "Submit"));
+        _localizer["Button.Submitting"].Returns(new LocalizedString("Button.Submitting", "Submitting..."));
+        _localizer["Button.Skip"].Returns(new LocalizedString("Button.Skip", "Skip"));
+        _localizer["Button.Continue"].Returns(new LocalizedString("Button.Continue", "Continue"));
+        _localizer["Answer.Placeholder"].Returns(new LocalizedString("Answer.Placeholder", "Enter your answer"));
+        _localizer["Level.Name"].Returns(new LocalizedString("Level.Name", "Round {0}"));
+        _localizer["Level.Progress"].Returns(new LocalizedString("Level.Progress", "{0} / {1}"));
+        _localizer["Combo.Multiplier"].Returns(new LocalizedString("Combo.Multiplier", "x{0} Combo"));
+        _localizer["Feedback.Correct"].Returns(new LocalizedString("Feedback.Correct", "Correct! +{0} XP"));
+        _localizer["Feedback.Wrong"].Returns(new LocalizedString("Feedback.Wrong", "Wrong answer!"));
+        _localizer["SpeedBonus.Label"].Returns(new LocalizedString("SpeedBonus.Label", "Speed Bonus"));
+        _localizer["CorrectAnswer.Was"].Returns(new LocalizedString("CorrectAnswer.Was", "Correct answer was: {0}"));
+        _localizer["LevelComplete.Title"].Returns(new LocalizedString("LevelComplete.Title", "Level Complete!"));
+        _localizer["LevelComplete.XP"].Returns(new LocalizedString("LevelComplete.XP", "Total XP earned: {0}"));
+        _localizer["GameOver.Title"].Returns(new LocalizedString("GameOver.Title", "Game over"));
+        _localizer["GameOver.Description"].Returns(new LocalizedString("GameOver.Description", "No lives remaining."));
+    }
+
+    private void SetupLivesLocalizer()
+    {
+        _livesLocalizer["Label"].Returns(new LocalizedString("Label", "Lives"));
+        _livesLocalizer["Regeneration"].Returns(new LocalizedString("Regeneration", "Next life in: {0}"));
+        _livesLocalizer["NoLives"].Returns(new LocalizedString("NoLives", "No lives"));
+        _livesLocalizer["LowWarning"].Returns(new LocalizedString("LowWarning", "Last life"));
     }
 
     [Fact]
@@ -151,6 +166,46 @@ public class GameArenaTests : BunitContext
     }
 
     [Fact]
+    public async Task GameArena_ShowResult_WhileSubmitCallbackIsRunning_ResetsSubmittingState()
+    {
+        // Arrange
+        var result = new GameRoundResult(
+            IsCorrect: true,
+            CorrectAnswer: "JABLKO",
+            XPEarned: 15,
+            SpeedBonus: 0,
+            ComboCount: 1,
+            IsLevelComplete: false,
+            LivesRemaining: 5,
+            null, null, false);
+        var resultShown = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var releaseSubmit = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        IRenderedComponent<GameArena>? cut = null;
+
+        cut = Render<GameArena>(parameters => parameters
+            .Add(p => p.OnSubmitAnswer, async _ =>
+            {
+                await cut!.Instance.ShowResult(result, 15);
+                resultShown.SetResult();
+                await releaseSubmit.Task;
+            }));
+
+        cut.Find(".answer-input").Input("JABLKO");
+
+        // Act
+        var clickTask = cut.InvokeAsync(() => cut.Find(".btn-submit").Click());
+        await resultShown.Task.WaitAsync(TimeSpan.FromSeconds(1));
+
+        // Assert
+        cut.Find(".feedback-success").Should().NotBeNull();
+        cut.Find(".btn-submit").TextContent.Should().Contain("Submit");
+        cut.Find(".btn-submit").TextContent.Should().NotContain("Submitting");
+
+        releaseSubmit.SetResult();
+        await clickTask;
+    }
+
+    [Fact]
     public async Task GameArena_ShowResult_Wrong_DisplaysErrorFeedback()
     {
         // Arrange
@@ -195,6 +250,32 @@ public class GameArenaTests : BunitContext
         cut.Find(".level-complete-overlay").Should().NotBeNull();
         cut.Find(".level-complete-content").TextContent.Should().Contain("Level Complete");
         cut.Find(".level-complete-content").TextContent.Should().Contain("150");
+    }
+
+    [Fact]
+    public async Task GameArena_GameOver_ShowsOverlayAndDisablesInput()
+    {
+        // Arrange
+        var cut = Render<GameArena>();
+        var input = cut.Find(".answer-input");
+        input.Input("WRONG");
+
+        var result = new GameRoundResult(
+            IsCorrect: false,
+            CorrectAnswer: "JABLKO",
+            XPEarned: 0,
+            SpeedBonus: 0,
+            ComboCount: 0,
+            IsLevelComplete: false,
+            LivesRemaining: 0,
+            null, null, true);
+
+        // Act
+        await cut.Instance.ShowResult(result, 0);
+
+        // Assert
+        cut.Find("[data-testid='game-over']").TextContent.Should().Contain("Game over");
+        cut.Find(".answer-input").HasAttribute("disabled").Should().BeTrue();
     }
 
     [Fact]

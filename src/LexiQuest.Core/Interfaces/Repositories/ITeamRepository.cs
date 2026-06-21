@@ -15,6 +15,7 @@ public interface ITeamRepository
     
     Task AddAsync(Team team, CancellationToken cancellationToken = default);
     void Delete(Team team);
+    Task AddMemberAsync(TeamMember member, CancellationToken cancellationToken = default);
     
     // Invites
     Task<TeamInvite?> GetInviteByIdAsync(Guid id, CancellationToken cancellationToken = default);

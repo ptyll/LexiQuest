@@ -5,7 +5,7 @@ namespace LexiQuest.Core.Interfaces.Services;
 public interface IStreakProtectionService
 {
     Task<StreakProtection?> GetProtectionAsync(Guid userId, CancellationToken cancellationToken = default);
-    Task<bool> ActivateShieldAsync(Guid userId, CancellationToken cancellationToken = default);
+    Task<bool> ActivateShieldAsync(Guid userId, bool isPremium = false, CancellationToken cancellationToken = default);
     Task<bool> TryAutoFreezeAsync(Guid userId, CancellationToken cancellationToken = default);
     Task<bool> PurchaseShieldsAsync(Guid userId, int quantity, int coinCost, CancellationToken cancellationToken = default);
     Task<bool> PurchaseEmergencyShieldAsync(Guid userId, int coinCost, CancellationToken cancellationToken = default);

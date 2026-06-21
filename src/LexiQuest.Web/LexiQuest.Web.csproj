@@ -8,8 +8,9 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="10.0.5" />
-    <PackageReference Include="Tempo.Blazor" Version="1.1.0" />
-    <PackageReference Include="Tempo.Blazor.FluentValidation" Version="1.1.0" />
+    <PackageReference Include="Tempo.Blazor" Version="1.1.15" />
+    <PackageReference Include="Tempo.Blazor.Abstractions" Version="1.1.15" />
+    <PackageReference Include="Tempo.Blazor.FluentValidation" Version="1.1.15" />
   </ItemGroup>
 
   <ItemGroup>

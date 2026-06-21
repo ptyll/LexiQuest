@@ -8,7 +8,7 @@
     Class="create-room-modal">
     
     <ChildContent>
-        <div class="create-room-form">
+        <div class="create-room-form" data-testid="private-room-create-modal">
             <TmFormSection Title="@Localizer["Room_Settings_Title"]">
                 <!-- Word Count -->
                 <div class="form-section word-count-section">
@@ -21,6 +21,7 @@
                                     Variant="@GetWordCountVariant(countValue)"
                                     Size="ButtonSize.Md"
                                     Class="word-count-option"
+                                    AdditionalAttributes="@TestId($"private-room-word-count-{countValue}")"
                                     OnClick="@(() => SetWordCount(countValue))">
                                     @countValue
                                 </TmButton>
@@ -40,8 +41,9 @@
                                     Variant="@GetTimeLimitVariant(timeValue)"
                                     Size="ButtonSize.Md"
                                     Class="time-limit-option"
+                                    AdditionalAttributes="@TestId($"private-room-time-limit-{timeValue}")"
                                     OnClick="@(() => SetTimeLimit(timeValue))">
-                                    @timeValue min
+                                    @string.Format(Localizer["Room_Settings_Minutes"], timeValue)
                                 </TmButton>
                             }
                         </div>
@@ -51,9 +53,11 @@
                 <!-- Difficulty -->
                 <div class="form-section difficulty-section">
                     <TmFormField Label="@Localizer["Room_Settings_Difficulty"]">
-                        <TmSelect 
-                            @bind-Value="_difficulty"
-                            Options="@DifficultyOptions" />
+                        <div data-testid="private-room-difficulty">
+                            <TmSelect 
+                                @bind-Value="_difficulty"
+                                Options="@DifficultyOptions" />
+                        </div>
                     </TmFormField>
                 </div>
 
@@ -68,8 +72,9 @@
                                     Variant="@GetBestOfVariant(bestOfValue)"
                                     Size="ButtonSize.Md"
                                     Class="best-of-option"
+                                    AdditionalAttributes="@TestId($"private-room-best-of-{bestOfValue}")"
                                     OnClick="@(() => SetBestOf(bestOfValue))">
-                                    @(bestOfValue == 1 ? "1 hra" : $"Best of {bestOfValue}")
+                                    @FormatBestOf(bestOfValue)
                                 </TmButton>
                             }
                         </div>
@@ -88,6 +93,7 @@
             Variant="ButtonVariant.Primary" 
             Size="ButtonSize.Lg"
             Class="create-button"
+            AdditionalAttributes="@TestId("private-room-create-submit")"
             OnClick="HandleSubmit">
             @Localizer["Button_Create"]
         </TmButton>
@@ -115,17 +121,28 @@
     private static readonly int[] TimeLimitOptions = { 2, 3, 5 };
     private static readonly int[] BestOfOptions = { 1, 3, 5 };
 
-    private static readonly List<SelectOption<DifficultyLevel>> DifficultyOptions = new()
+    private IReadOnlyList<SelectOption<DifficultyLevel>> DifficultyOptions => new List<SelectOption<DifficultyLevel>>
     {
-        new(DifficultyLevel.Beginner, "Beginner 🌱"),
-        new(DifficultyLevel.Intermediate, "Intermediate 🌿"),
-        new(DifficultyLevel.Advanced, "Advanced 🌳"),
-        new(DifficultyLevel.Expert, "Expert 🔥")
+        new(DifficultyLevel.Beginner, Localizer["Difficulty_Beginner"].Value),
+        new(DifficultyLevel.Intermediate, Localizer["Difficulty_Intermediate"].Value),
+        new(DifficultyLevel.Advanced, Localizer["Difficulty_Advanced"].Value),
+        new(DifficultyLevel.Expert, Localizer["Difficulty_Expert"].Value)
     };
 
     private void SetWordCount(int count) => _wordCount = count;
     private void SetTimeLimit(int minutes) => _timeLimitMinutes = minutes;
     private void SetBestOf(int bestOf) => _bestOf = bestOf;
+
+    private string FormatBestOf(int bestOf) =>
+        bestOf switch
+        {
+            1 => Localizer["Room_Settings_BestOfSingle"].Value,
+            3 => string.Format(Localizer["Room_Settings_BestOfSeries"], bestOf),
+            _ => string.Format(Localizer["Room_Settings_BestOfSeriesMany"], bestOf)
+        };
+
+    private static Dictionary<string, object> TestId(string value) =>
+        new() { ["data-testid"] = value };
 
     private ButtonVariant GetWordCountVariant(int count) => 
         _wordCount == count ? ButtonVariant.Primary : ButtonVariant.Outline;

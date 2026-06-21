@@ -2,7 +2,7 @@
 @inject IStringLocalizer<GuestLimitReached> L
 
 <div class="guest-limit-reached" data-testid="guest-limit-reached">
-    <TmCard Variant="CardVariant.Elevated" Class="limit-card">
+    <div class="limit-card">
         <div class="limit-icon">
             <TmIcon Name="@IconNames.Clock" Class="icon-clock" />
         </div>
@@ -10,25 +10,25 @@
         <p class="limit-description">@L["Description"]</p>
         <div class="limit-actions">
             <div data-testid="btn-register">
-                <TmButton Variant="ButtonVariant.Primary" OnClick="OnRegister" Size="ButtonSize.Lg">
+                <button class="guest-limit-button guest-limit-button-primary" type="button" @onclick="OnRegister">
                     @L["Register"]
-                </TmButton>
+                </button>
             </div>
             <div data-testid="btn-back">
-                <TmButton Variant="ButtonVariant.Ghost" OnClick="OnBack">
+                <button class="guest-limit-button guest-limit-button-ghost" type="button" @onclick="OnBack">
                     @L["Back"]
-                </TmButton>
+                </button>
             </div>
         </div>
         <div class="limit-login">
             <span>@L["HaveAccount"]</span>
             <div data-testid="btn-login">
-                <TmButton Variant="ButtonVariant.Link" OnClick="OnLogin">
+                <button class="guest-limit-link" type="button" @onclick="OnLogin">
                     @L["Login"]
-                </TmButton>
+                </button>
             </div>
         </div>
-    </TmCard>
+    </div>
 </div>
 
 @code {

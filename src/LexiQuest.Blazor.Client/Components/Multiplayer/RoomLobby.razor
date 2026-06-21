@@ -1,7 +1,7 @@
 @inject IStringLocalizer<Pages.Multiplayer> Localizer
 @inject IJSRuntime JSRuntime
 
-<div class="room-lobby" role="region" aria-label="@Localizer["Room_Lobby_Title"]">
+<div class="room-lobby" data-testid="private-room-lobby" role="region" aria-label="@Localizer["Room_Lobby_Title"]">
     @if (IsExpired)
     {
         <div class="expired-state">
@@ -23,17 +23,15 @@
                 <div class="room-code-section">
                     <span class="code-label">@Localizer["Room_Code_Label"]</span>
                     <div class="room-code-display">
-                        <code class="room-code">@RoomStatus.RoomCode</code>
-                        <button class="copy-code-button tm-btn" @onclick="OnCopyCode" aria-label="@Localizer["Room_Code_Copy"]">
-                            📋
+                        <code class="room-code" data-testid="private-room-code">@RoomStatus.RoomCode</code>
+                        <button class="copy-code-button tm-btn" data-testid="private-room-copy-code" @onclick="OnCopyCode" aria-label="@Localizer["Room_Code_Copy"]">
+                            <TmIcon Name="copy" Size="IconSize.Sm" />
                         </button>
                     </div>
                     <p class="share-text">@string.Format(Localizer["Room_Code_ShareText"], RoomStatus.RoomCode)</p>
-                    <TmProgressBar 
-                        Value="@GetExpiryProgress()" 
-                        Max="100"
-                        Color="ProgressColor.Warning"
-                        Class="expiry-progress" />
+                    <div class="expiry-meter" aria-hidden="true">
+                        <span style="@($"width: {GetExpiryProgress()}%")"></span>
+                    </div>
                 </div>
             }
         </div>
@@ -41,16 +39,18 @@
         <div class="players-section">
             @foreach (var player in RoomStatus.Players)
             {
-                <div class="player-card @(player.IsReady ? "ready" : "")">
+                <div class="player-card @(player.IsReady ? "ready" : "")" data-testid="private-room-player">
                     <TmAvatar 
                         Name="@player.Username" 
                         Src="@player.Avatar" 
                         Size="AvatarSize.Xl" />
                     <div class="player-info">
-                        <span class="player-name">@player.Username</span>
+                        <span class="player-name" data-testid="private-room-player-name">@player.Username</span>
                         @if (player.IsHost)
                         {
-                            <TmBadge Variant="BadgeVariant.Primary" Size="BadgeSize.Sm">Host</TmBadge>
+                            <TmBadge Variant="BadgeVariant.Primary" Size="BadgeSize.Sm">
+                                @Localizer["Room_Player_Host"]
+                            </TmBadge>
                         }
                     </div>
                     <div class="ready-status">
@@ -84,28 +84,28 @@
             <div class="settings-grid">
                 <div class="setting">
                     <span class="setting-label">@Localizer["Room_Settings_WordCount"]</span>
-                    <span class="setting-value">@RoomStatus.Settings.WordCount</span>
+                    <span class="setting-value" data-testid="private-room-settings-word-count">@RoomStatus.Settings.WordCount</span>
                 </div>
                 <div class="setting">
                     <span class="setting-label">@Localizer["Room_Settings_TimeLimit"]</span>
-                    <span class="setting-value">@RoomStatus.Settings.TimeLimitMinutes min</span>
+                    <span class="setting-value" data-testid="private-room-settings-time-limit">@string.Format(Localizer["Room_Settings_Minutes"], RoomStatus.Settings.TimeLimitMinutes)</span>
                 </div>
                 <div class="setting">
                     <span class="setting-label">@Localizer["Room_Settings_Difficulty"]</span>
-                    <span class="setting-value">@RoomStatus.Settings.Difficulty</span>
+                    <span class="setting-value" data-testid="private-room-settings-difficulty">@FormatDifficulty(RoomStatus.Settings.Difficulty)</span>
                 </div>
                 <div class="setting">
                     <span class="setting-label">@Localizer["Room_Settings_BestOf"]</span>
-                    <span class="setting-value">@(RoomStatus.Settings.BestOf == 1 ? "1 hra" : $"Best of {RoomStatus.Settings.BestOf}")</span>
+                    <span class="setting-value" data-testid="private-room-settings-best-of">@FormatBestOf(RoomStatus.Settings.BestOf)</span>
                 </div>
             </div>
         </div>
 
-        @if (RoomStatus.BothReady)
+        @if (RoomStatus.BothReady || CountdownSeconds > 0)
         {
             <div class="countdown-section">
                 <p class="countdown-text">@Localizer["Room_Lobby_BothReady"]</p>
-                <div class="countdown">@CountdownSeconds</div>
+                <div class="countdown" data-testid="private-room-countdown">@CountdownSeconds</div>
             </div>
         }
         else if (HasOpponent)
@@ -117,6 +117,7 @@
                         Variant="ButtonVariant.Outline" 
                         Size="ButtonSize.Lg"
                         Class="ready-button"
+                        AdditionalAttributes="@TestId("private-room-cancel-ready")"
                         OnClick="OnCancelReady">
                         @Localizer["Room_Lobby_CancelReadyButton"]
                     </TmButton>
@@ -127,6 +128,7 @@
                         Variant="ButtonVariant.Primary" 
                         Size="ButtonSize.Lg"
                         Class="ready-button"
+                        AdditionalAttributes="@TestId("private-room-ready")"
                         OnClick="OnSetReady">
                         @Localizer["Room_Lobby_ReadyButton"]
                     </TmButton>
@@ -136,15 +138,21 @@
 
         @if (HasOpponent)
         {
-            <div class="chat-section">
+            <div class="chat-section" data-testid="private-room-chat-section">
+                @if (!string.IsNullOrWhiteSpace(ChatErrorMessage))
+                {
+                    <TmAlert Severity="AlertSeverity.Warning" Class="chat-error" AdditionalAttributes="@TestId("private-room-chat-error")">
+                        @ChatErrorMessage
+                    </TmAlert>
+                }
                 <div class="chat-messages" @ref="_chatMessagesRef">
                     @foreach (var message in ChatMessages)
                     {
-                        <div class="chat-message">
+                        <div class="chat-message" data-testid="private-room-chat-message">
                             <TmAvatar Name="@message.SenderUsername" Size="AvatarSize.Xs" />
                             <div class="message-content">
                                 <span class="message-sender">@message.SenderUsername</span>
-                                <span class="message-text">@message.Message</span>
+                                <span class="message-text" data-testid="private-room-chat-message-text">@message.Message</span>
                                 <span class="message-time">@message.SentAt.ToString("HH:mm")</span>
                             </div>
                         </div>
@@ -157,11 +165,13 @@
                         placeholder="@Localizer["Room_Lobby_Chat_Placeholder"]"
                         maxlength="200"
                         class="chat-input tm-input"
+                        data-testid="private-room-chat-input"
                         @onkeyup="HandleChatKeyUp" />
                     <TmButton 
                         Variant="ButtonVariant.Primary" 
                         Size="ButtonSize.Sm"
                         Class="chat-send-button"
+                        AdditionalAttributes="@TestId("private-room-chat-send")"
                         OnClick="SendMessage"
                         Disabled="string.IsNullOrWhiteSpace(_currentMessage)">
                         @Localizer["Room_Lobby_Chat_Send"]
@@ -172,7 +182,8 @@
 
         <div class="lobby-footer">
             <TmButton 
-                Variant="ButtonVariant.Ghost" 
+                Variant="ButtonVariant.Outline" 
+                AdditionalAttributes="@TestId("private-room-leave")"
                 OnClick="OnLeave">
                 @Localizer["Button_Cancel"]
             </TmButton>
@@ -187,6 +198,7 @@
     [Parameter] public bool IsExpired { get; set; }
     [Parameter] public int CountdownSeconds { get; set; }
     [Parameter] public List<LobbyMessageDto> ChatMessages { get; set; } = new();
+    [Parameter] public string? ChatErrorMessage { get; set; }
     [Parameter] public EventCallback OnSetReady { get; set; }
     [Parameter] public EventCallback OnCancelReady { get; set; }
     [Parameter] public EventCallback OnLeave { get; set; }
@@ -197,6 +209,26 @@
     private string _currentMessage = "";
 
     private bool HasOpponent => RoomStatus?.Players.Count > 1;
+
+    private static Dictionary<string, object> TestId(string value) =>
+        new() { ["data-testid"] = value };
+
+    private string FormatBestOf(int bestOf) =>
+        bestOf switch
+        {
+            1 => Localizer["Room_Settings_BestOfSingle"].Value,
+            3 => string.Format(Localizer["Room_Settings_BestOfSeries"], bestOf),
+            _ => string.Format(Localizer["Room_Settings_BestOfSeriesMany"], bestOf)
+        };
+
+    private string FormatDifficulty(DifficultyLevel difficulty) => difficulty switch
+    {
+        DifficultyLevel.Beginner => Localizer["Difficulty_Beginner"].Value,
+        DifficultyLevel.Intermediate => Localizer["Difficulty_Intermediate"].Value,
+        DifficultyLevel.Advanced => Localizer["Difficulty_Advanced"].Value,
+        DifficultyLevel.Expert => Localizer["Difficulty_Expert"].Value,
+        _ => difficulty.ToString()
+    };
 
     private int GetExpiryProgress()
     {

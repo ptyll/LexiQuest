@@ -3,7 +3,7 @@
 @inject NavigationManager NavigationManager
 @inject IMatchHistoryClient MatchHistoryClient
 
-<div class="match-history-page">
+<div class="match-history-page" data-testid="multiplayer-history-page">
     <div class="page-header">
         <TmButton Variant="ButtonVariant.Ghost" Size="ButtonSize.Md" OnClick="GoBack" Class="back-button">
             ← @Localizer["MatchHistory_Back"]
@@ -14,11 +14,11 @@
     @if (_stats != null)
     {
         <div class="stats-grid">
-            <div class="stat-card">
+            <div class="stat-card" data-testid="multiplayer-history-stats-played">
                 <span class="stat-value">@_stats.TotalMatchesPlayed</span>
                 <span class="stat-label">@Localizer["MatchHistory_Stats_Played"]</span>
             </div>
-            <div class="stat-card win">
+            <div class="stat-card win" data-testid="multiplayer-history-stats-wins">
                 <span class="stat-value">@_stats.Wins</span>
                 <span class="stat-label">@Localizer["MatchHistory_Stats_Wins"]</span>
             </div>
@@ -80,7 +80,7 @@
                     <h3 class="group-header">@group.Key</h3>
                     @foreach (var match in group.Value)
                     {
-                        <div class="match-entry @GetResultClass(match.Result)">
+                        <div class="match-entry @GetResultClass(match.Result)" data-testid="multiplayer-history-match-row">
                             <div class="match-opponent">
                                 <TmAvatar 
                                     Name="@match.OpponentUsername" 

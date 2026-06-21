@@ -11,6 +11,8 @@ public class RegisterRequestValidator : AbstractValidator<RegisterRequest>
         RuleFor(x => x.Email)
             .NotEmpty()
             .WithMessage(localizer["Validation.Email.Required"])
+            .MaximumLength(256)
+            .WithMessage(_ => localizer["Validation.Email.MaxLength", 256].Value)
             .EmailAddress()
             .WithMessage(localizer["Validation.Email.Invalid"]);
 

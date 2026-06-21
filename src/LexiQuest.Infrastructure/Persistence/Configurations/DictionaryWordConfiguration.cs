@@ -16,7 +16,7 @@ public class DictionaryWordConfiguration : IEntityTypeConfiguration<DictionaryWo
 
         builder.Property(w => w.Word)
             .IsRequired()
-            .HasMaxLength(100);
+            .HasMaxLength(20);
 
         builder.Property(w => w.Difficulty)
             .IsRequired()

@@ -26,4 +26,9 @@ public interface IGameService
     /// Forfeits the current game.
     /// </summary>
     Task<bool> ForfeitGameAsync(Guid sessionId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Replays queued offline game API calls after connectivity is restored.
+    /// </summary>
+    Task ReplayQueuedRequestsAsync(CancellationToken cancellationToken = default);
 }

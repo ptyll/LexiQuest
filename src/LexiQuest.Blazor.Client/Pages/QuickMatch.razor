@@ -4,6 +4,7 @@
 @inject IStringLocalizer<QuickMatch> L
 @inject NavigationManager NavigationManager
 @inject IAuthService AuthService
+@inject IUserService UserService
 @implements IAsyncDisposable
 
 @using Tempo.Blazor.Components.Feedback
@@ -13,7 +14,7 @@
 @using LexiQuest.Shared.DTOs.Multiplayer
 @using LexiQuest.Blazor.Pages.Matchmaking
 
-<div class="matchmaking-page" role="main" aria-live="polite">
+<div class="matchmaking-page" role="main" aria-live="polite" data-testid="quick-match-page">
     @switch (_currentState)
     {
         case MatchmakingState.Searching:
@@ -26,12 +27,12 @@
         case MatchmakingState.MatchFound:
             <MatchFoundView
                 Localizer="L"
-                OpponentUsername="_opponentUsername"
+                OpponentUsername="@_opponentUsername"
                 OpponentLevel="_opponentLevel"
-                OpponentAvatar="_opponentAvatar"
+                OpponentAvatar="@_opponentAvatar"
                 CountdownSeconds="_countdownSeconds"
-                UserAvatar="_userAvatar"
-                Username="_username"
+                UserAvatar="@_userAvatar"
+                Username="@_username"
                 UserLevel="_userLevel" />
             break;
             
@@ -46,7 +47,7 @@
         case MatchmakingState.Error:
             <ErrorView
                 Localizer="L"
-                ErrorMessage="_errorMessage"
+                ErrorMessage="@_errorMessage"
                 OnRetry="RetryAsync"
                 OnBack="GoBack" />
             break;
@@ -67,9 +68,13 @@
     private Timer? _timer;
     private Timer? _countdownTimer;
     
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        await InitializeMatchmakingAsync();
+        if (firstRender)
+        {
+            await InitializeMatchmakingAsync();
+            await InvokeAsync(StateHasChanged);
+        }
     }
     
     private async Task InitializeMatchmakingAsync()
@@ -83,8 +88,10 @@
             var token = await AuthService.GetTokenAsync();
             if (!string.IsNullOrEmpty(token))
             {
-                _username = "Player";
-                _userLevel = 1;
+                var profile = await UserService.GetProfileAsync();
+                _username = profile?.Username ?? "Player";
+                _userLevel = profile?.Stats.Level ?? 1;
+                _userAvatar = profile?.AvatarUrl;
             }
             
             // Start timer (delayed start to avoid immediate re-render)
@@ -130,7 +137,7 @@
                 InvokeAsync(() => NavigationManager.NavigateTo($"/multiplayer/game/{e.MatchId}"));
             }
             InvokeAsync(StateHasChanged);
-        }, null, TimeSpan.Zero, TimeSpan.FromSeconds(1));
+        }, null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
         
         InvokeAsync(StateHasChanged);
     }
@@ -175,7 +182,7 @@
         NavigationManager.NavigateTo("/multiplayer");
     }
     
-    public async ValueTask DisposeAsync()
+    public ValueTask DisposeAsync()
     {
         _timer?.Dispose();
         _countdownTimer?.Dispose();
@@ -183,8 +190,8 @@
         MatchHubClient.OnMatchFound -= OnMatchFound;
         MatchHubClient.OnMatchmakingTimeout -= OnMatchmakingTimeout;
         MatchHubClient.ConnectionStateChanged -= OnConnectionStateChanged;
-        
-        await MatchHubClient.DisposeAsync();
+
+        return ValueTask.CompletedTask;
     }
     
     private enum MatchmakingState

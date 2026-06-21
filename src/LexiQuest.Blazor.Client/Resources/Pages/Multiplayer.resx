@@ -3,6 +3,9 @@
   <data name="Page_Title" xml:space="preserve">
     <value>Multiplayer</value>
   </data>
+  <data name="Page_Subtitle" xml:space="preserve">
+    <value>Vyber si režim hry</value>
+  </data>
   <data name="QuickMatch_Title" xml:space="preserve">
     <value>⚔️ 1v1 Souboj</value>
   </data>
@@ -14,6 +17,15 @@
   </data>
   <data name="QuickMatch_LeagueXP" xml:space="preserve">
     <value>Liga XP ✓</value>
+  </data>
+  <data name="QuickMatch_Rule_Words" xml:space="preserve">
+    <value>15 slov</value>
+  </data>
+  <data name="QuickMatch_Rule_Time" xml:space="preserve">
+    <value>3 minuty</value>
+  </data>
+  <data name="QuickMatch_Rule_Matchmaking" xml:space="preserve">
+    <value>Automatický matchmaking</value>
   </data>
   <data name="PrivateRoom_Title" xml:space="preserve">
     <value>🏠 Soukromá místnost</value>
@@ -33,6 +45,18 @@
   <data name="MatchHistory_Link" xml:space="preserve">
     <value>Historie zápasů</value>
   </data>
+  <data name="MatchResult_Loading" xml:space="preserve">
+    <value>Načítám výsledek zápasu...</value>
+  </data>
+  <data name="MatchResult_NotFound_Title" xml:space="preserve">
+    <value>Výsledek není dostupný</value>
+  </data>
+  <data name="MatchResult_NotFound_Description" xml:space="preserve">
+    <value>Zápas ještě nebyl dokončen nebo k němu nemáš přístup.</value>
+  </data>
+  <data name="MatchResult_BackToMultiplayer" xml:space="preserve">
+    <value>Zpět na multiplayer</value>
+  </data>
   <data name="Room_Create_Title" xml:space="preserve">
     <value>Vytvořit soukromou místnost</value>
   </data>
@@ -45,14 +69,29 @@
   <data name="Room_Settings_TimeLimit" xml:space="preserve">
     <value>Časový limit</value>
   </data>
+  <data name="Room_Settings_Minutes" xml:space="preserve">
+    <value>{0} min</value>
+  </data>
   <data name="Room_Settings_Difficulty" xml:space="preserve">
     <value>Obtížnost</value>
   </data>
   <data name="Room_Settings_BestOf" xml:space="preserve">
-    <value>Best of</value>
+    <value>Série</value>
+  </data>
+  <data name="Room_Settings_BestOfSingle" xml:space="preserve">
+    <value>1 hra</value>
+  </data>
+  <data name="Room_Settings_BestOfSeries" xml:space="preserve">
+    <value>Na {0} hry</value>
+  </data>
+  <data name="Room_Settings_BestOfSeriesMany" xml:space="preserve">
+    <value>Na {0} her</value>
   </data>
   <data name="Room_Code_Label" xml:space="preserve">
     <value>Kód místnosti</value>
+  </data>
+  <data name="Room_Code_Copy" xml:space="preserve">
+    <value>Kopírovat kód místnosti</value>
   </data>
   <data name="Room_Code_CopySuccess" xml:space="preserve">
     <value>Kód zkopírován!</value>
@@ -61,7 +100,7 @@
     <value>Připoj se do mé místnosti: {0}</value>
   </data>
   <data name="Room_Lobby_Title" xml:space="preserve">
-    <value>Lobby</value>
+    <value>Čekárna</value>
   </data>
   <data name="Room_Lobby_WaitingForOpponent" xml:space="preserve">
     <value>Čekání na soupeře...</value>
@@ -75,8 +114,11 @@
   <data name="Room_Lobby_NotReady" xml:space="preserve">
     <value>Čeká...</value>
   </data>
+  <data name="Room_Player_Host" xml:space="preserve">
+    <value>Hostitel</value>
+  </data>
   <data name="Room_Lobby_BothReady" xml:space="preserve">
-    <value>Obě hráči připraveni!</value>
+    <value>Oba hráči připraveni!</value>
   </data>
   <data name="Room_Lobby_ReadyButton" xml:space="preserve">
     <value>Jsem připraven!</value>
@@ -89,6 +131,12 @@
   </data>
   <data name="Room_Lobby_Chat_Send" xml:space="preserve">
     <value>Odeslat</value>
+  </data>
+  <data name="Room_Lobby_Chat_RateLimit" xml:space="preserve">
+    <value>Posíláš zprávy příliš rychle. Chvilku počkej.</value>
+  </data>
+  <data name="Room_Lobby_Chat_Error" xml:space="preserve">
+    <value>Zprávu se nepodařilo odeslat.</value>
   </data>
   <data name="Room_Expired" xml:space="preserve">
     <value>Místnost vypršela</value>
@@ -122,6 +170,15 @@
   </data>
   <data name="Room_NoLeagueXP_Info" xml:space="preserve">
     <value>Soukromé místnosti nedávají liga XP (prevence farmení)</value>
+  </data>
+  <data name="Room_Loading" xml:space="preserve">
+    <value>Načítám místnost...</value>
+  </data>
+  <data name="Room_LoadFailed" xml:space="preserve">
+    <value>Místnost se nepodařilo načíst.</value>
+  </data>
+  <data name="Room_Cancelled" xml:space="preserve">
+    <value>Místnost byla zrušena hostitelem.</value>
   </data>
   <data name="Matchmaking_Searching" xml:space="preserve">
     <value>Hledání soupeře...</value>
@@ -160,10 +217,10 @@
     <value>Vše</value>
   </data>
   <data name="MatchHistory_Tab_QuickMatch" xml:space="preserve">
-    <value>⚔️ Quick Match</value>
+    <value>⚔️ Rychlý zápas</value>
   </data>
   <data name="MatchHistory_Tab_PrivateRoom" xml:space="preserve">
-    <value>🏠 Private Room</value>
+    <value>🏠 Soukromá místnost</value>
   </data>
   <data name="MatchHistory_Stats_Played" xml:space="preserve">
     <value>Odehráno</value>
@@ -175,7 +232,7 @@
     <value>Prohry</value>
   </data>
   <data name="MatchHistory_Stats_WinRate" xml:space="preserve">
-    <value>Win Rate</value>
+    <value>Úspěšnost</value>
   </data>
   <data name="MatchHistory_Result_Win" xml:space="preserve">
     <value>Výhra</value>
@@ -199,10 +256,10 @@
     <value>Starší</value>
   </data>
   <data name="MatchHistory_Type_Quick" xml:space="preserve">
-    <value>⚔️ Quick</value>
+    <value>⚔️ Rychlý</value>
   </data>
   <data name="MatchHistory_Type_Private" xml:space="preserve">
-    <value>🏠 Private</value>
+    <value>🏠 Soukromý</value>
   </data>
   <data name="MatchHistory_Duration" xml:space="preserve">
     <value>Délka</value>
@@ -229,13 +286,13 @@
     <value>Zrušit</value>
   </data>
   <data name="Difficulty_Beginner" xml:space="preserve">
-    <value>Beginner 🌱</value>
+    <value>Začátečník 🌱</value>
   </data>
   <data name="Difficulty_Intermediate" xml:space="preserve">
-    <value>Intermediate 🌿</value>
+    <value>Mírně pokročilý 🌿</value>
   </data>
   <data name="Difficulty_Advanced" xml:space="preserve">
-    <value>Advanced 🌳</value>
+    <value>Pokročilý 🌳</value>
   </data>
   <data name="Difficulty_Expert" xml:space="preserve">
     <value>Expert 🔥</value>
@@ -250,6 +307,6 @@
     <value>Časový limit musí být 2, 3 nebo 5 minut</value>
   </data>
   <data name="Validation_BestOf_Invalid" xml:space="preserve">
-    <value>Best of musí být 1, 3 nebo 5</value>
+    <value>Série musí být na 1, 3 nebo 5 her</value>
   </data>
 </root>

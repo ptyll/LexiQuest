@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Page_Title" xml:space="preserve">
+    <value>E2E kontrola toastů</value>
+  </data>
+  <data name="Button_Success" xml:space="preserve">
+    <value>Úspěšný toast</value>
+  </data>
+  <data name="Button_Error" xml:space="preserve">
+    <value>Chybový toast</value>
+  </data>
+  <data name="Button_Warning" xml:space="preserve">
+    <value>Varovný toast</value>
+  </data>
+  <data name="Button_Info" xml:space="preserve">
+    <value>Informační toast</value>
+  </data>
+  <data name="Toast_Success" xml:space="preserve">
+    <value>Úspěšně uloženo</value>
+  </data>
+  <data name="Toast_Error" xml:space="preserve">
+    <value>Akci se nepodařilo dokončit</value>
+  </data>
+  <data name="Toast_Warning" xml:space="preserve">
+    <value>Zkontrolujte zadané údaje</value>
+  </data>
+  <data name="Toast_Info" xml:space="preserve">
+    <value>Nové informace jsou připravené</value>
+  </data>
+</root>

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Privacy_PageTitle" xml:space="preserve">
+    <value>Ochrana soukromí</value>
+  </data>
+  <data name="Privacy_Title" xml:space="preserve">
+    <value>Ochrana soukromí</value>
+  </data>
+  <data name="Privacy_DataCollectionTitle" xml:space="preserve">
+    <value>Jaké údaje sbíráme</value>
+  </data>
+  <data name="Privacy_DataCollectionText" xml:space="preserve">
+    <value>Zpracováváme údaje potřebné pro účet, herní postup, bezpečnost a základní provoz aplikace, například e-mail, uživatelské jméno a herní statistiky.</value>
+  </data>
+  <data name="Privacy_DataUsageTitle" xml:space="preserve">
+    <value>Jak údaje používáme</value>
+  </data>
+  <data name="Privacy_DataUsageText" xml:space="preserve">
+    <value>Údaje používáme k přihlášení, ukládání postupu, zobrazování statistik, zasílání důležitých zpráv a zlepšování herního zážitku.</value>
+  </data>
+  <data name="Privacy_DataStorageTitle" xml:space="preserve">
+    <value>Uložení a bezpečnost</value>
+  </data>
+  <data name="Privacy_DataStorageText" xml:space="preserve">
+    <value>Data ukládáme v databázi aplikace a chráníme je technickými i organizačními opatřeními přiměřenými webové herní službě.</value>
+  </data>
+  <data name="Privacy_RightsTitle" xml:space="preserve">
+    <value>Tvoje práva</value>
+  </data>
+  <data name="Privacy_RightsText" xml:space="preserve">
+    <value>Můžeš požádat o přístup ke svým údajům, opravu, omezení zpracování nebo smazání účtu podle platných pravidel.</value>
+  </data>
+  <data name="Privacy_CookiesTitle" xml:space="preserve">
+    <value>Cookies a lokální úložiště</value>
+  </data>
+  <data name="Privacy_CookiesText" xml:space="preserve">
+    <value>Aplikace používá technické cookies a lokální úložiště pro přihlášení, nastavení, guest postup a správné fungování webu.</value>
+  </data>
+  <data name="Privacy_ContactTitle" xml:space="preserve">
+    <value>Kontakt</value>
+  </data>
+  <data name="Privacy_ContactText" xml:space="preserve">
+    <value>Dotazy k ochraně soukromí nám můžeš poslat přes stránku </value>
+  </data>
+  <data name="Privacy_ContactLink" xml:space="preserve">
+    <value>Kontakt</value>
+  </data>
+</root>

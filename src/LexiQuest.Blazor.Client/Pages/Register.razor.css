@@ -15,23 +15,34 @@
     padding: var(--tm-spacing-8);
 }
 
+.register-page ::deep .register-card {
+    width: min(100%, 460px);
+    padding: var(--tm-spacing-8);
+}
+
 .register-header {
     text-align: center;
     margin-bottom: var(--tm-spacing-6);
 }
 
-.register-brand {
+.register-logo {
     font-size: 2rem;
     font-weight: 700;
     color: var(--tm-color-primary);
-    margin: 0 0 var(--tm-spacing-4);
+    line-height: 1;
+    margin: 0 0 var(--tm-spacing-2, 0.5rem);
 }
 
 .register-title {
     font-size: 1.5rem;
     font-weight: 600;
     color: var(--tm-color-text-primary);
-    margin: 0 0 var(--tm-spacing-2);
+    line-height: 1.15;
+    margin: 0 0 var(--tm-spacing-1, 0.25rem);
+}
+
+.register-title:focus {
+    outline: none;
 }
 
 .register-subtitle {
@@ -42,6 +53,25 @@
 
 .register-alert {
     margin-bottom: var(--tm-spacing-4);
+}
+
+.guest-progress-banner {
+    display: flex;
+    flex-direction: column;
+    gap: var(--tm-spacing-1, 0.25rem);
+    margin-bottom: var(--tm-spacing-4);
+    padding: var(--tm-spacing-3, 0.75rem);
+    border: 1px solid var(--tm-color-success);
+    border-radius: var(--tm-border-radius-md, 6px);
+    background: var(--tm-color-success-light);
+    color: var(--tm-color-text-primary);
+    font-size: 0.875rem;
+    line-height: 1.35;
+}
+
+.guest-progress-banner strong {
+    color: var(--tm-color-success);
+    font-weight: 600;
 }
 
 .register-form-fields {
@@ -58,10 +88,87 @@
 }
 
 .password-strength {
+    display: flex;
+    flex-direction: column;
+    gap: var(--tm-spacing-1);
     margin-top: var(--tm-spacing-1);
+    font-size: 0.8125rem;
+    color: var(--tm-color-text-secondary);
+}
+
+.password-strength-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--tm-spacing-3);
+}
+
+.password-strength-header strong {
+    color: var(--tm-color-text-primary);
+    font-weight: 600;
+}
+
+.password-strength-meter {
+    width: 100%;
+    height: 6px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: var(--tm-color-bg-tertiary);
+}
+
+.password-strength-fill {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    transition: width 160ms ease;
+}
+
+.password-strength-fill-weak {
+    background: var(--tm-color-danger);
+}
+
+.password-strength-fill-fair {
+    background: var(--tm-color-warning);
+}
+
+.password-strength-fill-good {
+    background: var(--tm-color-info);
+}
+
+.password-strength-fill-strong {
+    background: var(--tm-color-success);
+}
+
+.terms-field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--tm-spacing-1);
+}
+
+.terms-checkbox {
+    display: flex;
+    align-items: center;
+    gap: var(--tm-spacing-2);
+    min-height: 28px;
+    color: var(--tm-color-text-primary);
+    font-size: 0.875rem;
+    line-height: 1.35;
+    cursor: pointer;
+}
+
+.terms-checkbox-input {
+    width: 18px;
+    height: 18px;
+    flex: 0 0 18px;
+    cursor: pointer;
 }
 
 .register-submit-btn {
+    margin-bottom: var(--tm-spacing-4);
+}
+
+[data-testid="register-submit"] {
+    display: block;
     margin-bottom: var(--tm-spacing-4);
 }
 
@@ -97,7 +204,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: var(--tm-spacing-2);
+    gap: var(--tm-spacing-2, 0.5rem);
     font-size: 0.875rem;
     color: var(--tm-color-text-secondary);
 }
@@ -116,7 +223,11 @@
         padding: var(--tm-spacing-6);
     }
 
-    .register-brand {
+    .register-page ::deep .register-card {
+        padding: var(--tm-spacing-6);
+    }
+
+    .register-logo {
         font-size: 1.75rem;
     }
 

@@ -1,10 +1,245 @@
 using LexiQuest.Core.Domain.Entities;
+using LexiQuest.Core.Domain.Enums;
 using LexiQuest.Shared.Enums;
 
 namespace LexiQuest.Infrastructure.Persistence;
 
 public static class SeedData
 {
+    public static List<ShopItem> GetShopItems()
+    {
+        const string imageUrl = "/icon-192.png";
+
+        return
+        [
+            ShopItem.Create(
+                name: "Sova učence",
+                description: "Avatar pro hráče, kteří rádi přemýšlejí o krok dopředu.",
+                category: ShopCategory.Avatar,
+                price: 120,
+                rarity: ItemRarity.Common,
+                imageUrl: imageUrl),
+            ShopItem.CreatePremiumOnly(
+                name: "Diamantový avatar",
+                description: "Prémiový avatar s legendární aurou.",
+                category: ShopCategory.Avatar,
+                price: 0,
+                rarity: ItemRarity.Legendary,
+                imageUrl: imageUrl),
+            ShopItem.Create(
+                name: "Dřevěný rámeček",
+                description: "Jednoduchý rámeček pro čistý profil.",
+                category: ShopCategory.Frame,
+                price: 200,
+                rarity: ItemRarity.Common,
+                imageUrl: imageUrl),
+            ShopItem.Create(
+                name: "Stříbrný rámeček",
+                description: "Vzácnější rámeček pro výraznější profil.",
+                category: ShopCategory.Frame,
+                price: 250,
+                rarity: ItemRarity.Rare,
+                imageUrl: imageUrl),
+            ShopItem.Create(
+                name: "Noční téma",
+                description: "Klidné tmavé téma pro večerní hraní.",
+                category: ShopCategory.Theme,
+                price: 900,
+                rarity: ItemRarity.Epic,
+                imageUrl: imageUrl),
+            ShopItem.Create(
+                name: "XP boost malý",
+                description: "Krátké posílení pro rychlejší postup.",
+                category: ShopCategory.Boost,
+                price: 150,
+                rarity: ItemRarity.Rare,
+                imageUrl: imageUrl)
+        ];
+    }
+
+    public static List<LearningPath> GetLearningPaths()
+    {
+        var paths = new List<LearningPath>
+        {
+            CreatePath(
+                name: "Začátečník",
+                description: "Krátká slova pro rozehřátí a první jisté výhry.",
+                difficulty: DifficultyLevel.Beginner,
+                totalLevels: 20,
+                wordLengthMin: 3,
+                wordLengthMax: 5,
+                timePerWord: 30),
+            CreatePath(
+                name: "Cesta pro pokročilé",
+                description: "Delší slova a svižnější tempo pro hráče na úrovni 5+.",
+                difficulty: DifficultyLevel.Intermediate,
+                totalLevels: 25,
+                wordLengthMin: 5,
+                wordLengthMax: 7,
+                timePerWord: 25),
+            CreatePath(
+                name: "Pokročilá cesta",
+                description: "Náročnější skládání slov s důrazem na přesnost.",
+                difficulty: DifficultyLevel.Advanced,
+                totalLevels: 30,
+                wordLengthMin: 7,
+                wordLengthMax: 10,
+                timePerWord: 20),
+            CreatePath(
+                name: "Expertní cesta",
+                description: "Nejtěžší slova a minimální prostor pro zaváhání.",
+                difficulty: DifficultyLevel.Expert,
+                totalLevels: 40,
+                wordLengthMin: 10,
+                wordLengthMax: 14,
+                timePerWord: 18)
+        };
+
+        return paths;
+    }
+
+    public static List<Achievement> GetAchievements()
+    {
+        return
+        [
+            Achievement.Create(
+                key: "first_word",
+                category: AchievementCategory.Performance,
+                xpReward: 10,
+                name: "První slovo",
+                description: "Vyřešte své první slovo.",
+                requiredValue: 1,
+                iconName: "trophy"),
+            Achievement.Create(
+                key: "100_words",
+                category: AchievementCategory.Performance,
+                xpReward: 100,
+                name: "Sto slov",
+                description: "Vyřešte celkem 100 slov.",
+                requiredValue: 100,
+                iconName: "target"),
+            Achievement.Create(
+                key: "1000_words",
+                category: AchievementCategory.Performance,
+                xpReward: 500,
+                name: "Mistr slov",
+                description: "Vyřešte celkem 1000 slov.",
+                requiredValue: 1000,
+                iconName: "sparkles"),
+            Achievement.Create(
+                key: "streak_3",
+                category: AchievementCategory.Streak,
+                xpReward: 25,
+                name: "Třídenní série",
+                description: "Udržte sérii 3 dny po sobě.",
+                requiredValue: 3,
+                iconName: "flame"),
+            Achievement.Create(
+                key: "streak_7",
+                category: AchievementCategory.Streak,
+                xpReward: 50,
+                name: "Týdenní série",
+                description: "Udržte sérii 7 dní po sobě.",
+                requiredValue: 7,
+                iconName: "flame"),
+            Achievement.Create(
+                key: "streak_14",
+                category: AchievementCategory.Streak,
+                xpReward: 100,
+                name: "Čtrnáctidenní série",
+                description: "Udržte sérii 14 dní po sobě.",
+                requiredValue: 14,
+                iconName: "flame"),
+            Achievement.Create(
+                key: "streak_30",
+                category: AchievementCategory.Streak,
+                xpReward: 200,
+                name: "Měsíční série",
+                description: "Udržte sérii 30 dní po sobě.",
+                requiredValue: 30,
+                iconName: "flame"),
+            Achievement.Create(
+                key: "streak_365",
+                category: AchievementCategory.Streak,
+                xpReward: 1000,
+                name: "Rok bez pauzy",
+                description: "Udržte sérii 365 dní po sobě.",
+                requiredValue: 365,
+                iconName: "calendar"),
+            Achievement.Create(
+                key: "beginner_master",
+                category: AchievementCategory.Difficulty,
+                xpReward: 75,
+                name: "Mistr začátečník",
+                description: "Dokončete 25 začátečnických slov.",
+                requiredValue: 25,
+                iconName: "medal"),
+            Achievement.Create(
+                key: "expert_master",
+                category: AchievementCategory.Difficulty,
+                xpReward: 250,
+                name: "Expert na slova",
+                description: "Dokončete 50 expertních slov.",
+                requiredValue: 50,
+                iconName: "shield"),
+            Achievement.Create(
+                key: "path_complete",
+                category: AchievementCategory.Special,
+                xpReward: 150,
+                name: "Dokončená cesta",
+                description: "Dokončete libovolnou učební cestu.",
+                requiredValue: 1,
+                iconName: "map"),
+            Achievement.Create(
+                key: "boss_defeated",
+                category: AchievementCategory.Special,
+                xpReward: 200,
+                name: "Poražený boss",
+                description: "Porazte první boss level.",
+                requiredValue: 1,
+                iconName: "swords"),
+            Achievement.Create(
+                key: "perfect_boss",
+                category: AchievementCategory.Special,
+                xpReward: 350,
+                name: "Perfektní boss",
+                description: "Porazte boss level bez chyby.",
+                requiredValue: 1,
+                iconName: "crown")
+        ];
+    }
+
+    private static LearningPath CreatePath(
+        string name,
+        string description,
+        DifficultyLevel difficulty,
+        int totalLevels,
+        int wordLengthMin,
+        int wordLengthMax,
+        int timePerWord)
+    {
+        var path = LearningPath.Create(
+            name,
+            description,
+            difficulty,
+            totalLevels,
+            wordLengthMin,
+            wordLengthMax,
+            timePerWord);
+
+        for (var level = 1; level <= totalLevels; level++)
+        {
+            path.AddLevel(level, isBoss: level % 5 == 0);
+        }
+
+        if (path.Levels.Count > 0)
+        {
+            path.Levels[0].Unlock();
+        }
+
+        return path;
+    }
+
     public static List<Word> GetWords()
     {
         var words = new List<Word>();

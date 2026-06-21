@@ -86,13 +86,43 @@ public static class GameEndpoints
         .Produces(StatusCodes.Status400BadRequest)
         .Produces(StatusCodes.Status401Unauthorized);
 
+        // GET /api/v1/game/{id}/offline-training-seed - Get cacheable seed for offline training
+        group.MapGet("/{id:guid}/offline-training-seed", async (
+            Guid id,
+            IGameSessionService gameService,
+            IHttpContextAccessor httpContextAccessor,
+            CancellationToken cancellationToken) =>
+        {
+            var userId = GetUserId(httpContextAccessor);
+            if (userId == null)
+            {
+                return Results.Unauthorized();
+            }
+
+            var result = await gameService.GetOfflineTrainingSeedAsync(userId.Value, id, cancellationToken);
+            return result == null ? Results.NotFound() : Results.Ok(result);
+        })
+        .WithName("GetOfflineTrainingSeed")
+        .WithSummary("Get offline training seed")
+        .WithDescription("Returns the current training round data needed for offline training cache")
+        .Produces<OfflineTrainingSeedResponse>(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status404NotFound)
+        .Produces(StatusCodes.Status401Unauthorized);
+
         // GET /api/v1/game/{id} - Get game state
         group.MapGet("/{id:guid}", async (
             Guid id,
             IGameSessionService gameService,
+            IHttpContextAccessor httpContextAccessor,
             CancellationToken cancellationToken) =>
         {
-            var result = await gameService.GetSessionStateAsync(id, cancellationToken);
+            var userId = GetUserId(httpContextAccessor);
+            if (userId == null)
+            {
+                return Results.Unauthorized();
+            }
+
+            var result = await gameService.GetSessionStateAsync(userId.Value, id, cancellationToken);
             if (result == null)
             {
                 return Results.NotFound();

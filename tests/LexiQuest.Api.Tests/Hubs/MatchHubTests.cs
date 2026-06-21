@@ -2,8 +2,11 @@ using System.Security.Claims;
 using FluentAssertions;
 using LexiQuest.Api.Hubs;
 using LexiQuest.Core.Interfaces.Services;
+using LexiQuest.Shared.DTOs.Multiplayer;
 using LexiQuest.Shared.DTOs.Users;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using NSubstitute;
 using Xunit;
 
@@ -31,7 +34,13 @@ public class MatchHubTests
         
         var roomService = Substitute.For<IRoomService>();
         var lobbyChatService = Substitute.For<ILobbyChatService>();
-        _sut = new MatchHub(_matchmakingService, _gameService, _userService, roomService, lobbyChatService)
+        var matchHistoryService = Substitute.For<IMatchHistoryService>();
+        var xpService = Substitute.For<IXpService>();
+        var leagueService = Substitute.For<ILeagueService>();
+        var hubContext = Substitute.For<IHubContext<MatchHub, IMatchClient>>();
+        var runtimeSettings = new MultiplayerRuntimeSettings(new ConfigurationBuilder().Build());
+        var serviceScopeFactory = Substitute.For<IServiceScopeFactory>();
+        _sut = new MatchHub(_matchmakingService, _gameService, _userService, roomService, lobbyChatService, matchHistoryService, xpService, leagueService, hubContext, runtimeSettings, serviceScopeFactory)
         {
             Context = _context,
             Groups = _groups
@@ -64,14 +73,15 @@ public class MatchHubTests
             AvatarUrl = null,
             CreatedAt = DateTime.UtcNow
         });
-        _matchmakingService.JoinQueueAsync(userId, level, username, null, Arg.Any<CancellationToken>())
-            .Returns(true);
+        _matchmakingService.JoinQueueAndTryMatchAsync(userId, level, username, null, Arg.Any<CancellationToken>())
+            .Returns(new MatchmakingJoinResult(true, null));
 
         // Act
-        await _sut.JoinMatchmaking();
+        var result = await _sut.JoinMatchmaking();
 
         // Assert
-        await _matchmakingService.Received(1).JoinQueueAsync(userId, level, username, null, Arg.Any<CancellationToken>());
+        result.Should().BeTrue();
+        await _matchmakingService.Received(1).JoinQueueAndTryMatchAsync(userId, level, username, null, Arg.Any<CancellationToken>());
     }
 
     [Fact]

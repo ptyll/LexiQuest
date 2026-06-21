@@ -1,0 +1,121 @@
+.match-found-view {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+    width: min(100%, 42rem);
+    color: var(--tm-color-gray-900, #0f172a);
+}
+
+.match-found-title {
+    margin: 0;
+    font-size: 2rem;
+    font-weight: 850;
+    line-height: 1.15;
+    text-align: center;
+}
+
+.players-showcase {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    align-items: stretch;
+    gap: 1.25rem;
+    width: 100%;
+}
+
+.player-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.7rem;
+    min-width: 0;
+    min-height: 9.5rem;
+    border: 1px solid var(--tm-color-gray-200, #e2e8f0);
+    border-radius: 8px;
+    background: #ffffff;
+    padding: 1.35rem;
+    box-shadow: 0 14px 30px rgba(15, 23, 42, 0.08);
+}
+
+.player-name {
+    max-width: 100%;
+    color: var(--tm-color-gray-900, #0f172a);
+    font-size: 1.05rem;
+    font-weight: 800;
+    overflow-wrap: anywhere;
+    text-align: center;
+}
+
+.player-level {
+    border-radius: 999px;
+    background: var(--tm-color-primary-50, #eff6ff);
+    color: var(--tm-color-primary-700, #1d4ed8);
+    padding: 0.25rem 0.7rem;
+    font-size: 0.9rem;
+    font-weight: 700;
+}
+
+.vs-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.vs-text {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 3rem;
+    min-height: 3rem;
+    border-radius: 999px;
+    background: var(--tm-color-primary-50, #eff6ff);
+    color: var(--tm-color-primary-700, #1d4ed8);
+    font-weight: 850;
+}
+
+.countdown-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.55rem;
+    text-align: center;
+}
+
+.countdown-text {
+    margin: 0;
+    color: var(--tm-color-gray-700, #334155);
+    font-size: 1.05rem;
+}
+
+.countdown-number {
+    display: grid;
+    place-items: center;
+    width: 5.25rem;
+    height: 5.25rem;
+    border-radius: 999px;
+    background: var(--tm-color-primary-600, #2563eb);
+    color: #ffffff;
+    font-size: 3rem;
+    font-weight: 900;
+    line-height: 1;
+    box-shadow: 0 18px 36px rgba(37, 99, 235, 0.28);
+}
+
+.get-ready-text {
+    margin: 0;
+    color: var(--tm-color-success-700, #15803d);
+    font-size: 1.2rem;
+    font-weight: 800;
+}
+
+@media (max-width: 680px) {
+    .players-showcase {
+        grid-template-columns: 1fr;
+        gap: 0.8rem;
+    }
+
+    .player-card {
+        min-height: 7.5rem;
+    }
+}

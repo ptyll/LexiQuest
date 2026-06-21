@@ -42,6 +42,9 @@
   <data name="Create_Cost_Coins" xml:space="preserve">
     <value>1000 mincí</value>
   </data>
+  <data name="Create_Cost_Coins_WithBalance" xml:space="preserve">
+    <value>1000 mincí · máš {0}</value>
+  </data>
   <data name="Dashboard_Members" xml:space="preserve">
     <value>Členové</value>
   </data>
@@ -105,6 +108,15 @@
   <data name="Button_Create" xml:space="preserve">
     <value>Vytvořit</value>
   </data>
+  <data name="Invite_Title" xml:space="preserve">
+    <value>Pozvat hráče</value>
+  </data>
+  <data name="Invite_Username_Placeholder" xml:space="preserve">
+    <value>Uživatelské jméno</value>
+  </data>
+  <data name="Invite_Success" xml:space="preserve">
+    <value>Pozvánka odeslána hráči {0}.</value>
+  </data>
   <data name="JoinRequests_Title" xml:space="preserve">
     <value>Žádosti o vstup</value>
   </data>
@@ -153,6 +165,54 @@
   <data name="Error_TeamFull" xml:space="preserve">
     <value>Tým je plný (max 20 členů)</value>
   </data>
+  <data name="Error_CreateFailed" xml:space="preserve">
+    <value>Tým se nepodařilo vytvořit. Zkontroluj údaje a zkus to znovu.</value>
+  </data>
+  <data name="Error_CannotCreate" xml:space="preserve">
+    <value>Na vytvoření týmu potřebuješ Premium nebo 1000 mincí.</value>
+  </data>
+  <data name="Error_DuplicateName" xml:space="preserve">
+    <value>Tým s tímto názvem už existuje.</value>
+  </data>
+  <data name="Error_DuplicateTag" xml:space="preserve">
+    <value>Tým s tímto tagem už existuje.</value>
+  </data>
+  <data name="Error_InviteUserNotFound" xml:space="preserve">
+    <value>Hráč s tímto uživatelským jménem neexistuje.</value>
+  </data>
+  <data name="Error_InviteAlreadyInTeam" xml:space="preserve">
+    <value>Tohoto hráče nelze pozvat, protože už je členem týmu.</value>
+  </data>
+  <data name="Error_InviteDuplicate" xml:space="preserve">
+    <value>Pro tohoto hráče už čeká pozvánka.</value>
+  </data>
+  <data name="Error_InviteNoPermission" xml:space="preserve">
+    <value>Pozvánky mohou posílat jen vůdce a důstojníci týmu.</value>
+  </data>
+  <data name="Error_InviteFailed" xml:space="preserve">
+    <value>Pozvánku se nepodařilo odeslat. Zkus to prosím znovu.</value>
+  </data>
+  <data name="Validation_Name_Required" xml:space="preserve">
+    <value>Název týmu je povinný.</value>
+  </data>
+  <data name="Validation_Name_Length" xml:space="preserve">
+    <value>Název týmu musí mít 3 až 30 znaků.</value>
+  </data>
+  <data name="Validation_Tag_Required" xml:space="preserve">
+    <value>Tag týmu je povinný.</value>
+  </data>
+  <data name="Validation_Tag_Length" xml:space="preserve">
+    <value>Tag musí mít 2 až 4 znaky.</value>
+  </data>
+  <data name="Validation_Tag_Format" xml:space="preserve">
+    <value>Tag může obsahovat jen velká písmena A-Z a číslice.</value>
+  </data>
+  <data name="Validation_Description_Length" xml:space="preserve">
+    <value>Popis může mít nejvýše 500 znaků.</value>
+  </data>
+  <data name="Validation_InviteUsername_Required" xml:space="preserve">
+    <value>Uživatelské jméno je povinné.</value>
+  </data>
   <data name="Ranking_Position" xml:space="preserve">
     <value>#</value>
   </data>
@@ -168,7 +228,28 @@
   <data name="JoinRequest_Button" xml:space="preserve">
     <value>Požádat o vstup</value>
   </data>
+  <data name="JoinRequest_Title" xml:space="preserve">
+    <value>Požádat o vstup</value>
+  </data>
   <data name="JoinRequest_Message" xml:space="preserve">
     <value>Zpráva (volitelná)</value>
+  </data>
+  <data name="JoinRequest_Success" xml:space="preserve">
+    <value>Žádost odeslána týmu {0}.</value>
+  </data>
+  <data name="JoinRequest_Error" xml:space="preserve">
+    <value>Žádost se nepodařilo odeslat. Zkontroluj, jestli už nečeká jiná žádost.</value>
+  </data>
+  <data name="Transfer_Title" xml:space="preserve">
+    <value>Předat vedení</value>
+  </data>
+  <data name="Transfer_Description" xml:space="preserve">
+    <value>Vyber hráče, který převezme vedení týmu.</value>
+  </data>
+  <data name="Transfer_Submit" xml:space="preserve">
+    <value>Předat vedení</value>
+  </data>
+  <data name="Transfer_Error" xml:space="preserve">
+    <value>Vedení se nepodařilo předat. Zkontroluj oprávnění a zkus to znovu.</value>
   </data>
 </root>

@@ -1,0 +1,137 @@
+name: E2E
+
+on:
+  pull_request:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+    inputs:
+      suite:
+        description: "E2E sada ke spusteni"
+        required: true
+        default: smoke
+        type: choice
+        options:
+          - smoke
+          - full
+          - visual
+  schedule:
+    - cron: "0 2 * * *"
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  E2E_TRACE: on
+
+jobs:
+  e2e-smoke:
+    name: E2E smoke
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Restore
+        run: dotnet restore LexiQuest.slnx
+
+      - name: Build E2E project
+        run: dotnet build tests/LexiQuest.E2E.Tests/LexiQuest.E2E.Tests.csproj --configuration Release --no-restore
+
+      - name: Install Playwright browsers
+        shell: pwsh
+        run: tests/LexiQuest.E2E.Tests/bin/Release/net10.0/playwright.ps1 install --with-deps chromium
+
+      - name: Run smoke E2E
+        run: dotnet test tests/LexiQuest.E2E.Tests/LexiQuest.E2E.Tests.csproj --configuration Release --no-build --filter "Category=Smoke" --logger "trx;LogFileName=e2e-smoke.trx"
+
+      - name: Upload E2E artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-smoke-artifacts
+          path: |
+            artifacts/e2e/**
+            tests/LexiQuest.E2E.Tests/TestResults/**
+          if-no-files-found: ignore
+
+  e2e-full:
+    name: E2E full
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && github.event.inputs.suite == 'full')
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Restore
+        run: dotnet restore LexiQuest.slnx
+
+      - name: Build E2E project
+        run: dotnet build tests/LexiQuest.E2E.Tests/LexiQuest.E2E.Tests.csproj --configuration Release --no-restore
+
+      - name: Install Playwright browsers
+        shell: pwsh
+        run: tests/LexiQuest.E2E.Tests/bin/Release/net10.0/playwright.ps1 install --with-deps chromium
+
+      - name: Run full E2E
+        run: dotnet test tests/LexiQuest.E2E.Tests/LexiQuest.E2E.Tests.csproj --configuration Release --no-build --filter "Category=Full" --logger "trx;LogFileName=e2e-full.trx"
+
+      - name: Upload E2E artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-full-artifacts
+          path: |
+            artifacts/e2e/**
+            tests/LexiQuest.E2E.Tests/TestResults/**
+          if-no-files-found: ignore
+
+  e2e-visual:
+    name: E2E visual
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.suite == 'visual'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Restore
+        run: dotnet restore LexiQuest.slnx
+
+      - name: Build E2E project
+        run: dotnet build tests/LexiQuest.E2E.Tests/LexiQuest.E2E.Tests.csproj --configuration Release --no-restore
+
+      - name: Install Playwright browsers
+        shell: pwsh
+        run: tests/LexiQuest.E2E.Tests/bin/Release/net10.0/playwright.ps1 install --with-deps chromium
+
+      - name: Run visual E2E
+        run: dotnet test tests/LexiQuest.E2E.Tests/LexiQuest.E2E.Tests.csproj --configuration Release --no-build --filter "Category=Visual" --logger "trx;LogFileName=e2e-visual.trx"
+
+      - name: Upload E2E artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-visual-artifacts
+          path: |
+            artifacts/e2e/**
+            tests/LexiQuest.E2E.Tests/TestResults/**
+          if-no-files-found: ignore

@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using LexiQuest.Shared.Enums;
 
 namespace LexiQuest.Shared.DTOs.Game;
@@ -8,7 +9,10 @@ namespace LexiQuest.Shared.DTOs.Game;
 public class BossSessionDto
 {
     public Guid Id { get; set; }
+
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public BossType BossType { get; set; }
+
     public int CurrentRound { get; set; }
     public int TotalRounds { get; set; }
     public int LivesRemaining { get; set; }
@@ -20,6 +24,8 @@ public class BossSessionDto
     public int CorrectAnswers { get; set; }
     public DateTime StartedAt { get; set; }
     public DateTime? EndedAt { get; set; }
+    public string CurrentScrambledWord { get; set; } = string.Empty;
+    public int WordLength { get; set; }
     
     // Condition boss specific
     public string? ForbiddenLetters { get; set; }
@@ -27,5 +33,7 @@ public class BossSessionDto
     // Twist boss specific
     public int RevealedLettersCount { get; set; }
     public List<int>? RevealedPositions { get; set; }
+    public List<RevealedLetterDto>? RevealedLetters { get; set; }
     public TimeSpan? TimeUntilNextReveal { get; set; }
+    public int CurrentEarlyGuessBonus { get; set; }
 }

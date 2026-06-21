@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using LexiQuest.Core.Domain.Entities;
 using LexiQuest.Core.Domain.Enums;
 using LexiQuest.Core.Interfaces;
@@ -8,6 +9,8 @@ namespace LexiQuest.Core.Services;
 
 public class InventoryService : IInventoryService
 {
+    private static readonly ConcurrentDictionary<string, SemaphoreSlim> PurchaseLocks = new();
+
     private readonly IShopItemRepository _shopItemRepository;
     private readonly IUserInventoryRepository _inventoryRepository;
     private readonly IPremiumFeatureService _premiumFeatureService;
@@ -60,36 +63,63 @@ public class InventoryService : IInventoryService
 
     public async Task<PurchaseResult> PurchaseItemAsync(Guid userId, Guid shopItemId, CancellationToken cancellationToken = default)
     {
-        var shopItem = await _shopItemRepository.GetByIdAsync(shopItemId);
-        if (shopItem == null)
-        {
-            return new PurchaseResult(false, "Položka nebyla nalezena.");
-        }
+        var lockKey = $"{userId:N}:{shopItemId:N}";
+        var purchaseLock = PurchaseLocks.GetOrAdd(lockKey, _ => new SemaphoreSlim(1, 1));
+        await purchaseLock.WaitAsync(cancellationToken);
 
-        if (!shopItem.IsAvailable())
+        try
         {
-            return new PurchaseResult(false, "Tato položka již není dostupná.");
-        }
-
-        if (await _inventoryRepository.HasItemAsync(userId, shopItemId))
-        {
-            return new PurchaseResult(false, "Tuto položku již vlastníte.");
-        }
-
-        if (shopItem.IsPremiumOnly)
-        {
-            var isPremium = await _premiumFeatureService.IsPremiumAsync(userId);
-            if (!isPremium)
+            var shopItem = await _shopItemRepository.GetByIdAsync(shopItemId);
+            if (shopItem == null)
             {
-                return new PurchaseResult(false, "Tato položka je dostupná pouze pro Premium uživatele.");
+                return new PurchaseResult(false, "Položka nebyla nalezena.");
             }
+
+            if (!shopItem.IsAvailable())
+            {
+                return new PurchaseResult(false, "Tato položka již není dostupná.");
+            }
+
+            if (await _inventoryRepository.HasItemAsync(userId, shopItemId))
+            {
+                return new PurchaseResult(false, "Tuto položku již vlastníte.");
+            }
+
+            if (shopItem.IsPremiumOnly)
+            {
+                var isPremium = await _premiumFeatureService.IsPremiumAsync(userId);
+                if (!isPremium)
+                {
+                    return new PurchaseResult(false, "Tato položka je dostupná pouze pro Premium uživatele.");
+                }
+            }
+
+            var user = await _userRepository.GetByIdAsync(userId, cancellationToken);
+            if (user == null)
+            {
+                return new PurchaseResult(false, "Uživatel nebyl nalezen.");
+            }
+
+            if (user.CoinBalance < shopItem.Price)
+            {
+                return new PurchaseResult(false, "Nedostatek mincí.");
+            }
+
+            if (shopItem.Price > 0)
+            {
+                user.AddCoinTransaction(-shopItem.Price, CoinTransactionType.ShopPurchase.ToString(), $"Nákup položky {shopItem.Name}");
+            }
+
+            var inventoryItem = UserInventoryItem.Create(userId, shopItemId);
+            await _inventoryRepository.AddAsync(inventoryItem);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+            return new PurchaseResult(true, "Položka byla úspěšně zakoupena!", inventoryItem.Id);
         }
-
-        var inventoryItem = UserInventoryItem.Create(userId, shopItemId);
-        await _inventoryRepository.AddAsync(inventoryItem);
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
-
-        return new PurchaseResult(true, "Položka byla úspěšně zakoupena!", inventoryItem.Id);
+        finally
+        {
+            purchaseLock.Release();
+        }
     }
 
     public async Task<EquipResult> EquipItemAsync(Guid userId, Guid inventoryItemId, CancellationToken cancellationToken = default)
@@ -103,6 +133,18 @@ public class InventoryService : IInventoryService
         if (item.UserId != userId)
         {
             return new EquipResult(false, "Nemáte oprávnění k této položce.", false);
+        }
+
+        var equippedItems = await _inventoryRepository.GetEquippedByUserIdAsync(userId);
+        var itemDefinition = await _shopItemRepository.GetByIdAsync(item.ShopItemId);
+        foreach (var equippedItem in equippedItems.Where(e => e.Id != item.Id))
+        {
+            var equippedDefinition = await _shopItemRepository.GetByIdAsync(equippedItem.ShopItemId);
+            if (itemDefinition != null && equippedDefinition?.Category == itemDefinition.Category)
+            {
+                equippedItem.Unequip();
+                _inventoryRepository.Update(equippedItem);
+            }
         }
 
         item.Equip();
@@ -146,7 +188,6 @@ public class InventoryService : IInventoryService
         if (user == null) return;
 
         user.AddCoinTransaction(amount, "Credit", reason);
-        _userRepository.Update(user);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
 
@@ -160,7 +201,6 @@ public class InventoryService : IInventoryService
         if (user.CoinBalance < amount) return false;
 
         user.AddCoinTransaction(-amount, "Debit", reason);
-        _userRepository.Update(user);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
         return true;
     }

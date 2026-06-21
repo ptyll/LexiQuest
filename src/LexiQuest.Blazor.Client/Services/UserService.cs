@@ -112,6 +112,32 @@ public class UserService : IUserService
         }
     }
 
+    public async Task<bool> DeactivateAccountAsync(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var response = await _httpClient.PostAsync("api/v1/users/me/deactivate", null, cancellationToken);
+            return response.IsSuccessStatusCode;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    public async Task<bool> DeleteAccountAsync(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var response = await _httpClient.DeleteAsync("api/v1/users/me", cancellationToken);
+            return response.IsSuccessStatusCode;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
     private class UsernameAvailabilityResponse
     {
         public bool Available { get; set; }

@@ -20,7 +20,12 @@ public interface IGameSessionService
     /// <summary>
     /// Gets the current state of a game session.
     /// </summary>
-    Task<ScrambledWordDto?> GetSessionStateAsync(Guid sessionId, CancellationToken cancellationToken = default);
+    Task<ScrambledWordDto?> GetSessionStateAsync(Guid userId, Guid sessionId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets the current training round data that may be cached for offline training.
+    /// </summary>
+    Task<OfflineTrainingSeedResponse?> GetOfflineTrainingSeedAsync(Guid userId, Guid sessionId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Forfeits the current game session.

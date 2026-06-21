@@ -24,6 +24,9 @@
   <data name="Button_Delete" xml:space="preserve">
     <value>Smazat</value>
   </data>
+  <data name="Button_Detail" xml:space="preserve">
+    <value>Detail</value>
+  </data>
   <data name="Button_Edit" xml:space="preserve">
     <value>Upravit</value>
   </data>
@@ -35,6 +38,9 @@
   </data>
   <data name="Label_IsPublic" xml:space="preserve">
     <value>Veřejný slovník</value>
+  </data>
+  <data name="Label_IsPrivate" xml:space="preserve">
+    <value>Soukromý slovník</value>
   </data>
   <data name="Label_Word" xml:space="preserve">
     <value>Slovo</value>
@@ -63,6 +69,9 @@
   <data name="Dialog_Import_Title" xml:space="preserve">
     <value>Importovat slova</value>
   </data>
+  <data name="Dialog_Detail_Title" xml:space="preserve">
+    <value>Detail slovníku</value>
+  </data>
   <data name="Import_Format_CSV" xml:space="preserve">
     <value>CSV formát (slovo,obtížnost)</value>
   </data>
@@ -83,6 +92,9 @@
   </data>
   <data name="Message_ImportSuccess" xml:space="preserve">
     <value>Import dokončen: {0} slov importováno, {1} přeskočeno</value>
+  </data>
+  <data name="Message_ImportResult_Title" xml:space="preserve">
+    <value>Výsledek importu</value>
   </data>
   <data name="Message_DictionaryDeleted" xml:space="preserve">
     <value>Slovník byl smazán</value>
@@ -116,5 +128,68 @@
   </data>
   <data name="Premium_Required" xml:space="preserve">
     <value>Tato funkce vyžaduje Premium účet</value>
+  </data>
+  <data name="EmptyState_NoPublicDictionaries" xml:space="preserve">
+    <value>Zatím tu nejsou žádné veřejné slovníky</value>
+  </data>
+  <data name="EmptyState_NoPublicDictionaries_Description" xml:space="preserve">
+    <value>Veřejné slovníky se zobrazí, jakmile je hráči zpřístupní ostatním.</value>
+  </data>
+  <data name="Label_Preview" xml:space="preserve">
+    <value>Náhled</value>
+  </data>
+  <data name="Error_LoadingDictionaries" xml:space="preserve">
+    <value>Slovníky se nepodařilo načíst: {0}</value>
+  </data>
+  <data name="Error_LoadingDictionaryDetail" xml:space="preserve">
+    <value>Detail slovníku se nepodařilo načíst.</value>
+  </data>
+  <data name="Error_LoadingDictionaryDetailWithMessage" xml:space="preserve">
+    <value>Detail slovníku se nepodařilo načíst: {0}</value>
+  </data>
+  <data name="Error_CreatingDictionary" xml:space="preserve">
+    <value>Slovník se nepodařilo vytvořit: {0}</value>
+  </data>
+  <data name="Error_AddingWord" xml:space="preserve">
+    <value>Slovo se nepodařilo přidat: {0}</value>
+  </data>
+  <data name="Error_ImportingWords" xml:space="preserve">
+    <value>Import se nepodařil: {0}</value>
+  </data>
+  <data name="Error_ImportInvalidType" xml:space="preserve">
+    <value>Soubor musí být ve formátu .csv nebo .txt.</value>
+  </data>
+  <data name="Error_ImportTooLarge" xml:space="preserve">
+    <value>Soubor je příliš velký. Maximální velikost je 1 MB.</value>
+  </data>
+  <data name="Error_ImportReadFailed" xml:space="preserve">
+    <value>Soubor se nepodařilo načíst.</value>
+  </data>
+  <data name="Error_DeletingDictionary" xml:space="preserve">
+    <value>Slovník se nepodařilo smazat: {0}</value>
+  </data>
+  <data name="Warning_SelectFileForImport" xml:space="preserve">
+    <value>Vyberte soubor pro import.</value>
+  </data>
+  <data name="Confirm_DeleteDictionary" xml:space="preserve">
+    <value>Opravdu chcete tento slovník smazat?</value>
+  </data>
+  <data name="Premium_Gate_Title" xml:space="preserve">
+    <value>Vlastní slovníky jsou Premium funkce</value>
+  </data>
+  <data name="Premium_Gate_Description" xml:space="preserve">
+    <value>S Premium účtem si můžete vytvářet vlastní sady slov, importovat je ze souborů a trénovat přesně to, co potřebujete.</value>
+  </data>
+  <data name="Premium_Gate_Button" xml:space="preserve">
+    <value>Zobrazit Premium</value>
+  </data>
+  <data name="Detail_Loading" xml:space="preserve">
+    <value>Načítám detail slovníku...</value>
+  </data>
+  <data name="Detail_Words_Title" xml:space="preserve">
+    <value>Slova ve slovníku</value>
+  </data>
+  <data name="Detail_NoWords" xml:space="preserve">
+    <value>Slovník zatím neobsahuje žádná slova.</value>
   </data>
 </root>

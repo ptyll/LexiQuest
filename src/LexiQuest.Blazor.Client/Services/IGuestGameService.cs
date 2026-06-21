@@ -21,4 +21,9 @@ public interface IGuestGameService
     /// Submits an answer for a word.
     /// </summary>
     Task<GuestAnswerResponse?> SubmitAnswerAsync(Guid sessionId, Guid wordId, string answer);
+
+    /// <summary>
+    /// Converts a completed guest session into transferable progress.
+    /// </summary>
+    Task<GuestConvertResponse?> ConvertAsync(Guid sessionId, bool transferProgress);
 }

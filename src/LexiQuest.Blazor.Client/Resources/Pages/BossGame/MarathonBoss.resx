@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
   <data name="MarathonBoss_Title" xml:space="preserve">
-    <value>Marathon Boss</value>
+    <value>Maratonský boss</value>
   </data>
   <data name="MarathonBoss_Subtitle" xml:space="preserve">
     <value>20 slov, 3 životy, žádná regenerace</value>
   </data>
   <data name="MarathonBoss_Level" xml:space="preserve">
-    <value>Boss Level</value>
+    <value>Boss výzva</value>
   </data>
   <data name="MarathonBoss_Progress" xml:space="preserve">
     <value>Postup</value>
@@ -31,7 +31,7 @@
     <value>Gratulujeme!</value>
   </data>
   <data name="MarathonBoss_VictoryMessage" xml:space="preserve">
-    <value>Porazil jsi Marathon Bosta! Tvá vytrvalost a znalosti jsou obdivuhodné.</value>
+    <value>Porazil jsi maratonského bosse. Tvá vytrvalost a znalosti jsou obdivuhodné.</value>
   </data>
   <data name="MarathonBoss_Time" xml:space="preserve">
     <value>Čas</value>
@@ -61,7 +61,7 @@
     <value>Bonus za rychlost</value>
   </data>
   <data name="MarathonBoss_BackToDashboard" xml:space="preserve">
-    <value>Zpět na dashboard</value>
+    <value>Zpět na přehled</value>
   </data>
   <data name="MarathonBoss_Defeat" xml:space="preserve">
     <value>Prohra</value>
@@ -70,7 +70,7 @@
     <value>Konec hry</value>
   </data>
   <data name="MarathonBoss_DefeatMessage" xml:space="preserve">
-    <value>Marathon Boss tě porazil. Nevzdávej se, trénink dělá mistra!</value>
+    <value>Maratonský boss tě porazil. Nevzdávej se, trénink dělá mistra!</value>
   </data>
   <data name="MarathonBoss_WordsSolved" xml:space="preserve">
     <value>Vyřešených slov</value>

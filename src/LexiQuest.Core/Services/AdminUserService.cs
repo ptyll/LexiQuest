@@ -24,11 +24,7 @@ public class AdminUserService : IAdminUserService
 
     public async Task<PaginatedResult<AdminUserDto>> GetUsersAsync(AdminUserListRequest request, CancellationToken cancellationToken = default)
     {
-        var allUsers = await _userRepository.GetActiveUsersAsync(cancellationToken);
-        // Also include inactive users - get all users via broader query
-        var inactiveUsers = await _userRepository.GetInactiveUsersAsync(0, cancellationToken);
-
-        var users = allUsers.Union(inactiveUsers).DistinctBy(u => u.Id).AsQueryable();
+        var users = (await _userRepository.GetAllAsync(cancellationToken)).AsQueryable();
 
         if (!string.IsNullOrEmpty(request.Search))
         {

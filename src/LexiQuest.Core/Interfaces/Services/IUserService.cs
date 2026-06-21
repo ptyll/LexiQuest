@@ -39,6 +39,16 @@ public interface IUserService
     /// Checks if username is available.
     /// </summary>
     Task<bool> IsUsernameAvailableAsync(string username, Guid? excludeUserId = null, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Deactivates user account.
+    /// </summary>
+    Task<bool> DeactivateAccountAsync(Guid userId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Deletes user account.
+    /// </summary>
+    Task<bool> DeleteAccountAsync(Guid userId, CancellationToken cancellationToken = default);
     
     /// <summary>
     /// Registers a new user.

@@ -15,6 +15,7 @@ public class RegisterRequestValidatorTests
         var localizer = Substitute.For<IStringLocalizer<RegisterRequestValidator>>();
         localizer["Validation.Email.Required"].Returns(new LocalizedString("Validation.Email.Required", "Email je povinný"));
         localizer["Validation.Email.Invalid"].Returns(new LocalizedString("Validation.Email.Invalid", "Neplatný formát emailu"));
+        localizer["Validation.Email.MaxLength", 256].Returns(new LocalizedString("Validation.Email.MaxLength", "Email může mít maximálně 256 znaků"));
         localizer["Validation.Username.Required"].Returns(new LocalizedString("Validation.Username.Required", "Uživatelské jméno je povinné"));
         localizer["Validation.Username.MinLength"].Returns(new LocalizedString("Validation.Username.MinLength", "Uživatelské jméno musí mít alespoň 3 znaky"));
         localizer["Validation.Username.MaxLength"].Returns(new LocalizedString("Validation.Username.MaxLength", "Uživatelské jméno může mít maximálně 30 znaků"));
@@ -445,10 +446,8 @@ public class RegisterRequestValidatorTests
     }
 
     [Fact]
-    public void RegisterRequestValidator_ExtremelyLongEmail_NoMaxLengthRule()
+    public void RegisterRequestValidator_ExtremelyLongEmail_ReturnsError()
     {
-        // The validator has no max length for email, so a long but structurally valid email passes.
-        // This documents the current behavior - a max length rule could be added for defense in depth.
         var request = new RegisterRequest
         {
             Email = new string('a', 10001) + "@test.com",
@@ -460,7 +459,7 @@ public class RegisterRequestValidatorTests
 
         var result = _validator.TestValidate(request);
 
-        result.ShouldNotHaveValidationErrorFor(x => x.Email);
+        result.ShouldHaveValidationErrorFor(x => x.Email);
     }
 
     [Fact]

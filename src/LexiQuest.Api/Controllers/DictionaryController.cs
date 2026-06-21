@@ -1,5 +1,6 @@
 using LexiQuest.Api.Extensions;
 using LexiQuest.Core.Interfaces.Services;
+using LexiQuest.Core.Services;
 using LexiQuest.Shared.DTOs.Dictionaries;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -7,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace LexiQuest.Api.Controllers;
 
 [ApiController]
+[Route("api/v1/dictionaries")]
 [Route("api/dictionaries")]
 [Authorize]
 public class DictionaryController : ControllerBase
@@ -50,8 +52,23 @@ public class DictionaryController : ControllerBase
     public async Task<ActionResult<DictionaryDto>> CreateDictionary(CreateDictionaryRequest request)
     {
         var userId = User.GetUserId();
-        var dictionary = await _dictionaryService.CreateDictionaryAsync(userId, request);
-        return CreatedAtAction(nameof(GetDictionary), new { id = dictionary.Id }, dictionary);
+        try
+        {
+            var dictionary = await _dictionaryService.CreateDictionaryAsync(userId, request);
+            return CreatedAtAction(nameof(GetDictionary), new { id = dictionary.Id }, dictionary);
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return Forbid();
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
     }
 
     [HttpDelete("{id:guid}")]
@@ -80,6 +97,18 @@ public class DictionaryController : ControllerBase
         {
             return Forbid();
         }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+        catch (InvalidOperationException ex) when (DictionaryService.IsDuplicateWordError(ex))
+        {
+            return Conflict(new { error = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
     }
 
     [HttpPost("{id:guid}/import-csv")]
@@ -95,6 +124,10 @@ public class DictionaryController : ControllerBase
         catch (UnauthorizedAccessException)
         {
             return Forbid();
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { error = ex.Message });
         }
     }
 
@@ -112,6 +145,10 @@ public class DictionaryController : ControllerBase
         {
             return Forbid();
         }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
     }
 
     [HttpPost("{id:guid}/import-json")]
@@ -127,6 +164,10 @@ public class DictionaryController : ControllerBase
         catch (UnauthorizedAccessException)
         {
             return Forbid();
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { error = ex.Message });
         }
     }
 }

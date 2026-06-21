@@ -11,12 +11,14 @@ namespace LexiQuest.Core.Services;
 public class GuestLimiter : IGuestLimiter
 {
     private readonly IMemoryCache _cache;
+    private readonly TimeProvider _timeProvider;
     private const int MaxGamesPerDay = 5;
     private static readonly TimeSpan ResetPeriod = TimeSpan.FromHours(24);
 
-    public GuestLimiter(IMemoryCache cache)
+    public GuestLimiter(IMemoryCache cache, TimeProvider? timeProvider = null)
     {
         _cache = cache;
+        _timeProvider = timeProvider ?? TimeProvider.System;
     }
 
     /// <summary>
@@ -35,7 +37,7 @@ public class GuestLimiter : IGuestLimiter
             if (_cache.TryGetValue(lastKey, out DateTime lastGameTime))
             {
                 // If 24h have passed, reset the counter
-                if (DateTime.UtcNow - lastGameTime >= ResetPeriod)
+                if (UtcNow - lastGameTime >= ResetPeriod)
                 {
                     gameCount = 0;
                 }
@@ -47,7 +49,7 @@ public class GuestLimiter : IGuestLimiter
                 // Calculate reset time - 24h from last game
                 var lastGameTimeValue = _cache.TryGetValue(lastKey, out DateTime lastGame)
                     ? lastGame
-                    : DateTime.UtcNow;
+                    : UtcNow;
                 var resetTime = lastGameTimeValue.Add(ResetPeriod);
                 
                 return new GuestLimitResult
@@ -92,7 +94,7 @@ public class GuestLimiter : IGuestLimiter
             // Check if we need to reset based on time
             if (_cache.TryGetValue(lastKey, out DateTime lastGameTime))
             {
-                if (DateTime.UtcNow - lastGameTime < ResetPeriod)
+                if (UtcNow - lastGameTime < ResetPeriod)
                 {
                     currentCount = existingCount;
                 }
@@ -105,7 +107,7 @@ public class GuestLimiter : IGuestLimiter
             .SetAbsoluteExpiration(ResetPeriod);
 
         _cache.Set(countKey, currentCount, options);
-        _cache.Set(lastKey, DateTime.UtcNow, options);
+        _cache.Set(lastKey, UtcNow, options);
     }
 
     /// <summary>
@@ -124,7 +126,7 @@ public class GuestLimiter : IGuestLimiter
             if (_cache.TryGetValue(lastKey, out DateTime lastGameTime))
             {
                 // Check if we need to reset
-                if (DateTime.UtcNow - lastGameTime >= ResetPeriod)
+                if (UtcNow - lastGameTime >= ResetPeriod)
                 {
                     usedGames = 0;
                 }
@@ -150,4 +152,12 @@ public class GuestLimiter : IGuestLimiter
             ResetTime = resetTime
         };
     }
+
+    public void Reset(string ipAddress)
+    {
+        _cache.Remove($"guest_games_count_{ipAddress}");
+        _cache.Remove($"guest_games_last_{ipAddress}");
+    }
+
+    private DateTime UtcNow => _timeProvider.GetUtcNow().UtcDateTime;
 }

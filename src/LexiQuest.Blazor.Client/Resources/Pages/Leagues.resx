@@ -15,8 +15,62 @@
   <data name="LeaderboardTitle" xml:space="preserve">
     <value>Žebříček</value>
   </data>
+  <data name="TimeRemaining" xml:space="preserve">
+    <value>Reset za {0}</value>
+  </data>
+  <data name="TimeRemaining.Ended" xml:space="preserve">
+    <value>Reset probíhá</value>
+  </data>
+  <data name="Progress.Title" xml:space="preserve">
+    <value>Postup a sestup</value>
+  </data>
+  <data name="Progress.Promotion" xml:space="preserve">
+    <value>Postup</value>
+  </data>
+  <data name="Progress.TopN" xml:space="preserve">
+    <value>Top {0}</value>
+  </data>
+  <data name="Progress.InZone" xml:space="preserve">
+    <value>V postupové zóně</value>
+  </data>
+  <data name="Progress.Demotion" xml:space="preserve">
+    <value>Sestup</value>
+  </data>
+  <data name="Progress.BelowN" xml:space="preserve">
+    <value>Od #{0}</value>
+  </data>
+  <data name="Progress.NoDemotion" xml:space="preserve">
+    <value>Bez sestupu</value>
+  </data>
+  <data name="Progress.InDanger" xml:space="preserve">
+    <value>V sestupové zóně</value>
+  </data>
+  <data name="Progress.CurrentRank" xml:space="preserve">
+    <value>Aktuální pozice #{0} z {1}</value>
+  </data>
   <data name="RewardsTitle" xml:space="preserve">
     <value>Odměny</value>
+  </data>
+  <data name="History.Title" xml:space="preserve">
+    <value>Historie lig</value>
+  </data>
+  <data name="History.Rank" xml:space="preserve">
+    <value>#{0}</value>
+  </data>
+  <data name="History.Status.Promoted" xml:space="preserve">
+    <value>Postup</value>
+  </data>
+  <data name="History.Status.Demoted" xml:space="preserve">
+    <value>Sestup</value>
+  </data>
+  <data name="History.Status.Stayed" xml:space="preserve">
+    <value>Udrženo</value>
+  </data>
+  <data name="Rewards.Title" xml:space="preserve">
+    <value>Odměny</value>
+  </data>
+  <data name="Rewards.Current" xml:space="preserve">
+    <value>Aktuální liga</value>
   </data>
   <data name="EmptyState.Title" xml:space="preserve">
     <value>Zatím nejste v žádné lize</value>

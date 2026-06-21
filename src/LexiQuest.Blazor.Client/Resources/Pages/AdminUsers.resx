@@ -74,6 +74,63 @@
   <data name="Button.Unsuspend" xml:space="preserve">
     <value>Obnovit</value>
   </data>
+  <data name="Button.Detail" xml:space="preserve">
+    <value>Detail</value>
+  </data>
+  <data name="Button.ResetPassword" xml:space="preserve">
+    <value>Reset hesla</value>
+  </data>
+  <data name="Button.ApplyFilters" xml:space="preserve">
+    <value>Použít filtry</value>
+  </data>
+  <data name="Button.ResetFilters" xml:space="preserve">
+    <value>Vymazat</value>
+  </data>
+  <data name="Button.Close" xml:space="preserve">
+    <value>Zavřít</value>
+  </data>
+  <data name="Filter.Status" xml:space="preserve">
+    <value>Stav</value>
+  </data>
+  <data name="Filter.Premium" xml:space="preserve">
+    <value>Premium</value>
+  </data>
+  <data name="Filter.MinLevel" xml:space="preserve">
+    <value>Min. úroveň</value>
+  </data>
+  <data name="Filter.MaxLevel" xml:space="preserve">
+    <value>Max. úroveň</value>
+  </data>
+  <data name="Filter.AllStatuses" xml:space="preserve">
+    <value>Všechny stavy</value>
+  </data>
+  <data name="Filter.AllPremium" xml:space="preserve">
+    <value>Všechny účty</value>
+  </data>
+  <data name="Status.Free" xml:space="preserve">
+    <value>Bez Premium</value>
+  </data>
+  <data name="Detail.Title" xml:space="preserve">
+    <value>Detail uživatele</value>
+  </data>
+  <data name="Detail.Level" xml:space="preserve">
+    <value>Úroveň</value>
+  </data>
+  <data name="Detail.Xp" xml:space="preserve">
+    <value>XP</value>
+  </data>
+  <data name="Detail.Streak" xml:space="preserve">
+    <value>Streak</value>
+  </data>
+  <data name="Detail.RegisteredAt" xml:space="preserve">
+    <value>Registrace</value>
+  </data>
+  <data name="Detail.LastLoginAt" xml:space="preserve">
+    <value>Poslední přihlášení</value>
+  </data>
+  <data name="Detail.Never" xml:space="preserve">
+    <value>Nikdy</value>
+  </data>
   <data name="Pagination.Previous" xml:space="preserve">
     <value>Předchozí</value>
   </data>
@@ -95,13 +152,22 @@
   <data name="Success.UserUnsuspended" xml:space="preserve">
     <value>Uživatel byl úspěšně obnoven.</value>
   </data>
+  <data name="Success.PasswordResetSent" xml:space="preserve">
+    <value>E-mail pro obnovení hesla byl odeslán.</value>
+  </data>
   <data name="Error.LoadFailed" xml:space="preserve">
     <value>Nepodařilo se načíst seznam uživatelů.</value>
+  </data>
+  <data name="Error.DetailFailed" xml:space="preserve">
+    <value>Nepodařilo se načíst detail uživatele.</value>
   </data>
   <data name="Error.SuspendFailed" xml:space="preserve">
     <value>Nepodařilo se pozastavit uživatele.</value>
   </data>
   <data name="Error.UnsuspendFailed" xml:space="preserve">
     <value>Nepodařilo se obnovit uživatele.</value>
+  </data>
+  <data name="Error.ResetPasswordFailed" xml:space="preserve">
+    <value>Nepodařilo se odeslat reset hesla.</value>
   </data>
 </root>

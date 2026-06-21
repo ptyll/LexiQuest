@@ -5,6 +5,8 @@ namespace LexiQuest.Blazor.Services;
 
 public class DictionaryService : IDictionaryService
 {
+    private const string BasePath = "api/v1/dictionaries";
+
     private readonly HttpClient _httpClient;
 
     public DictionaryService(IHttpClientFactory httpClientFactory)
@@ -16,7 +18,7 @@ public class DictionaryService : IDictionaryService
     {
         try
         {
-            var response = await _httpClient.GetAsync("api/dictionaries/my");
+            var response = await _httpClient.GetAsync($"{BasePath}/my");
             if (response.IsSuccessStatusCode)
             {
                 return await response.Content.ReadFromJsonAsync<List<DictionaryDto>>() ?? new List<DictionaryDto>();
@@ -33,7 +35,7 @@ public class DictionaryService : IDictionaryService
     {
         try
         {
-            var response = await _httpClient.GetAsync("api/dictionaries/public");
+            var response = await _httpClient.GetAsync($"{BasePath}/public");
             if (response.IsSuccessStatusCode)
             {
                 return await response.Content.ReadFromJsonAsync<List<DictionaryDto>>() ?? new List<DictionaryDto>();
@@ -50,7 +52,7 @@ public class DictionaryService : IDictionaryService
     {
         try
         {
-            var response = await _httpClient.GetAsync($"api/dictionaries/{id}");
+            var response = await _httpClient.GetAsync($"{BasePath}/{id}");
             if (response.IsSuccessStatusCode)
             {
                 return await response.Content.ReadFromJsonAsync<DictionaryDto>();
@@ -65,7 +67,7 @@ public class DictionaryService : IDictionaryService
 
     public async Task<DictionaryDto> CreateDictionaryAsync(CreateDictionaryRequest request)
     {
-        var response = await _httpClient.PostAsJsonAsync("api/dictionaries", request);
+        var response = await _httpClient.PostAsJsonAsync(BasePath, request);
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadFromJsonAsync<DictionaryDto>() 
             ?? throw new InvalidOperationException("Failed to create dictionary");
@@ -75,7 +77,7 @@ public class DictionaryService : IDictionaryService
     {
         try
         {
-            var response = await _httpClient.DeleteAsync($"api/dictionaries/{id}");
+            var response = await _httpClient.DeleteAsync($"{BasePath}/{id}");
             return response.IsSuccessStatusCode;
         }
         catch
@@ -86,7 +88,7 @@ public class DictionaryService : IDictionaryService
 
     public async Task<DictionaryWordDto> AddWordAsync(Guid dictionaryId, AddWordRequest request)
     {
-        var response = await _httpClient.PostAsJsonAsync($"api/dictionaries/{dictionaryId}/words", request);
+        var response = await _httpClient.PostAsJsonAsync($"{BasePath}/{dictionaryId}/words", request);
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadFromJsonAsync<DictionaryWordDto>()
             ?? throw new InvalidOperationException("Failed to add word");
@@ -95,7 +97,7 @@ public class DictionaryService : IDictionaryService
     public async Task<ImportResultDto> ImportCsvAsync(Guid dictionaryId, string csvContent)
     {
         var response = await _httpClient.PostAsJsonAsync(
-            $"api/dictionaries/{dictionaryId}/import-csv", 
+            $"{BasePath}/{dictionaryId}/import-csv", 
             new { Content = csvContent });
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadFromJsonAsync<ImportResultDto>()
@@ -105,8 +107,18 @@ public class DictionaryService : IDictionaryService
     public async Task<ImportResultDto> ImportTxtAsync(Guid dictionaryId, string txtContent)
     {
         var response = await _httpClient.PostAsJsonAsync(
-            $"api/dictionaries/{dictionaryId}/import-txt", 
+            $"{BasePath}/{dictionaryId}/import-txt", 
             new { Content = txtContent });
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<ImportResultDto>()
+            ?? new ImportResultDto { ImportedCount = 0, Errors = new List<string> { "Unknown error" } };
+    }
+
+    public async Task<ImportResultDto> ImportJsonAsync(Guid dictionaryId, string jsonContent)
+    {
+        var response = await _httpClient.PostAsJsonAsync(
+            $"{BasePath}/{dictionaryId}/import-json",
+            new { Content = jsonContent });
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadFromJsonAsync<ImportResultDto>()
             ?? new ImportResultDto { ImportedCount = 0, Errors = new List<string> { "Unknown error" } };

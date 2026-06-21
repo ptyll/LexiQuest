@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="About_PageTitle" xml:space="preserve">
+    <value>O LexiQuest</value>
+  </data>
+  <data name="About_Title" xml:space="preserve">
+    <value>O LexiQuest</value>
+  </data>
+  <data name="About_WhatIsTitle" xml:space="preserve">
+    <value>Co je LexiQuest?</value>
+  </data>
+  <data name="About_WhatIsDescription" xml:space="preserve">
+    <value>LexiQuest je česká slovní hra, ve které skládáš slova z promíchaných písmen, získáváš zkušenosti a postupně odemykáš nové výzvy.</value>
+  </data>
+  <data name="About_FeaturesTitle" xml:space="preserve">
+    <value>Co ve hře najdeš</value>
+  </data>
+  <data name="About_Feature_Paths" xml:space="preserve">
+    <value>Tematické cesty</value>
+  </data>
+  <data name="About_Feature_PathsDesc" xml:space="preserve">
+    <value>Postupuj po mapě úrovní a trénuj slovní zásobu krok za krokem.</value>
+  </data>
+  <data name="About_Feature_Daily" xml:space="preserve">
+    <value>Denní výzvy</value>
+  </data>
+  <data name="About_Feature_DailyDesc" xml:space="preserve">
+    <value>Každý den nová krátká výzva pro udržení série.</value>
+  </data>
+  <data name="About_Feature_Leagues" xml:space="preserve">
+    <value>Ligy</value>
+  </data>
+  <data name="About_Feature_LeaguesDesc" xml:space="preserve">
+    <value>Soutěž s ostatními hráči a posouvej se v žebříčku výš.</value>
+  </data>
+  <data name="About_Feature_Multiplayer" xml:space="preserve">
+    <value>Multiplayer</value>
+  </data>
+  <data name="About_Feature_MultiplayerDesc" xml:space="preserve">
+    <value>Hraj rychlé souboje, privátní místnosti i slovní duely v reálném čase.</value>
+  </data>
+  <data name="About_MissionTitle" xml:space="preserve">
+    <value>Naše mise</value>
+  </data>
+  <data name="About_MissionDescription" xml:space="preserve">
+    <value>Chceme, aby procvičování češtiny působilo jako hra, ke které se člověk rád vrací, ne jako další nudný úkol.</value>
+  </data>
+  <data name="About_TeamTitle" xml:space="preserve">
+    <value>Tým</value>
+  </data>
+  <data name="About_TeamDescription" xml:space="preserve">
+    <value>LexiQuest vzniká jako moderní webová aplikace zaměřená na české hráče, slovní zásobu a férové herní tempo.</value>
+  </data>
+  <data name="About_Version" xml:space="preserve">
+    <value>Verze aplikace</value>
+  </data>
+</root>

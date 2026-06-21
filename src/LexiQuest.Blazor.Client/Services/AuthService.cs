@@ -13,10 +13,12 @@ public class AuthService : IAuthService
     private readonly IStringLocalizer<AuthService> _localizer;
     private const string TokenKey = "access_token";
     private const string RefreshTokenKey = "refresh_token";
+    private string? _accessToken;
+    private string? _refreshToken;
 
     public AuthService(IHttpClientFactory httpClientFactory, IJSRuntime jsRuntime, IStringLocalizer<AuthService> localizer)
     {
-        _httpClient = httpClientFactory.CreateClient("ApiClient");
+        _httpClient = httpClientFactory.CreateClient("PublicApiClient");
         _jsRuntime = jsRuntime;
         _localizer = localizer;
     }
@@ -31,7 +33,8 @@ public class AuthService : IAuthService
                 Username = model.Username,
                 Password = model.Password,
                 ConfirmPassword = model.ConfirmPassword,
-                AcceptTerms = model.AcceptTerms
+                AcceptTerms = model.AcceptTerms,
+                GuestProgressToken = model.GuestProgressToken
             };
 
             var response = await _httpClient.PostAsJsonAsync("api/v1/users/register", request);
@@ -80,6 +83,12 @@ public class AuthService : IAuthService
                 return new AuthResult { Success = false, ErrorMessage = _localizer["Error.Login.InvalidCredentials"] };
             }
 
+            if (response.StatusCode == System.Net.HttpStatusCode.Locked)
+            {
+                var error = await response.Content.ReadFromJsonAsync<ErrorResponse>();
+                return new AuthResult { Success = false, ErrorMessage = error?.GetMessage() ?? _localizer["Error.Login.AccountLocked"] };
+            }
+
             if (!response.IsSuccessStatusCode)
             {
                 return new AuthResult { Success = false, ErrorMessage = _localizer["Error.Login.Failed"] };
@@ -105,7 +114,7 @@ public class AuthService : IAuthService
     {
         try
         {
-            var refreshToken = await _jsRuntime.InvokeAsync<string?>("localStorage.getItem", RefreshTokenKey);
+            var refreshToken = await GetRefreshTokenAsync();
             
             if (string.IsNullOrEmpty(refreshToken))
             {
@@ -138,6 +147,8 @@ public class AuthService : IAuthService
 
     public async Task LogoutAsync()
     {
+        _accessToken = null;
+        _refreshToken = null;
         await _jsRuntime.InvokeVoidAsync("localStorage.removeItem", TokenKey);
         await _jsRuntime.InvokeVoidAsync("localStorage.removeItem", RefreshTokenKey);
     }
@@ -150,8 +161,40 @@ public class AuthService : IAuthService
 
     public async Task<string?> GetTokenAsync()
     {
-        return await _jsRuntime.InvokeAsync<string?>("localStorage.getItem", TokenKey);
+        if (!string.IsNullOrEmpty(_accessToken))
+        {
+            return _accessToken;
+        }
+
+        _accessToken = await GetLocalStorageItemAsync(TokenKey);
+        return _accessToken;
     }
+
+    private async Task<string?> GetRefreshTokenAsync()
+    {
+        if (!string.IsNullOrEmpty(_refreshToken))
+        {
+            return _refreshToken;
+        }
+
+        _refreshToken = await GetLocalStorageItemAsync(RefreshTokenKey);
+        return _refreshToken;
+    }
+
+    private async Task<string?> GetLocalStorageItemAsync(string key)
+    {
+        try
+        {
+            return await _jsRuntime.InvokeAsync<string?>("localStorage.getItem", key);
+        }
+        catch (InvalidOperationException ex) when (IsPrerenderInteropException(ex))
+        {
+            return null;
+        }
+    }
+
+    private static bool IsPrerenderInteropException(InvalidOperationException exception) =>
+        exception.Message.Contains("JavaScript interop calls cannot be issued", StringComparison.Ordinal);
 
     public async Task<PasswordResetRequestResult> RequestPasswordResetAsync(string email)
     {
@@ -163,7 +206,7 @@ public class AuthService : IAuthService
             if (response.StatusCode == System.Net.HttpStatusCode.BadRequest)
             {
                 var error = await response.Content.ReadFromJsonAsync<ErrorResponse>();
-                return new PasswordResetRequestResult { Success = false, ErrorMessage = error?.Message ?? _localizer["Error.PasswordReset.InvalidRequest"] };
+                return new PasswordResetRequestResult { Success = false, ErrorMessage = error?.GetMessage() ?? _localizer["Error.PasswordReset.InvalidRequest"] };
             }
 
             if (!response.IsSuccessStatusCode)
@@ -189,7 +232,7 @@ public class AuthService : IAuthService
             if (response.StatusCode == System.Net.HttpStatusCode.BadRequest)
             {
                 var error = await response.Content.ReadFromJsonAsync<ErrorResponse>();
-                return new PasswordResetResult { Success = false, ErrorMessage = error?.Message ?? _localizer["Error.PasswordReset.InvalidToken"] };
+                return new PasswordResetResult { Success = false, ErrorMessage = error?.GetMessage() ?? _localizer["Error.PasswordReset.InvalidToken"] };
             }
 
             if (!response.IsSuccessStatusCode)
@@ -207,6 +250,8 @@ public class AuthService : IAuthService
 
     private async Task StoreTokensAsync(string accessToken, string refreshToken)
     {
+        _accessToken = accessToken;
+        _refreshToken = refreshToken;
         await _jsRuntime.InvokeVoidAsync("localStorage.setItem", TokenKey, accessToken);
         await _jsRuntime.InvokeVoidAsync("localStorage.setItem", RefreshTokenKey, refreshToken);
     }
@@ -214,5 +259,13 @@ public class AuthService : IAuthService
     private class ErrorResponse
     {
         public string? Message { get; set; }
+        public string? Detail { get; set; }
+        public string? Error { get; set; }
+        public string? Title { get; set; }
+
+        public string? GetMessage() => FirstNonEmpty(Detail, Message, Error, Title);
+
+        private static string? FirstNonEmpty(params string?[] values) =>
+            values.FirstOrDefault(value => !string.IsNullOrWhiteSpace(value));
     }
 }

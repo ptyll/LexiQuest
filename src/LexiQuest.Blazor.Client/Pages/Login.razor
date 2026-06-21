@@ -1,4 +1,5 @@
 @page "/login"
+@layout LandingLayout
 @using LexiQuest.Blazor.Models
 @using LexiQuest.Blazor.Services
 @using LexiQuest.Blazor.Validators
@@ -7,11 +8,11 @@
 @inject IStringLocalizer<Login> L
 @inject NavigationManager NavigationManager
 
-<div class="login-page">
+<div class="login-page" data-testid="login-page">
     <TmCard Variant="CardVariant.Elevated" Class="login-card">
         <div class="login-header">
-            <h1 class="login-brand">LexiQuest</h1>
-            <h2 class="login-title">@L["Title"]</h2>
+            <div class="login-brand">LexiQuest</div>
+            <h1 class="login-title">@L["Title"]</h1>
             <p class="login-subtitle">@L["Subtitle"]</p>
         </div>
 
@@ -28,7 +29,7 @@
             </div>
         }
 
-        <EditForm Model="@model" OnValidSubmit="HandleLogin" OnInvalidSubmit="HandleInvalidSubmit" FormName="loginForm">
+        <EditForm Model="@model" OnValidSubmit="HandleLogin" OnInvalidSubmit="HandleInvalidSubmit" FormName="loginForm" data-testid="login-form" novalidate>
             <FluentValidationValidator />
 
             <div class="login-form-fields">
@@ -50,22 +51,26 @@
                             Label="@L["Input.RememberMe.Label"]" />
             </div>
 
-            <TmButton Type="ButtonType.Submit"
-                      Variant="ButtonVariant.Primary"
-                      Block="true"
-                      IsLoading="isLoading"
-                      LoadingText="@L["Button.Loading"]"
-                      Class="login-submit-btn">
-                @L["Button.Submit"]
-            </TmButton>
+            <span data-testid="login-submit">
+                <TmButton Type="ButtonType.Submit"
+                          Variant="ButtonVariant.Primary"
+                          Block="true"
+                          IsLoading="isLoading"
+                          LoadingText="@L["Button.Loading"]"
+                          Class="login-submit-btn">
+                    @L["Button.Submit"]
+                </TmButton>
+            </span>
         </EditForm>
 
         <div class="login-links">
-            <TmButton Variant="ButtonVariant.Link"
-                      OnClick="NavigateToPasswordReset"
-                      Class="login-forgot-link">
-                @L["Link.ForgotPassword"]
-            </TmButton>
+            <span data-testid="login-forgot-password">
+                <TmButton Variant="ButtonVariant.Link"
+                          OnClick="NavigateToPasswordReset"
+                          Class="login-forgot-link">
+                    @L["Link.ForgotPassword"]
+                </TmButton>
+            </span>
         </div>
 
         <div class="login-divider">

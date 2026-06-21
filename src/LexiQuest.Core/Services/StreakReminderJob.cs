@@ -2,6 +2,7 @@ using LexiQuest.Core.Interfaces.Repositories;
 using LexiQuest.Core.Interfaces.Services;
 using LexiQuest.Shared.DTOs.Notifications;
 using LexiQuest.Shared.Enums;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 
 namespace LexiQuest.Core.Services;
@@ -13,15 +14,18 @@ public class StreakReminderJob
 {
     private readonly IUserRepository _userRepository;
     private readonly INotificationService _notificationService;
+    private readonly IStringLocalizer<StreakReminderJob> _localizer;
     private readonly ILogger<StreakReminderJob> _logger;
 
     public StreakReminderJob(
         IUserRepository userRepository,
         INotificationService notificationService,
+        IStringLocalizer<StreakReminderJob> localizer,
         ILogger<StreakReminderJob> logger)
     {
         _userRepository = userRepository;
         _notificationService = notificationService;
+        _localizer = localizer;
         _logger = logger;
     }
 
@@ -36,8 +40,8 @@ public class StreakReminderJob
             await _notificationService.SendAsync(new SendNotificationRequest(
                 user.Id,
                 NotificationType.StreakWarning,
-                "Streak Warning",
-                "Your streak is at risk! Play now to keep it alive.",
+                _localizer["Notification.StreakWarning.Title"],
+                _localizer["Notification.StreakWarning.Message"],
                 NotificationSeverity.Warning,
                 "/game"), cancellationToken);
         }

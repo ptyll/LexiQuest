@@ -52,14 +52,20 @@ public class UserStats
 
     private void RecalculateLevel()
     {
-        // Level formula: each level requires level * 100 XP
+        const int baseXp = 100;
+        const double growthRate = 1.5;
+
         var xpRemaining = TotalXP;
         var level = 1;
-        while (xpRemaining >= level * 100)
+        var xpRequired = baseXp;
+
+        while (xpRemaining >= xpRequired)
         {
-            xpRemaining -= level * 100;
+            xpRemaining -= xpRequired;
             level++;
+            xpRequired = (int)Math.Floor(baseXp * Math.Pow(growthRate, level - 1));
         }
+
         Level = level;
     }
 

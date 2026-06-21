@@ -6,7 +6,6 @@ const DATA_CACHE = `lexiquest-data-${CACHE_VERSION}`;
 
 const STATIC_ASSETS = [
     '/',
-    '/index.html',
     '/offline.html',
     '/manifest.json',
     '/icon-192.png',
@@ -14,8 +13,8 @@ const STATIC_ASSETS = [
     '/css/app.css',
     '/css/animations.css',
     '/css/responsive.css',
-    '/_content/Tempo.Blazor/css/tempo-blazor.css',
-    '/LexiQuest.Blazor.styles.css'
+    '/_content/Tempo.Blazor/css/tempo-blazor.bundled.css',
+    '/LexiQuest.Blazor.Client.styles.css'
 ];
 
 // Install: pre-cache static assets
@@ -118,4 +117,51 @@ self.addEventListener('message', event => {
     if (event.data && event.data.type === 'SKIP_WAITING') {
         self.skipWaiting();
     }
+});
+
+self.addEventListener('push', event => {
+    var payload = {};
+    if (event.data) {
+        try {
+            payload = event.data.json();
+        } catch {
+            payload = { title: 'LexiQuest', body: event.data.text() };
+        }
+    }
+
+    var title = payload.title || 'LexiQuest';
+    var options = {
+        body: payload.body || payload.message || '',
+        icon: '/icon-192.png',
+        badge: '/icon-192.png',
+        data: {
+            url: payload.url || payload.actionUrl || '/dashboard'
+        }
+    };
+
+    event.waitUntil(self.registration.showNotification(title, options));
+});
+
+self.addEventListener('notificationclick', event => {
+    event.notification.close();
+
+    var targetUrl = event.notification.data && event.notification.data.url
+        ? event.notification.data.url
+        : '/dashboard';
+
+    event.waitUntil(
+        clients.matchAll({ type: 'window', includeUncontrolled: true })
+            .then(clientList => {
+                for (const client of clientList) {
+                    if ('focus' in client) {
+                        client.navigate(targetUrl);
+                        return client.focus();
+                    }
+                }
+
+                if (clients.openWindow) {
+                    return clients.openWindow(targetUrl);
+                }
+            })
+    );
 });

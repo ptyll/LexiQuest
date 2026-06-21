@@ -10,7 +10,7 @@
     <link rel="manifest" href="manifest.json" />
     <link rel="apple-touch-icon" sizes="192x192" href="icon-192.png" />
     <link rel="apple-touch-icon" sizes="512x512" href="icon-512.png" />
-    <link rel="stylesheet" href="_content/Tempo.Blazor/css/tempo-blazor.css" />
+    <link rel="stylesheet" href="_content/Tempo.Blazor/css/tempo-blazor.bundled.css" />
     <link rel="stylesheet" href="css/app.css" />
     <link rel="stylesheet" href="css/animations.css" />
     <link rel="stylesheet" href="css/responsive.css" />
@@ -79,6 +79,139 @@
                 return result.outcome === 'accepted';
             }
         };
+
+        window.lexiQuestPush = window.lexiQuestPush || {
+            requestSubscription: async function () {
+                if (!('Notification' in window)
+                    || !('serviceWorker' in navigator)
+                    || !('PushManager' in window)) {
+                    return null;
+                }
+
+                var permission = Notification.permission;
+                if (permission !== 'granted') {
+                    permission = await Notification.requestPermission();
+                }
+
+                if (permission !== 'granted') {
+                    return null;
+                }
+
+                var registration = await navigator.serviceWorker.ready;
+                var subscription = await registration.pushManager.getSubscription();
+                if (!subscription) {
+                    subscription = await registration.pushManager.subscribe({
+                        userVisibleOnly: true
+                    });
+                }
+
+                var json = subscription.toJSON();
+                return {
+                    Endpoint: json.endpoint,
+                    P256dh: json.keys && json.keys.p256dh ? json.keys.p256dh : '',
+                    Auth: json.keys && json.keys.auth ? json.keys.auth : ''
+                };
+            }
+        };
+
+        window.lexiQuestAdmin = window.lexiQuestAdmin || {
+            downloadTextFile: function (fileName, contentType, content) {
+                var blob = new Blob([content], { type: contentType || 'text/plain;charset=utf-8' });
+                var url = URL.createObjectURL(blob);
+                var link = document.createElement('a');
+                link.href = url;
+                link.download = fileName;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+            }
+        };
+
+        window.lexiQuestA11y = window.lexiQuestA11y || {
+            focusById: function (id) {
+                var element = document.getElementById(id);
+                if (!element) return false;
+
+                element.focus({ preventScroll: true });
+                element.scrollIntoView({ block: 'start' });
+                return document.activeElement === element;
+            },
+
+            getFocusableElements: function (root) {
+                if (!root) return [];
+
+                var selector = [
+                    'a[href]',
+                    'button:not([disabled])',
+                    'input:not([disabled]):not([type="hidden"])',
+                    'select:not([disabled])',
+                    'textarea:not([disabled])',
+                    '[tabindex]:not([tabindex="-1"])'
+                ].join(',');
+
+                return Array.from(root.querySelectorAll(selector))
+                    .filter(function (element) {
+                        var rect = element.getBoundingClientRect();
+                        var style = window.getComputedStyle(element);
+                        return rect.width > 0
+                            && rect.height > 0
+                            && style.visibility !== 'hidden'
+                            && style.display !== 'none';
+                    });
+            },
+
+            getActiveModal: function () {
+                var dialogs = Array.from(document.querySelectorAll('[aria-modal="true"]'));
+                for (var i = dialogs.length - 1; i >= 0; i--) {
+                    var dialog = dialogs[i];
+                    var rect = dialog.getBoundingClientRect();
+                    var style = window.getComputedStyle(dialog);
+                    if (rect.width > 0
+                        && rect.height > 0
+                        && style.visibility !== 'hidden'
+                        && style.display !== 'none') {
+                        return dialog;
+                    }
+                }
+
+                return null;
+            }
+        };
+
+        if (!window.lexiQuestA11y._focusTrapRegistered) {
+            document.addEventListener('keydown', function (event) {
+                if (event.key !== 'Tab') return;
+
+                var modal = window.lexiQuestA11y.getActiveModal();
+                if (!modal) return;
+
+                var focusable = window.lexiQuestA11y.getFocusableElements(modal);
+                if (focusable.length === 0) return;
+
+                var first = focusable[0];
+                var last = focusable[focusable.length - 1];
+
+                if (!modal.contains(document.activeElement)) {
+                    first.focus();
+                    event.preventDefault();
+                    return;
+                }
+
+                if (event.shiftKey && document.activeElement === first) {
+                    last.focus();
+                    event.preventDefault();
+                    return;
+                }
+
+                if (!event.shiftKey && document.activeElement === last) {
+                    first.focus();
+                    event.preventDefault();
+                }
+            });
+
+            window.lexiQuestA11y._focusTrapRegistered = true;
+        }
 
         // Service Worker Registration
         if ('serviceWorker' in navigator) {

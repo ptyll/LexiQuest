@@ -105,6 +105,22 @@
     width: 100%;
 }
 
+.quick-match-cancel {
+    min-height: 42px;
+    border: 1px solid var(--tm-color-gray-300, #cbd5e1);
+    border-radius: 8px;
+    background: #ffffff;
+    color: var(--tm-color-gray-700, #334155);
+    padding: 0.65rem 1rem;
+    font: inherit;
+    font-weight: 650;
+    cursor: pointer;
+}
+
+.quick-match-cancel:hover {
+    background: var(--tm-color-gray-50, #f8fafc);
+}
+
 .rules-card h3 {
     margin: 0;
     font-size: var(--tm-font-size-lg);

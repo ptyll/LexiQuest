@@ -12,15 +12,18 @@ public class WebhookController : ControllerBase
 {
     private readonly StripeSubscriptionService _subscriptionService;
     private readonly StripeSettings _stripeSettings;
+    private readonly IWebHostEnvironment _environment;
     private readonly ILogger<WebhookController> _logger;
 
     public WebhookController(
         StripeSubscriptionService subscriptionService,
         IOptions<StripeSettings> stripeSettings,
+        IWebHostEnvironment environment,
         ILogger<WebhookController> logger)
     {
         _subscriptionService = subscriptionService;
         _stripeSettings = stripeSettings.Value;
+        _environment = environment;
         _logger = logger;
     }
 
@@ -62,6 +65,61 @@ public class WebhookController : ControllerBase
             _logger.LogError(ex, "Error processing Stripe webhook");
             return BadRequest(new { error = "Webhook processing failed" });
         }
+    }
+
+    [HttpPost("stripe/e2e")]
+    public async Task<IActionResult> HandleE2EStripeWebhook([FromBody] E2EStripeWebhookRequest request)
+    {
+        if (!_environment.IsEnvironment("E2E"))
+            return NotFound();
+
+        if (string.IsNullOrWhiteSpace(request.Type))
+            return BadRequest();
+
+        switch (request.Type)
+        {
+            case "checkout.session.completed":
+                if (string.IsNullOrWhiteSpace(request.StripeCustomerId) ||
+                    string.IsNullOrWhiteSpace(request.StripeSubscriptionId))
+                {
+                    return BadRequest();
+                }
+
+                await _subscriptionService.HandleCheckoutCompletedAsync(
+                    request.StripeCustomerId,
+                    request.StripeSubscriptionId,
+                    ParseE2EPlan(request.Plan));
+                break;
+
+            case "invoice.paid":
+                if (string.IsNullOrWhiteSpace(request.StripeSubscriptionId))
+                    return BadRequest();
+
+                await _subscriptionService.HandleInvoicePaidAsync(
+                    request.StripeSubscriptionId,
+                    request.ExpiresAt ?? DateTime.UtcNow.AddMonths(1));
+                break;
+
+            case "invoice.payment_failed":
+                if (string.IsNullOrWhiteSpace(request.StripeSubscriptionId))
+                    return BadRequest();
+
+                await _subscriptionService.HandleInvoiceFailedAsync(request.StripeSubscriptionId);
+                break;
+
+            case "customer.subscription.deleted":
+                if (string.IsNullOrWhiteSpace(request.StripeSubscriptionId))
+                    return BadRequest();
+
+                await _subscriptionService.HandleSubscriptionCancelledAsync(request.StripeSubscriptionId);
+                break;
+
+            default:
+                _logger.LogInformation("Unhandled E2E Stripe event type: {EventType}", request.Type);
+                break;
+        }
+
+        return Ok();
     }
 
     private async Task ProcessStripeEventAsync(Event stripeEvent)
@@ -177,4 +235,18 @@ public class WebhookController : ControllerBase
         return webhookSecret.Contains("dummy", StringComparison.OrdinalIgnoreCase) ||
                webhookSecret.Contains("test", StringComparison.OrdinalIgnoreCase);
     }
+
+    private static SubscriptionPlan ParseE2EPlan(string? plan)
+    {
+        return Enum.TryParse<SubscriptionPlan>(plan, ignoreCase: true, out var parsed)
+            ? parsed
+            : SubscriptionPlan.Monthly;
+    }
+
+    public sealed record E2EStripeWebhookRequest(
+        string Type,
+        string? StripeCustomerId,
+        string? StripeSubscriptionId,
+        string? Plan,
+        DateTime? ExpiresAt);
 }

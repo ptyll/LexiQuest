@@ -95,7 +95,14 @@ public class PathService : IPathService
                 LevelNumber: level.LevelNumber,
                 Status: status,
                 IsBoss: level.IsBoss,
-                IsPerfect: level.IsPerfect
+                IsPerfect: level.IsPerfect,
+                WordCount: GetWordCount(level),
+                WordLengthMin: path.WordLengthMin,
+                WordLengthMax: path.WordLengthMax,
+                TimePerWordSeconds: GetTimePerWordSeconds(path, level),
+                HintCount: GetHintCount(level),
+                Lives: GetLives(path.Difficulty, level),
+                XpReward: GetXpReward(level)
             ));
         }
 
@@ -142,4 +149,30 @@ public class PathService : IPathService
             return "Current";
         return "Locked";
     }
+
+    private static int GetWordCount(PathLevel level) => level.IsBoss ? 20 : 10;
+
+    private static int GetTimePerWordSeconds(LearningPath path, PathLevel level) =>
+        level.IsBoss ? Math.Min(path.TimePerWord, 15) : path.TimePerWord;
+
+    private static int GetHintCount(PathLevel level) => level.IsBoss ? 0 : 3;
+
+    private static int GetLives(DifficultyLevel difficulty, PathLevel level)
+    {
+        if (level.IsBoss)
+        {
+            return 3;
+        }
+
+        return difficulty switch
+        {
+            DifficultyLevel.Beginner => 5,
+            DifficultyLevel.Intermediate => 4,
+            DifficultyLevel.Advanced => 3,
+            DifficultyLevel.Expert => 3,
+            _ => 5
+        };
+    }
+
+    private static int GetXpReward(PathLevel level) => level.IsBoss ? 250 : 100;
 }

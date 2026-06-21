@@ -13,20 +13,20 @@
 @using Tempo.Blazor.Components.Icons
 @using LexiQuest.Shared.DTOs.Multiplayer
 
-<div class="realtime-game" role="main" aria-label="@L["Game_Aria_Label"]">
+<div class="realtime-game" role="main" aria-label="@L["Game_Aria_Label"]" data-testid="realtime-game">
     <!-- Header with Timer and Progress -->
     <div class="game-header">
         <div class="timer-section" role="timer" aria-live="polite">
             <TmIcon Name="timer" />
-            <span class="timer-display" aria-label="@L["Game_Timer_Aria"]">@FormatTime(_timeRemaining)</span>
+            <span class="timer-display" data-testid="realtime-timer" aria-label="@L["Game_Timer_Aria"]">@FormatTime(_timeRemaining)</span>
             <TmProgressBar Value="GetTimeProgress()" Max="100" Size="ProgressBarSize.Sm" Class="timer-bar" />
         </div>
         <div class="word-progress">
             <span>@L["Game_Header_Word"] @_currentRound/@_totalRounds</span>
         </div>
-        <TmButton Variant="ButtonVariant.Ghost" Size="ButtonSize.Sm" OnClick="ShowForfeitConfirm">
+        <button type="button" class="forfeit-button" data-testid="realtime-forfeit" @onclick="ShowForfeitConfirm">
             @L["Game_Button_Forfeit"]
-        </TmButton>
+        </button>
     </div>
 
     <!-- Player Cards -->
@@ -38,7 +38,7 @@
                     <TmAvatar Name="@L["Game_Player_You"]" Size="AvatarSize.Lg" Color="AvatarColor.Blue" />
                     <div class="player-info">
                         <span class="player-name">@L["Game_Player_You"]</span>
-                        <span class="player-score score-you">@_playerScore/@_totalRounds ✓</span>
+                        <span class="player-score score-you" data-testid="realtime-player-score">@_playerScore/@_totalRounds ✓</span>
                     </div>
                 </div>
                 <TmProgressBar Value="_playerScore" Max="_totalRounds" Size="ProgressBarSize.Md" Variant="ProgressBarVariant.Success" />
@@ -61,7 +61,7 @@
                     <TmAvatar Name="@_opponentName" Src="@_opponentAvatar" Size="AvatarSize.Lg" Color="AvatarColor.Red" />
                     <div class="player-info">
                         <span class="player-name">@_opponentName</span>
-                        <span class="player-score score-opponent">@_opponentScore/@_totalRounds ✓</span>
+                        <span class="player-score score-opponent" data-testid="realtime-opponent-score">@_opponentScore/@_totalRounds ✓</span>
                     </div>
                 </div>
                 <TmProgressBar Value="_opponentScore" Max="_totalRounds" Size="ProgressBarSize.Md" Variant="ProgressBarVariant.Warning" />
@@ -79,7 +79,7 @@
     <div class="game-board">
         @if (!string.IsNullOrEmpty(_scrambledWord))
         {
-            <div class="scrambled-word">
+            <div class="scrambled-word" data-testid="realtime-scrambled-word">
                 @foreach (var letter in _scrambledWord.ToUpper())
                 {
                     <div class="letter-box">@letter</div>
@@ -96,11 +96,13 @@
                    autofocus
                    aria-label="@L["Game_Input_Placeholder"]"
                    autocomplete="off"
-                   class="answer-input tm-input" />
+                   class="answer-input tm-input"
+                   data-testid="realtime-answer-input" />
 
             <button type="submit"
                     disabled="@(!CanSubmit)"
-                    class="btn-submit tm-btn tm-btn-primary">
+                    class="btn-submit tm-btn tm-btn-primary"
+                    data-testid="realtime-submit">
                 @L["Game_Button_Submit"]
             </button>
         </form>
@@ -108,7 +110,7 @@
         <!-- Feedback -->
         @if (_showFeedback)
         {
-            <div class="feedback @_feedbackClass" role="status" aria-live="assertive">
+            <div class="feedback @_feedbackClass" role="status" aria-live="assertive" data-testid="realtime-feedback">
                 <span>@_feedbackMessage</span>
                 @if (_lastXPEarned > 0)
                 {
@@ -132,11 +134,12 @@
     [Parameter]
     public Guid MatchId { get; set; }
 
-    private string _scrambledWord = "TEST";
+    private string _scrambledWord = "";
     private string _currentAnswer = "";
     private int _currentRound = 1;
     private int _totalRounds = 15;
-    private int _timeRemaining = 180; // 3 minutes
+    private int _timeLimit = 180;
+    private int _timeRemaining = 180;
     private int _playerScore = 0;
     private int _opponentScore = 0;
     private int _playerCombo = 0;
@@ -153,6 +156,8 @@
     private bool _shouldShake = false;
     private Timer? _timer;
     private int _lastSeenSequenceNumber = 0;
+    private bool _receivedFirstRound = false;
+    private bool _expiryRequested = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -164,12 +169,21 @@
         try
         {
             // Setup event handlers
+            MatchHubClient.OnPlayerProgress += OnPlayerProgress;
             MatchHubClient.OnRoundStarted += OnRoundStarted;
             MatchHubClient.OnOpponentProgress += OnOpponentProgress;
             MatchHubClient.OnMatchEnded += OnMatchEnded;
             MatchHubClient.OnOpponentDisconnected += OnOpponentDisconnected;
 
             await MatchHubClient.StartAsync();
+            var joined = await MatchHubClient.JoinMatchAsync(MatchId);
+            if (!joined)
+            {
+                _feedbackMessage = L["Game_Connection_Lost"];
+                _feedbackClass = "error";
+                _showFeedback = true;
+                return;
+            }
 
             // Start game timer (delayed start to avoid immediate re-render)
             _timer = new Timer(_ =>
@@ -177,6 +191,10 @@
                 if (_timeRemaining > 0)
                 {
                     _timeRemaining--;
+                    if (_timeRemaining == 0)
+                    {
+                        _ = InvokeAsync(ExpireMatchAsync);
+                    }
                     InvokeAsync(StateHasChanged);
                 }
             }, null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
@@ -202,6 +220,42 @@
         _currentAnswer = "";
         _isSubmitting = false;
         _showFeedback = false;
+        if (!_receivedFirstRound)
+        {
+            _timeLimit = Math.Max(1, round.TimeLimit);
+            _timeRemaining = round.TimeLimit;
+            _receivedFirstRound = true;
+        }
+        else if (round.TimeLimit >= 0 && round.TimeLimit < _timeRemaining)
+        {
+            _timeRemaining = round.TimeLimit;
+        }
+
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void OnPlayerProgress(object? sender, OpponentProgressDto progress)
+    {
+        if (progress.SequenceNumber > 0 && progress.SequenceNumber <= _lastSeenSequenceNumber)
+            return;
+        if (progress.SequenceNumber > 0)
+            _lastSeenSequenceNumber = progress.SequenceNumber;
+
+        var wasCorrect = progress.CorrectCount > _playerScore;
+        _playerScore = progress.CorrectCount;
+        _playerCombo = progress.ComboCount;
+        _feedbackMessage = wasCorrect ? L["Game_Feedback_Correct"] : L["Game_Feedback_Wrong"];
+        _feedbackClass = wasCorrect ? "success" : "error";
+        _showFeedback = true;
+        _shouldFlash = wasCorrect;
+
+        _ = Task.Run(async () =>
+        {
+            await Task.Delay(500);
+            _shouldFlash = false;
+            await InvokeAsync(StateHasChanged);
+        });
+
         InvokeAsync(StateHasChanged);
     }
 
@@ -254,14 +308,13 @@
         {
             var timeSpentMs = (180 - _timeRemaining) * 1000;
             await MatchHubClient.SubmitAnswerAsync(_currentAnswer.ToUpper(), timeSpentMs);
-            // Score update happens via OnOpponentProgress/OnRoundStarted events from server
+            // Score update happens via server-authoritative PlayerProgressUpdated/RoundStarted events.
         }
         catch
         {
             _playerCombo = 0;
         }
 
-        _showFeedback = true;
         _isSubmitting = false;
         _currentAnswer = "";
     }
@@ -293,6 +346,25 @@
         await MatchHubClient.ForfeitAsync();
     }
 
+    private async Task ExpireMatchAsync()
+    {
+        if (_expiryRequested)
+        {
+            return;
+        }
+
+        _expiryRequested = true;
+
+        try
+        {
+            await MatchHubClient.ExpireMatchAsync();
+        }
+        catch
+        {
+            _expiryRequested = false;
+        }
+    }
+
     private string FormatTime(int seconds)
     {
         var mins = seconds / 60;
@@ -302,7 +374,7 @@
 
     private double GetTimeProgress()
     {
-        return (_timeRemaining / 180.0) * 100;
+        return _timeLimit <= 0 ? 0 : (_timeRemaining / (double)_timeLimit) * 100;
     }
 
     private string GetFlashClass() => _shouldFlash ? "player-card you flash-success" : "player-card you";
@@ -311,15 +383,16 @@
 
     private bool CanSubmit => !string.IsNullOrWhiteSpace(_currentAnswer) && !_isSubmitting;
 
-    public async ValueTask DisposeAsync()
+    public ValueTask DisposeAsync()
     {
         _timer?.Dispose();
         
+        MatchHubClient.OnPlayerProgress -= OnPlayerProgress;
         MatchHubClient.OnRoundStarted -= OnRoundStarted;
         MatchHubClient.OnOpponentProgress -= OnOpponentProgress;
         MatchHubClient.OnMatchEnded -= OnMatchEnded;
         MatchHubClient.OnOpponentDisconnected -= OnOpponentDisconnected;
-        
-        await MatchHubClient.DisposeAsync();
+
+        return ValueTask.CompletedTask;
     }
 }

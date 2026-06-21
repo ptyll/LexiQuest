@@ -1,48 +1,117 @@
 @page "/premium/success"
+@using LexiQuest.Shared.DTOs.Premium
 @inject IStringLocalizer<CheckoutSuccess> L
+@inject IPremiumService PremiumService
 @inject NavigationManager NavigationManager
+@inject IToastService ToastService
 
 <PageTitle>@L["Title"] - LexiQuest</PageTitle>
 
-<div class="checkout-success-page">
+<div class="checkout-success-page" data-testid="premium-checkout-success">
     <div class="success-container">
-        <TmCard Class="success-card" Elevated="true">
-            <div class="success-icon">
-                <TmIcon Name="@IconNames.CheckCircle" Size="IconSize.Xl" />
-            </div>
-            
-            <h1 class="success-title">@L["Title"]</h1>
-            <p class="success-message">@L["Message"]</p>
-            
-            <div class="features-preview">
-                <h3>@L["Features_Title"]</h3>
-                <ul class="feature-list">
-                    <li><TmIcon Name="@IconNames.Check" /> @L["Feature_NoAds"]</li>
-                    <li><TmIcon Name="@IconNames.Check" /> @L["Feature_StreakFreeze"]</li>
-                    <li><TmIcon Name="@IconNames.Check" /> @L["Feature_StreakShield"]</li>
-                    <li><TmIcon Name="@IconNames.Check" /> @L["Feature_DoubleXP"]</li>
-                    <li><TmIcon Name="@IconNames.Check" /> @L["Feature_ExclusivePaths"]</li>
-                    <li><TmIcon Name="@IconNames.Check" /> @L["Feature_CustomDictionaries"]</li>
-                </ul>
-            </div>
-            
-            <div class="actions">
-                <TmButton Variant="ButtonVariant.Primary" 
-                          OnClick="GoToDashboard"
-                          Icon="@IconNames.Home">
-                    @L["Button_Dashboard"]
-                </TmButton>
-                <TmButton Variant="ButtonVariant.Secondary" 
-                          OnClick="GoToSettings"
-                          Icon="@IconNames.Settings">
-                    @L["Button_Settings"]
-                </TmButton>
-            </div>
-        </TmCard>
+        @if (_isActivating)
+        {
+            <TmCard Class="success-card" Elevated="true">
+                <div class="success-icon">
+                    <TmIcon Name="loader" Size="IconSize.Xl" />
+                </div>
+                <h1 class="success-title">@L["Activating_Title"]</h1>
+                <p class="success-message">@L["Activating_Message"]</p>
+            </TmCard>
+        }
+        else if (_activationFailed)
+        {
+            <TmCard Class="success-card" Elevated="true">
+                <div class="success-icon">
+                    <TmIcon Name="@IconNames.AlertCircle" Size="IconSize.Xl" />
+                </div>
+                <h1 class="success-title">@L["ActivationError_Title"]</h1>
+                <p class="success-message">@L["ActivationError_Message"]</p>
+                <div class="actions">
+                    <TmButton Variant="ButtonVariant.Primary"
+                              OnClick="GoToPremium"
+                              Icon="@IconNames.Star">
+                        @L["Button_Premium"]
+                    </TmButton>
+                </div>
+            </TmCard>
+        }
+        else
+        {
+            <TmCard Class="success-card" Elevated="true">
+                <div class="success-icon">
+                    <TmIcon Name="@IconNames.CheckCircle" Size="IconSize.Xl" />
+                </div>
+                
+                <h1 class="success-title">@L["Title"]</h1>
+                <p class="success-message">@L["Message"]</p>
+                
+                <div class="features-preview">
+                    <h3>@L["Features_Title"]</h3>
+                    <ul class="feature-list">
+                        <li><TmIcon Name="@IconNames.Check" /> @L["Feature_NoAds"]</li>
+                        <li><TmIcon Name="@IconNames.Check" /> @L["Feature_StreakFreeze"]</li>
+                        <li><TmIcon Name="@IconNames.Check" /> @L["Feature_StreakShield"]</li>
+                        <li><TmIcon Name="@IconNames.Check" /> @L["Feature_DoubleXP"]</li>
+                        <li><TmIcon Name="@IconNames.Check" /> @L["Feature_ExclusivePaths"]</li>
+                        <li><TmIcon Name="@IconNames.Check" /> @L["Feature_CustomDictionaries"]</li>
+                    </ul>
+                </div>
+                
+                <div class="actions">
+                    <TmButton Variant="ButtonVariant.Primary" 
+                              OnClick="GoToDashboard"
+                              Icon="@IconNames.Home">
+                        @L["Button_Dashboard"]
+                    </TmButton>
+                    <TmButton Variant="ButtonVariant.Secondary" 
+                              OnClick="GoToSettings"
+                              Icon="@IconNames.Settings">
+                        @L["Button_Settings"]
+                    </TmButton>
+                </div>
+            </TmCard>
+        }
     </div>
 </div>
 
 @code {
+    private bool _isActivating;
+    private bool _activationFailed;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var query = ParseQuery(NavigationManager.ToAbsoluteUri(NavigationManager.Uri).Query);
+        if (!query.TryGetValue("e2e", out var e2e) ||
+            !string.Equals(e2e, "true", StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        if (!query.TryGetValue("session_id", out var sessionId) ||
+            !query.TryGetValue("plan", out var planValue) ||
+            !Enum.TryParse<SubscriptionPlan>(planValue, ignoreCase: true, out var plan))
+        {
+            _activationFailed = true;
+            return;
+        }
+
+        _isActivating = true;
+        try
+        {
+            await PremiumService.CompleteFakeCheckoutAsync(sessionId, plan);
+        }
+        catch
+        {
+            _activationFailed = true;
+            ToastService.ShowError(L["ActivationError_Message"]);
+        }
+        finally
+        {
+            _isActivating = false;
+        }
+    }
+
     private void GoToDashboard()
     {
         NavigationManager.NavigateTo("/dashboard");
@@ -51,5 +120,25 @@
     private void GoToSettings()
     {
         NavigationManager.NavigateTo("/settings");
+    }
+
+    private void GoToPremium()
+    {
+        NavigationManager.NavigateTo("/premium");
+    }
+
+    private static Dictionary<string, string> ParseQuery(string query)
+    {
+        if (string.IsNullOrWhiteSpace(query))
+            return new Dictionary<string, string>();
+
+        return query.TrimStart('?')
+            .Split('&', StringSplitOptions.RemoveEmptyEntries)
+            .Select(part => part.Split('=', 2))
+            .Where(parts => parts.Length == 2)
+            .ToDictionary(
+                parts => Uri.UnescapeDataString(parts[0].Replace("+", " ", StringComparison.Ordinal)),
+                parts => Uri.UnescapeDataString(parts[1].Replace("+", " ", StringComparison.Ordinal)),
+                StringComparer.OrdinalIgnoreCase);
     }
 }

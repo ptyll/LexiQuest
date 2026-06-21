@@ -3,6 +3,8 @@ using LexiQuest.Core.Interfaces;
 using LexiQuest.Core.Interfaces.Repositories;
 using LexiQuest.Core.Interfaces.Services;
 using LexiQuest.Shared.DTOs.Achievements;
+using LexiQuest.Shared.DTOs.Notifications;
+using LexiQuest.Shared.Enums;
 using Microsoft.Extensions.Localization;
 
 namespace LexiQuest.Core.Services;
@@ -13,17 +15,23 @@ public class AchievementService : IAchievementService
     private readonly IUserAchievementRepository _userAchievementRepository;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IStringLocalizer<AchievementService> _localizer;
+    private readonly ICoinService? _coinService;
+    private readonly INotificationService? _notificationService;
 
     public AchievementService(
         IAchievementRepository achievementRepository,
         IUserAchievementRepository userAchievementRepository,
         IUnitOfWork unitOfWork,
-        IStringLocalizer<AchievementService> localizer)
+        IStringLocalizer<AchievementService> localizer,
+        ICoinService? coinService = null,
+        INotificationService? notificationService = null)
     {
         _achievementRepository = achievementRepository;
         _userAchievementRepository = userAchievementRepository;
         _unitOfWork = unitOfWork;
         _localizer = localizer;
+        _coinService = coinService;
+        _notificationService = notificationService;
     }
 
     public async Task<List<AchievementUnlockResult>> CheckWordSolvedAsync(Guid userId, int totalWordsSolved, CancellationToken cancellationToken = default)
@@ -170,14 +178,45 @@ public class AchievementService : IAchievementService
         if (userAchievement.IsUnlocked)
             return null;
 
+        userAchievement.UpdateProgress(achievement.RequiredValue);
         userAchievement.Unlock();
         await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        if (_coinService != null)
+        {
+            await _coinService.EarnCoinsFromAchievementAsync(
+                userId,
+                GetRarity(achievement),
+                $"Odemčení achievementu {achievement.Name}",
+                cancellationToken);
+        }
+
+        if (_notificationService != null)
+        {
+            await _notificationService.SendAsync(new SendNotificationRequest(
+                userId,
+                NotificationType.AchievementUnlocked,
+                _localizer["Notification.AchievementUnlocked.Title"],
+                string.Format(_localizer["Notification.AchievementUnlocked.Message"], achievement.Name),
+                NotificationSeverity.Success,
+                "/achievements"), cancellationToken);
+        }
 
         return new AchievementUnlockResult(
             achievement.Id,
             achievement.Key,
             achievement.Name,
-            achievement.XPReward
+            achievement.XPReward,
+            achievement.Description,
+            achievement.IconName
         );
     }
+
+    private static AchievementRarity GetRarity(Achievement achievement) => achievement.XPReward switch
+    {
+        >= 500 => AchievementRarity.Legendary,
+        >= 200 => AchievementRarity.Epic,
+        >= 100 => AchievementRarity.Rare,
+        _ => AchievementRarity.Common
+    };
 }

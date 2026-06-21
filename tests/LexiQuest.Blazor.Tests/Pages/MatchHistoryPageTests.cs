@@ -35,12 +35,12 @@ public class MatchHistoryPageTests : BunitContext
         _localizer["MatchHistory_Empty"].Returns(new LocalizedString("MatchHistory_Empty", "Zatím žádné zápasy"));
         _localizer["MatchHistory_Empty_Description"].Returns(new LocalizedString("MatchHistory_Empty_Description", "Zahraj si svůj první multiplayer zápas!"));
         _localizer["MatchHistory_Tab_All"].Returns(new LocalizedString("MatchHistory_Tab_All", "Vše"));
-        _localizer["MatchHistory_Tab_QuickMatch"].Returns(new LocalizedString("MatchHistory_Tab_QuickMatch", "⚔️ Quick Match"));
-        _localizer["MatchHistory_Tab_PrivateRoom"].Returns(new LocalizedString("MatchHistory_Tab_PrivateRoom", "🏠 Private Room"));
+        _localizer["MatchHistory_Tab_QuickMatch"].Returns(new LocalizedString("MatchHistory_Tab_QuickMatch", "⚔️ Rychlý zápas"));
+        _localizer["MatchHistory_Tab_PrivateRoom"].Returns(new LocalizedString("MatchHistory_Tab_PrivateRoom", "🏠 Soukromá místnost"));
         _localizer["MatchHistory_Stats_Played"].Returns(new LocalizedString("MatchHistory_Stats_Played", "Odehráno"));
         _localizer["MatchHistory_Stats_Wins"].Returns(new LocalizedString("MatchHistory_Stats_Wins", "Výhry"));
         _localizer["MatchHistory_Stats_Losses"].Returns(new LocalizedString("MatchHistory_Stats_Losses", "Prohry"));
-        _localizer["MatchHistory_Stats_WinRate"].Returns(new LocalizedString("MatchHistory_Stats_WinRate", "Win Rate"));
+        _localizer["MatchHistory_Stats_WinRate"].Returns(new LocalizedString("MatchHistory_Stats_WinRate", "Úspěšnost"));
         _localizer["MatchHistory_Result_Win"].Returns(new LocalizedString("MatchHistory_Result_Win", "Výhra"));
         _localizer["MatchHistory_Result_Loss"].Returns(new LocalizedString("MatchHistory_Result_Loss", "Prohra"));
         _localizer["MatchHistory_Result_Draw"].Returns(new LocalizedString("MatchHistory_Result_Draw", "Remíza"));
@@ -48,8 +48,8 @@ public class MatchHistoryPageTests : BunitContext
         _localizer["MatchHistory_Yesterday"].Returns(new LocalizedString("MatchHistory_Yesterday", "Včera"));
         _localizer["MatchHistory_ThisWeek"].Returns(new LocalizedString("MatchHistory_ThisWeek", "Tento týden"));
         _localizer["MatchHistory_Older"].Returns(new LocalizedString("MatchHistory_Older", "Starší"));
-        _localizer["MatchHistory_Type_Quick"].Returns(new LocalizedString("MatchHistory_Type_Quick", "⚔️ Quick"));
-        _localizer["MatchHistory_Type_Private"].Returns(new LocalizedString("MatchHistory_Type_Private", "🏠 Private"));
+        _localizer["MatchHistory_Type_Quick"].Returns(new LocalizedString("MatchHistory_Type_Quick", "⚔️ Rychlý"));
+        _localizer["MatchHistory_Type_Private"].Returns(new LocalizedString("MatchHistory_Type_Private", "🏠 Soukromý"));
         _localizer["MatchHistory_Duration"].Returns(new LocalizedString("MatchHistory_Duration", "Délka"));
         _localizer["MatchHistory_XP"].Returns(new LocalizedString("MatchHistory_XP", "XP"));
         _localizer["MatchHistory_Back"].Returns(new LocalizedString("MatchHistory_Back", "Zpět"));
@@ -68,8 +68,8 @@ public class MatchHistoryPageTests : BunitContext
         // Assert
         cut.Find("h1").TextContent.Should().Contain("Historie");
         cut.FindAll("button").Any(b => b.TextContent.Contains("Vše")).Should().BeTrue();
-        cut.FindAll("button").Any(b => b.TextContent.Contains("Quick Match")).Should().BeTrue();
-        cut.FindAll("button").Any(b => b.TextContent.Contains("Private Room")).Should().BeTrue();
+        cut.FindAll("button").Any(b => b.TextContent.Contains("Rychlý zápas")).Should().BeTrue();
+        cut.FindAll("button").Any(b => b.TextContent.Contains("Soukromá místnost")).Should().BeTrue();
     }
 
     [Fact]
@@ -83,7 +83,7 @@ public class MatchHistoryPageTests : BunitContext
         cut.FindAll(".stat-label").Any(l => l.TextContent.Contains("Odehráno")).Should().BeTrue();
         cut.FindAll(".stat-label").Any(l => l.TextContent.Contains("Výhry")).Should().BeTrue();
         cut.FindAll(".stat-label").Any(l => l.TextContent.Contains("Prohry")).Should().BeTrue();
-        cut.FindAll(".stat-label").Any(l => l.TextContent.Contains("Win Rate")).Should().BeTrue();
+        cut.FindAll(".stat-label").Any(l => l.TextContent.Contains("Úspěšnost")).Should().BeTrue();
     }
 
     [Fact]
@@ -120,7 +120,7 @@ public class MatchHistoryPageTests : BunitContext
     {
         // Arrange
         var cut = Render<MatchHistory>();
-        var quickMatchTab = cut.FindAll("button").First(b => b.TextContent.Contains("Quick Match"));
+        var quickMatchTab = cut.FindAll("button").First(b => b.TextContent.Contains("Rychlý zápas"));
 
         // Act
         quickMatchTab.Click();

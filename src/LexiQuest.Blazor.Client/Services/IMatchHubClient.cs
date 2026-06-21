@@ -41,6 +41,11 @@ public interface IMatchHubClient : IAsyncDisposable
     /// Event raised when opponent's progress updates.
     /// </summary>
     event EventHandler<OpponentProgressDto>? OnOpponentProgress;
+
+    /// <summary>
+    /// Event raised when current player's progress updates.
+    /// </summary>
+    event EventHandler<OpponentProgressDto>? OnPlayerProgress;
     
     /// <summary>
     /// Event raised when the match ends.
@@ -56,6 +61,21 @@ public interface IMatchHubClient : IAsyncDisposable
     /// Event raised when a room is created (private rooms).
     /// </summary>
     event EventHandler<RoomCreatedEvent>? OnRoomCreated;
+
+    /// <summary>
+    /// Event raised when room creation fails.
+    /// </summary>
+    event EventHandler<string>? OnRoomCreationFailed;
+
+    /// <summary>
+    /// Event raised when the current player joins a private room.
+    /// </summary>
+    event EventHandler<string>? OnRoomJoined;
+
+    /// <summary>
+    /// Event raised when joining a private room fails.
+    /// </summary>
+    event EventHandler<string>? OnRoomJoinFailed;
     
     /// <summary>
     /// Event raised when a player joins the room.
@@ -71,6 +91,16 @@ public interface IMatchHubClient : IAsyncDisposable
     /// Event raised when a player is ready.
     /// </summary>
     event EventHandler<Guid>? OnPlayerReady;
+
+    /// <summary>
+    /// Event raised when a player's ready state changes.
+    /// </summary>
+    event EventHandler<PlayerReadyStateDto>? OnPlayerReadyStateChanged;
+
+    /// <summary>
+    /// Event raised when the room state is reset for rematch.
+    /// </summary>
+    event EventHandler<IReadOnlyList<PlayerReadyStateDto>>? OnRoomStateReset;
     
     /// <summary>
     /// Event raised when room expires.
@@ -81,11 +111,21 @@ public interface IMatchHubClient : IAsyncDisposable
     /// Event raised when rematch is requested.
     /// </summary>
     event EventHandler<Guid>? OnRematchRequested;
+
+    /// <summary>
+    /// Event raised when rematch is declined.
+    /// </summary>
+    event EventHandler<Guid>? OnRematchDeclined;
     
     /// <summary>
     /// Event raised when lobby message is received.
     /// </summary>
     event EventHandler<LobbyMessageDto>? OnLobbyMessage;
+
+    /// <summary>
+    /// Event raised when a lobby chat message is rejected.
+    /// </summary>
+    event EventHandler<string>? OnChatError;
     
     /// <summary>
     /// Starts the connection to the hub.
@@ -116,6 +156,11 @@ public interface IMatchHubClient : IAsyncDisposable
     /// Joins a private room by code.
     /// </summary>
     Task JoinRoomAsync(string roomCode);
+
+    /// <summary>
+    /// Gets current private room status.
+    /// </summary>
+    Task<RoomStatusDto?> GetRoomStatusAsync(string roomCode);
     
     /// <summary>
     /// Leaves the current room.
@@ -125,12 +170,27 @@ public interface IMatchHubClient : IAsyncDisposable
     /// <summary>
     /// Sets the player as ready.
     /// </summary>
-    Task SetReadyAsync();
+    Task SetReadyAsync(bool isReady = true);
     
     /// <summary>
     /// Requests a rematch.
     /// </summary>
     Task RequestRematchAsync();
+
+    /// <summary>
+    /// Accepts a rematch request.
+    /// </summary>
+    Task AcceptRematchAsync();
+
+    /// <summary>
+    /// Declines a rematch request.
+    /// </summary>
+    Task DeclineRematchAsync();
+
+    /// <summary>
+    /// Joins an existing active match group.
+    /// </summary>
+    Task<bool> JoinMatchAsync(Guid matchId);
     
     /// <summary>
     /// Submits an answer.
@@ -141,6 +201,11 @@ public interface IMatchHubClient : IAsyncDisposable
     /// Forfeits the current match.
     /// </summary>
     Task ForfeitAsync();
+
+    /// <summary>
+    /// Requests server-side completion when the match timer has expired.
+    /// </summary>
+    Task ExpireMatchAsync();
     
     /// <summary>
     /// Sends a lobby message.

@@ -24,6 +24,11 @@ public class DailyChallengeRepository : IDailyChallengeRepository
         await _context.DailyChallenges.AddAsync(challenge, cancellationToken);
     }
 
+    public async Task<int> CountAsync(CancellationToken cancellationToken = default)
+    {
+        return await _context.DailyChallenges.CountAsync(cancellationToken);
+    }
+
     public async Task<bool> HasUserCompletedAsync(Guid userId, DateTime date, CancellationToken cancellationToken = default)
     {
         return await _context.DailyChallengeCompletions
@@ -32,18 +37,19 @@ public class DailyChallengeRepository : IDailyChallengeRepository
 
     public async Task<List<DailyLeaderboardEntry>> GetLeaderboardAsync(DateTime date, CancellationToken cancellationToken = default)
     {
-        var completions = await _context.DailyChallengeCompletions
+        return await _context.DailyChallengeCompletions
             .Where(dcc => dcc.ChallengeDate == date)
             .OrderBy(dcc => dcc.TimeTaken)
+            .Join(
+                _context.Users,
+                completion => completion.UserId,
+                user => user.Id,
+                (completion, user) => new DailyLeaderboardEntry(
+                    completion.UserId,
+                    user.Username,
+                    completion.TimeTaken,
+                    completion.XPEarned))
             .ToListAsync(cancellationToken);
-
-        // Note: In real implementation, you'd join with Users table to get usernames
-        return completions.Select(c => new DailyLeaderboardEntry(
-            c.UserId,
-            $"User_{c.UserId.ToString()[..8]}",
-            c.TimeTaken,
-            c.XPEarned
-        )).ToList();
     }
 
     public async Task RecordCompletionAsync(DailyChallengeCompletion completion, CancellationToken cancellationToken = default)

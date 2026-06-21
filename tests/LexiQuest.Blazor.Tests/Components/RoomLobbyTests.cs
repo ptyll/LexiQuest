@@ -26,24 +26,36 @@ public class RoomLobbyTests : BunitContext
 
     private void SetupLocalizer()
     {
-        _localizer["Room_Lobby_Title"].Returns(new LocalizedString("Room_Lobby_Title", "Lobby"));
+        _localizer["Room_Lobby_Title"].Returns(new LocalizedString("Room_Lobby_Title", "Čekárna"));
         _localizer["Room_Lobby_WaitingForOpponent"].Returns(new LocalizedString("Room_Lobby_WaitingForOpponent", "Čekání na soupeře..."));
         _localizer["Room_Lobby_OpponentJoined"].Returns(new LocalizedString("Room_Lobby_OpponentJoined", "Soupeř se připojil!"));
         _localizer["Room_Lobby_Ready"].Returns(new LocalizedString("Room_Lobby_Ready", "Připraven ✓"));
         _localizer["Room_Lobby_NotReady"].Returns(new LocalizedString("Room_Lobby_NotReady", "Čeká..."));
-        _localizer["Room_Lobby_BothReady"].Returns(new LocalizedString("Room_Lobby_BothReady", "Obě hráči připraveni!"));
+        _localizer["Room_Lobby_BothReady"].Returns(new LocalizedString("Room_Lobby_BothReady", "Oba hráči připraveni!"));
         _localizer["Room_Lobby_ReadyButton"].Returns(new LocalizedString("Room_Lobby_ReadyButton", "Jsem připraven!"));
         _localizer["Room_Lobby_CancelReadyButton"].Returns(new LocalizedString("Room_Lobby_CancelReadyButton", "Zrušit připravení"));
         _localizer["Room_Lobby_Chat_Placeholder"].Returns(new LocalizedString("Room_Lobby_Chat_Placeholder", "Napište zprávu..."));
         _localizer["Room_Lobby_Chat_Send"].Returns(new LocalizedString("Room_Lobby_Chat_Send", "Odeslat"));
+        _localizer["Room_Lobby_Chat_RateLimit"].Returns(new LocalizedString("Room_Lobby_Chat_RateLimit", "Posíláš zprávy příliš rychle. Chvilku počkej."));
+        _localizer["Room_Lobby_Chat_Error"].Returns(new LocalizedString("Room_Lobby_Chat_Error", "Zprávu se nepodařilo odeslat."));
         _localizer["Room_Code_Label"].Returns(new LocalizedString("Room_Code_Label", "Kód místnosti"));
         _localizer["Room_Code_CopySuccess"].Returns(new LocalizedString("Room_Code_CopySuccess", "Kód zkopírován!"));
         _localizer["Room_Code_ShareText"].Returns(new LocalizedString("Room_Code_ShareText", "Připoj se do mé místnosti: {0}"));
         _localizer["Room_Settings_Title"].Returns(new LocalizedString("Room_Settings_Title", "Nastavení hry"));
         _localizer["Room_Settings_WordCount"].Returns(new LocalizedString("Room_Settings_WordCount", "Počet slov"));
         _localizer["Room_Settings_TimeLimit"].Returns(new LocalizedString("Room_Settings_TimeLimit", "Časový limit"));
+        _localizer["Room_Settings_Minutes"].Returns(new LocalizedString("Room_Settings_Minutes", "{0} min"));
         _localizer["Room_Settings_Difficulty"].Returns(new LocalizedString("Room_Settings_Difficulty", "Obtížnost"));
-        _localizer["Room_Settings_BestOf"].Returns(new LocalizedString("Room_Settings_BestOf", "Best of"));
+        _localizer["Room_Settings_BestOf"].Returns(new LocalizedString("Room_Settings_BestOf", "Série"));
+        _localizer["Room_Settings_BestOfSingle"].Returns(new LocalizedString("Room_Settings_BestOfSingle", "1 hra"));
+        _localizer["Room_Settings_BestOfSeries"].Returns(new LocalizedString("Room_Settings_BestOfSeries", "Na {0} hry"));
+        _localizer["Room_Settings_BestOfSeriesMany"].Returns(new LocalizedString("Room_Settings_BestOfSeriesMany", "Na {0} her"));
+        _localizer["Room_Code_Copy"].Returns(new LocalizedString("Room_Code_Copy", "Kopírovat kód místnosti"));
+        _localizer["Room_Player_Host"].Returns(new LocalizedString("Room_Player_Host", "Hostitel"));
+        _localizer["Difficulty_Beginner"].Returns(new LocalizedString("Difficulty_Beginner", "Začátečník 🌱"));
+        _localizer["Difficulty_Intermediate"].Returns(new LocalizedString("Difficulty_Intermediate", "Mírně pokročilý 🌿"));
+        _localizer["Difficulty_Advanced"].Returns(new LocalizedString("Difficulty_Advanced", "Pokročilý 🌳"));
+        _localizer["Difficulty_Expert"].Returns(new LocalizedString("Difficulty_Expert", "Expert 🔥"));
         _localizer["Room_Expired"].Returns(new LocalizedString("Room_Expired", "Místnost vypršela"));
         _localizer["Room_Leave_Confirm"].Returns(new LocalizedString("Room_Leave_Confirm", "Opravdu chcete opustit místnost?"));
         _localizer["Button_Cancel"].Returns(new LocalizedString("Button_Cancel", "Zrušit"));
@@ -91,6 +103,20 @@ public class RoomLobbyTests : BunitContext
     }
 
     [Fact]
+    public void RoomLobby_CountdownTickBeforeReadyRefresh_ShowsCountdown()
+    {
+        // Arrange
+        var roomStatus = CreateFullRoom();
+        var cut = Render<RoomLobby>(parameters => parameters
+            .Add(p => p.RoomStatus, roomStatus)
+            .Add(p => p.IsHost, true)
+            .Add(p => p.CountdownSeconds, 3));
+
+        // Assert
+        cut.Find("[data-testid='private-room-countdown']").TextContent.Should().Be("3");
+    }
+
+    [Fact]
     public void RoomLobby_Chat_SendsAndReceivesMessages()
     {
         // Arrange
@@ -99,13 +125,23 @@ public class RoomLobbyTests : BunitContext
         var cut = Render<RoomLobby>(parameters => parameters
             .Add(p => p.RoomStatus, roomStatus)
             .Add(p => p.IsHost, true)
+            .Add(p => p.ChatErrorMessage, "Posíláš zprávy příliš rychle. Chvilku počkej.")
+            .Add(p => p.ChatMessages, new List<LobbyMessageDto>
+            {
+                new("Guest", "Ahoj hostiteli!", DateTime.UtcNow)
+            })
             .Add(p => p.OnSendMessage, msg => { sentMessage = msg; }));
 
         // Act
-        var input = cut.Find(".chat-input");
+        cut.Find("[data-testid='private-room-chat-section']").Should().NotBeNull();
+        cut.Find("[data-testid='private-room-chat-error']").TextContent.Should().Contain("Posíláš zprávy příliš rychle");
+        cut.Find("[data-testid='private-room-chat-message']").TextContent.Should().Contain("Guest");
+        cut.Find("[data-testid='private-room-chat-message-text']").TextContent.Should().Contain("Ahoj hostiteli!");
+
+        var input = cut.Find("[data-testid='private-room-chat-input']");
         input.Input("Ahoj!");
         
-        var sendButton = cut.Find(".chat-send-button");
+        var sendButton = cut.Find("[data-testid='private-room-chat-send']");
         sendButton.Click();
 
         // Assert

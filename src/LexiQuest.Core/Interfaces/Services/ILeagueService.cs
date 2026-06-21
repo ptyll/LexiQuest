@@ -7,6 +7,7 @@ namespace LexiQuest.Core.Interfaces.Services;
 public interface ILeagueService
 {
     Task AssignUserToLeagueAsync(Guid userId, DateTime weekStart, DateTime weekEnd, CancellationToken cancellationToken = default);
+    Task AssignUserToLeagueAsync(Guid userId, LeagueTier tier, DateTime weekStart, DateTime weekEnd, CancellationToken cancellationToken = default);
     Task<LeagueInfoDto?> GetCurrentLeagueAsync(Guid userId, CancellationToken cancellationToken = default);
     Task AddXPAsync(Guid userId, int xp, CancellationToken cancellationToken = default);
     Task<List<LeagueParticipantDto>> GetLeaderboardAsync(Guid userId, CancellationToken cancellationToken = default);

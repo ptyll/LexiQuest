@@ -61,6 +61,27 @@ public class RoomServiceTests
     }
 
     [Fact]
+    public async Task RoomService_CreateRoom_InvalidSettings_ReturnsValidationError()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var settings = new RoomSettingsDto(
+            WordCount: 12,
+            TimeLimitMinutes: 4,
+            Difficulty: DifficultyLevel.Intermediate,
+            BestOf: 2);
+
+        // Act
+        var (room, error) = await _roomService.CreateRoomAsync(userId, "TestPlayer", settings);
+
+        // Assert
+        room.Should().BeNull();
+        error.Should().Contain("Počet slov");
+        error.Should().Contain("Časový limit");
+        error.Should().Contain("Série");
+    }
+
+    [Fact]
     public async Task RoomService_CreateRoom_SetsExpiresAt5Min()
     {
         // Arrange

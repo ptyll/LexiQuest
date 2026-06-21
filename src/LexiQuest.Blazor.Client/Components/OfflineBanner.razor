@@ -1,10 +1,11 @@
 @implements IAsyncDisposable
 @inject IStringLocalizer<OfflineBanner> L
 @inject IJSRuntime JS
+@inject IGameService GameService
 
 @if (!_isOnline)
 {
-    <div class="offline-banner">
+    <div class="offline-banner" data-testid="offline-banner" role="status" aria-live="polite">
         <TmAlert Severity="AlertSeverity.Warning">
             <strong>@L["OfflineTitle"]</strong> @L["OfflineMessage"]
         </TmAlert>
@@ -30,7 +31,15 @@
     public void OnConnectivityChanged(bool isOnline)
     {
         _isOnline = isOnline;
-        InvokeAsync(StateHasChanged);
+        _ = InvokeAsync(async () =>
+        {
+            if (isOnline)
+            {
+                await GameService.ReplayQueuedRequestsAsync();
+            }
+
+            StateHasChanged();
+        });
     }
 
     public async ValueTask DisposeAsync()

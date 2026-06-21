@@ -5,42 +5,53 @@
 @inject IAchievementService AchievementService
 @inject IStringLocalizer<Achievements> L
 
-<div class="achievements-page">
+<div class="achievements-page" data-testid="achievements-page">
     @if (isLoading)
     {
-        <div class="loading-state">
+        <div class="loading-state" data-testid="achievements-loading">
             <TmSkeleton Type="Rectangle" Height="100px" />
             <TmSkeleton Type="Rectangle" Height="400px" />
         </div>
     }
     else
     {
+        <div class="page-heading">
+            <h1>@L["Page.Title"]</h1>
+        </div>
+
         @* Progress Header *@
-        <div class="progress-header">
+        <div class="progress-header" data-testid="achievements-progress">
             <TmCard>
                 <div class="progress-content">
                     <h2>@L["Progress.Title"]</h2>
                     <div class="progress-stats">
-                        <span class="unlocked-count">@unlockedCount / @totalCount</span>
-                        <TmProgressBar 
-                            Value="@unlockedCount" 
-                            Max="@totalCount"
-                            Class="total-progress" />
+                        <span class="unlocked-count" data-testid="achievements-unlocked-count">@unlockedCount / @totalCount</span>
+                        <div class="total-progress" data-testid="achievements-total-progress">
+                            <TmProgressBar
+                                Value="@unlockedCount"
+                                Max="@Math.Max(totalCount, 1)" />
+                        </div>
                     </div>
                 </div>
             </TmCard>
         </div>
 
         @* Category Tabs *@
-        <div class="category-tabs">
-            <button 
+        <div class="category-tabs" data-testid="achievements-tabs">
+            <button
+                type="button"
+                data-testid="achievement-tab-all"
+                aria-pressed="@(selectedCategory == null)"
                 class="tab-item @(selectedCategory == null ? "active" : "")"
                 @onclick="() => SelectCategory(null)">
                 @L["Category.All"]
             </button>
             @foreach (var category in Enum.GetValues<AchievementCategory>())
             {
-                <button 
+                <button
+                    type="button"
+                    data-testid="@GetCategoryTestId(category)"
+                    aria-pressed="@(selectedCategory == category)"
                     class="tab-item @(selectedCategory == category ? "active" : "")"
                     @onclick="() => SelectCategory(category)">
                     @GetCategoryName(category)
@@ -49,10 +60,14 @@
         </div>
 
         @* Achievement Grid *@
-        <div class="achievement-grid">
+        <div class="achievement-grid" data-testid="achievement-grid">
             @foreach (var achievement in FilteredAchievements)
             {
-                <div class="achievement-card @GetCardClass(achievement)">
+                <div class="achievement-card @GetCardClass(achievement)"
+                     data-testid="@GetCardTestId(achievement)"
+                     data-state="@GetCardClass(achievement)"
+                     data-category="@achievement.Category">
+                    <span class="state-marker" data-testid="@GetStateTestId(achievement)"></span>
                     <div class="achievement-icon">
                         @if (achievement.IsUnlocked)
                         {
@@ -72,21 +87,21 @@
                         <p>@achievement.Description</p>
                         @if (!achievement.IsUnlocked && achievement.ProgressPercentage > 0)
                         {
-                            <div class="progress-section">
-                                <TmProgressBar 
-                                    Value="@achievement.ProgressPercentage" 
+                            <div class="progress-section" data-testid="achievement-progress-section">
+                                <TmProgressBar
+                                    Value="@achievement.ProgressPercentage"
                                     Max="100" />
                                 <span>@achievement.CurrentProgress / @achievement.RequiredValue</span>
                             </div>
                         }
                         @if (achievement.IsUnlocked && achievement.UnlockedAt.HasValue)
                         {
-                            <span class="unlocked-date">
+                            <span class="unlocked-date" data-testid="achievement-unlocked-date">
                                 @L["UnlockedOn", achievement.UnlockedAt.Value.ToString("dd.MM.yyyy")]
                             </span>
                         }
                     </div>
-                    <div class="achievement-xp">
+                    <div class="achievement-xp" data-testid="achievement-xp">
                         <TmBadge Variant="BadgeVariant.Primary">
                             +@achievement.XPReward XP
                         </TmBadge>
@@ -127,6 +142,19 @@
     }
 
     private string GetCategoryName(AchievementCategory category) => L[$"Category.{category}"].Value;
+
+    private static string GetCategoryTestId(AchievementCategory category) =>
+        $"achievement-tab-{category.ToString().ToLowerInvariant()}";
+
+    private static string GetCardTestId(AchievementDto achievement) =>
+        $"achievement-card-{achievement.Key}";
+
+    private static string GetStateTestId(AchievementDto achievement)
+    {
+        if (achievement.IsUnlocked) return "achievement-card-unlocked";
+        if (achievement.ProgressPercentage > 0) return "achievement-card-in-progress";
+        return "achievement-card-locked";
+    }
 
     private string GetCardClass(AchievementDto achievement)
     {

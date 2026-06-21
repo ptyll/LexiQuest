@@ -4,7 +4,7 @@
 
 @if (_showPrompt)
 {
-    <div class="install-prompt">
+    <div class="install-prompt" data-testid="install-prompt" role="dialog" aria-live="polite">
         <TmAlert Severity="AlertSeverity.Info">
             <div class="install-prompt-content">
                 <div class="install-prompt-text">
@@ -14,11 +14,13 @@
                 <div class="install-prompt-actions">
                     <TmButton Variant="ButtonVariant.Primary"
                               Size="ButtonSize.Sm"
+                              AdditionalAttributes="@(new Dictionary<string, object?> { ["data-testid"] = "install-prompt-install" })"
                               OnClick="InstallApp">
                         @L["InstallButton"]
                     </TmButton>
                     <TmButton Variant="ButtonVariant.Ghost"
                               Size="ButtonSize.Sm"
+                              AdditionalAttributes="@(new Dictionary<string, object?> { ["data-testid"] = "install-prompt-dismiss" })"
                               OnClick="Dismiss">
                         @L["DismissButton"]
                     </TmButton>

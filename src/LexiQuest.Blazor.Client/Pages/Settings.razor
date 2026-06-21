@@ -1,294 +1,462 @@
 @page "/settings"
+@using LexiQuest.Shared.DTOs.Notifications
 @using LexiQuest.Shared.DTOs.Users
 @using LexiQuest.Shared.Enums
 @inject IStringLocalizer<Settings> L
 @inject IUserService UserService
+@inject INotificationService NotificationService
+@inject IAuthService AuthService
 @inject NavigationManager NavigationManager
 @inject ToastService ToastService
+@inject IJSRuntime JSRuntime
 
-<div class="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
-    <div class="max-w-4xl mx-auto px-4">
-        <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-8">@L["Settings_Title"]</h1>
+<div class="settings-page" data-testid="settings-page">
+    <header class="settings-header">
+        <p class="settings-kicker">@L["Settings_ProfileTab"]</p>
+        <h1>@L["Settings_Title"]</h1>
+    </header>
 
-        @if (_isLoading)
-        {
-            <TmSkeleton Type="Rectangle" Height="400px" />
-        }
-        else if (_profile == null)
-        {
-            <TmEmptyState 
-                Icon="alert-circle"
-                Title="@L["Settings_LoadError"]"
-                Description="@L["Settings_LoadErrorDescription"]" />
-        }
-        else
-        {
-            <div class="space-y-8">
-                <!-- Profile Section -->
-                <div data-testid="profile-section" class="space-y-6">
-                    <TmCard Variant="CardVariant.Elevated" Class="p-6">
-                        <h2 class="text-xl font-semibold mb-4">@L["Settings_ProfileTitle"]</h2>
-                        
-                        <!-- Avatar -->
-                        <div class="flex items-center gap-4 mb-6">
-                            <TmAvatar Src="@_profile.AvatarUrl" Alt="@_profile.Username" />
-                            <TmButton Variant="ButtonVariant.Outline">
-                                @L["Settings_ChangeAvatar"]
-                            </TmButton>
-                        </div>
-
-                        <!-- Username -->
-                        <TmFormField Label="@L["Settings_Username"]" Class="mb-4">
-                            <div class="flex gap-2" data-testid="username-input">
-                                <TmTextInput 
-                                    @bind-Value="_updateRequest.Username"
-                                    Placeholder="@L["Settings_UsernamePlaceholder"]" />
-                                @if (_isCheckingUsername)
-                                {
-                                    <TmIcon Name="loader" Class="animate-spin" />
-                                }
-                                else if (_usernameAvailable == true)
-                                {
-                                    <TmIcon Name="check" Class="text-green-500" />
-                                }
-                                else if (_usernameAvailable == false)
-                                {
-                                    <TmIcon Name="x" Class="text-red-500" />
-                                }
-                            </div>
-                        </TmFormField>
-
-                        <!-- Email -->
-                        <div data-testid="email-input">
-                            <TmFormField Label="@L["Settings_Email"]" Class="mb-4">
-                                <TmTextInput
-                                    @bind-Value="_updateRequest.Email"
-                                    Placeholder="@L["Settings_EmailPlaceholder"]" />
-                            </TmFormField>
-                        </div>
-
-                        <div data-testid="save-profile-btn">
-                            <TmButton
-                                Variant="ButtonVariant.Primary"
-                                OnClick="SaveProfile"
-                                Disabled="_isSaving">
-                                @if (_isSaving)
-                                {
-                                    <TmIcon Name="spinner" Class="animate-spin mr-2" />
-                                }
-                                @L["Settings_SaveChanges"]
-                            </TmButton>
-                        </div>
-                    </TmCard>
+    @if (_isLoading)
+    {
+        <div class="settings-loading" data-testid="settings-loading" aria-busy="true">
+            <TmSkeleton Type="Rectangle" Height="120px" />
+            <TmSkeleton Type="Rectangle" Height="280px" />
+            <TmSkeleton Type="Rectangle" Height="220px" />
+        </div>
+    }
+    else if (_profile == null)
+    {
+        <section class="settings-empty" role="alert">
+            <h2>@L["Settings_LoadError"]</h2>
+            <p>@L["Settings_LoadErrorDescription"]</p>
+            <button type="button" class="settings-btn settings-btn-primary" @onclick="LoadProfile">
+                @L["Settings_Retry"]
+            </button>
+        </section>
+    }
+    else
+    {
+        <div class="settings-grid">
+            <section class="settings-card" data-testid="profile-section">
+                <div class="settings-section-heading">
+                    <h2>@L["Settings_ProfileTitle"]</h2>
+                    <p>@L["Settings_ProfileDescription"]</p>
                 </div>
 
-                <!-- Password Section -->
-                <div data-testid="password-section" class="space-y-6">
-                    <TmCard Variant="CardVariant.Elevated" Class="p-6">
-                        <h2 class="text-xl font-semibold mb-4">@L["Settings_ChangePassword"]</h2>
-                        
-                        <div data-testid="current-password-input">
-                            <TmFormField Label="@L["Settings_CurrentPassword"]" Class="mb-4">
-                                <TmTextInput
-                                    @bind-Value="_passwordRequest.CurrentPassword"
-                                    Type="password"
-                                    Placeholder="@L["Settings_CurrentPasswordPlaceholder"]" />
-                            </TmFormField>
-                        </div>
-
-                        <div data-testid="new-password-input">
-                            <TmFormField Label="@L["Settings_NewPassword"]" Class="mb-4">
-                                <TmTextInput
-                                    @bind-Value="_passwordRequest.NewPassword"
-                                    Type="password"
-                                    Placeholder="@L["Settings_NewPasswordPlaceholder"]" />
-                            </TmFormField>
-                        </div>
-
-                        <div data-testid="confirm-password-input">
-                            <TmFormField Label="@L["Settings_ConfirmPassword"]" Class="mb-4">
-                                <TmTextInput
-                                    @bind-Value="_passwordRequest.ConfirmPassword"
-                                    Type="password"
-                                    Placeholder="@L["Settings_ConfirmPasswordPlaceholder"]" />
-                            </TmFormField>
-                        </div>
-
-                        <div data-testid="change-password-btn">
-                            <TmButton
-                                Variant="ButtonVariant.Primary"
-                                OnClick="ChangePassword"
-                                Disabled="_isChangingPassword">
-                                @if (_isChangingPassword)
-                                {
-                                    <TmIcon Name="spinner" Class="animate-spin mr-2" />
-                                }
-                                @L["Settings_ChangePasswordBtn"]
-                            </TmButton>
-                        </div>
-                    </TmCard>
+                <div class="avatar-editor">
+                    <div class="avatar-preview-frame">
+                        @if (!string.IsNullOrWhiteSpace(_avatarPreviewUrl))
+                        {
+                            <img data-testid="avatar-preview"
+                                 src="@_avatarPreviewUrl"
+                                 alt="@string.Format(L["Settings_AvatarAlt"], _updateRequest.Username)"
+                                 class="avatar-preview" />
+                        }
+                        else
+                        {
+                            <span>@GetAvatarInitials()</span>
+                        }
+                    </div>
+                    <div class="avatar-controls">
+                        <label class="settings-file-button" for="avatar-upload">
+                            @L["Settings_ChangeAvatar"]
+                        </label>
+                        <InputFile id="avatar-upload"
+                                   data-testid="avatar-file-input"
+                                   accept="image/png,image/jpeg,image/webp"
+                                   style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);clip-path:inset(50%);white-space:nowrap;"
+                                   OnChange="HandleAvatarSelected" />
+                        <p class="settings-help">@L["Settings_AvatarHelp"]</p>
+                        @if (!string.IsNullOrWhiteSpace(_avatarError))
+                        {
+                            <p class="settings-error" data-testid="avatar-error">@_avatarError</p>
+                        }
+                    </div>
                 </div>
 
-                <!-- Preferences Section -->
-                <div data-testid="preferences-section" class="space-y-6">
-                    <TmCard Variant="CardVariant.Elevated" Class="p-6">
-                        <h2 class="text-xl font-semibold mb-4">@L["Settings_Notifications"]</h2>
-                        
-                        <div class="space-y-4">
-                            <div class="flex items-center justify-between" data-testid="push-notifications-toggle">
-                                <span>@L["Settings_PushNotifications"]</span>
-                                <TmToggle
-                                    @bind-Value="_preferences.PushNotificationsEnabled" 
-                                     />
-                            </div>
-
-                            <div class="flex items-center justify-between" data-testid="email-notifications-toggle">
-                                <span>@L["Settings_EmailNotifications"]</span>
-                                <TmToggle
-                                    @bind-Value="_preferences.EmailNotificationsEnabled" 
-                                     />
-                            </div>
-
-                            <div class="flex items-center justify-between">
-                                <span>@L["Settings_LeagueUpdates"]</span>
-                                <TmToggle 
-                                    @bind-Value="_preferences.LeagueUpdatesEnabled" 
-                                     />
-                            </div>
-
-                            <div class="flex items-center justify-between">
-                                <span>@L["Settings_AchievementNotifications"]</span>
-                                <TmToggle 
-                                    @bind-Value="_preferences.AchievementNotificationsEnabled" 
-                                     />
-                            </div>
-                        </div>
-                        <TmButton Variant="ButtonVariant.Primary" OnClick="SavePreferences" Class="mt-4">
-                            @L["Settings_SaveChanges"]
-                        </TmButton>
-                    </TmCard>
-
-                    <TmCard Variant="CardVariant.Elevated" Class="p-6">
-                        <h2 class="text-xl font-semibold mb-4">@L["Settings_Display"]</h2>
-                        
-                        <div class="space-y-4">
-                            <TmFormField Label="@L["Settings_Theme"]">
-                                <TmRadioGroup 
-                                    @bind-Value="_preferences.Theme"
-                                    Options="_themeOptions"
-                                     />
-                            </TmFormField>
-
-                            <div class="flex items-center justify-between" data-testid="animations-toggle">
-                                <span>@L["Settings_Animations"]</span>
-                                <TmToggle
-                                    @bind-Value="_preferences.AnimationsEnabled" 
-                                     />
-                            </div>
-
-                            <div class="flex items-center justify-between" data-testid="sounds-toggle">
-                                <span>@L["Settings_Sounds"]</span>
-                                <TmToggle
-                                    @bind-Value="_preferences.SoundsEnabled" 
-                                     />
-                            </div>
-                        </div>
-                        <TmButton Variant="ButtonVariant.Primary" OnClick="SavePreferences" Class="mt-4">
-                            @L["Settings_SaveChanges"]
-                        </TmButton>
-                    </TmCard>
+                <div class="settings-field" data-testid="username-input">
+                    <label for="settings-username">@L["Settings_Username"]</label>
+                    <input id="settings-username"
+                           type="text"
+                           autocomplete="username"
+                           placeholder="@L["Settings_UsernamePlaceholder"]"
+                           @bind="_updateRequest.Username" />
                 </div>
 
-                <!-- Privacy Section -->
-                <div data-testid="privacy-section" class="space-y-6">
-                    <TmCard Variant="CardVariant.Elevated" Class="p-6">
-                        <h2 class="text-xl font-semibold mb-4">@L["Settings_PrivacyTitle"]</h2>
-                        
-                        <div data-testid="profile-visibility-group">
-                            <TmFormField Label="@L["Settings_ProfileVisibility"]" Class="mb-4">
-                                <TmRadioGroup
-                                    @bind-Value="_privacy.ProfileVisibility"
-                                    Options="_visibilityOptions"
-                                     />
-                            </TmFormField>
-                        </div>
-
-                        <div class="flex items-center justify-between mb-4" data-testid="leaderboard-visibility-toggle">
-                            <span>@L["Settings_LeaderboardVisible"]</span>
-                            <TmToggle
-                                @bind-Value="_privacy.LeaderboardVisible" 
-                                 />
-                        </div>
-
-                        <div class="flex items-center justify-between" data-testid="stats-sharing-toggle">
-                            <span>@L["Settings_StatsSharing"]</span>
-                            <TmToggle
-                                @bind-Value="_privacy.StatsSharingEnabled" 
-                                 />
-                        </div>
-                        <TmButton Variant="ButtonVariant.Primary" OnClick="SavePrivacy" Class="mt-4">
-                            @L["Settings_SaveChanges"]
-                        </TmButton>
-                    </TmCard>
-
-                    <!-- Danger Zone -->
-                    <TmCard Variant="CardVariant.Elevated" Class="p-6 border-red-200">
-                        <h2 class="text-xl font-semibold mb-4 text-red-600">@L["Settings_DangerZone"]</h2>
-                        
-                        <div class="space-y-4">
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <div class="font-medium">@L["Settings_Logout"]</div>
-                                    <div class="text-sm text-gray-500">@L["Settings_LogoutDescription"]</div>
-                                </div>
-                                <TmButton Variant="ButtonVariant.Outline" OnClick="Logout">
-                                    @L["Settings_LogoutBtn"]
-                                </TmButton>
-                            </div>
-
-                            <div class="border-t pt-4 flex items-center justify-between">
-                                <div>
-                                    <div class="font-medium text-red-600">@L["Settings_DeleteAccount"]</div>
-                                    <div class="text-sm text-gray-500">@L["Settings_DeleteAccountDescription"]</div>
-                                </div>
-                                <TmButton Variant="ButtonVariant.Danger" OnClick="ShowDeleteConfirm">
-                                    @L["Settings_DeleteAccountBtn"]
-                                </TmButton>
-                            </div>
-                        </div>
-                    </TmCard>
+                <div class="settings-field" data-testid="email-input">
+                    <label for="settings-email">@L["Settings_Email"]</label>
+                    <input id="settings-email"
+                           type="email"
+                           autocomplete="email"
+                           placeholder="@L["Settings_EmailPlaceholder"]"
+                           @bind="_updateRequest.Email" />
                 </div>
-            </div>
-        }
-    </div>
+
+                <div data-testid="save-profile-btn">
+                    <button type="button"
+                            class="settings-btn settings-btn-primary"
+                            disabled="@_isSaving"
+                            @onclick="SaveProfile">
+                        @L["Settings_SaveChanges"]
+                    </button>
+                </div>
+            </section>
+
+            <section class="settings-card" data-testid="password-section">
+                <div class="settings-section-heading">
+                    <h2>@L["Settings_ChangePassword"]</h2>
+                    <p>@L["Settings_PasswordDescription"]</p>
+                </div>
+
+                <div class="settings-field" data-testid="current-password-input">
+                    <label for="settings-current-password">@L["Settings_CurrentPassword"]</label>
+                    <input id="settings-current-password"
+                           type="password"
+                           autocomplete="current-password"
+                           placeholder="@L["Settings_CurrentPasswordPlaceholder"]"
+                           @bind="_passwordRequest.CurrentPassword" />
+                </div>
+
+                <div class="settings-field" data-testid="new-password-input">
+                    <label for="settings-new-password">@L["Settings_NewPassword"]</label>
+                    <input id="settings-new-password"
+                           type="password"
+                           autocomplete="new-password"
+                           placeholder="@L["Settings_NewPasswordPlaceholder"]"
+                           @bind="_passwordRequest.NewPassword" />
+                </div>
+
+                <div class="settings-field" data-testid="confirm-password-input">
+                    <label for="settings-confirm-password">@L["Settings_ConfirmPassword"]</label>
+                    <input id="settings-confirm-password"
+                           type="password"
+                           autocomplete="new-password"
+                           placeholder="@L["Settings_ConfirmPasswordPlaceholder"]"
+                           @bind="_passwordRequest.ConfirmPassword" />
+                </div>
+
+                <div data-testid="change-password-btn">
+                    <button type="button"
+                            class="settings-btn settings-btn-primary"
+                            disabled="@_isChangingPassword"
+                            @onclick="ChangePassword">
+                        @L["Settings_ChangePasswordBtn"]
+                    </button>
+                </div>
+
+                @if (!string.IsNullOrWhiteSpace(_passwordStatusMessage))
+                {
+                    <p class="@(_passwordStatusIsError ? "settings-error" : "settings-success")"
+                       role="@(_passwordStatusIsError ? "alert" : "status")"
+                       data-testid="password-status">
+                        @_passwordStatusMessage
+                    </p>
+                }
+            </section>
+
+            <section class="settings-card settings-card-wide" data-testid="preferences-section">
+                <div class="settings-section-heading">
+                    <h2>@L["Settings_Notifications"]</h2>
+                    <p>@L["Settings_NotificationsDescription"]</p>
+                </div>
+
+                <div class="settings-two-column">
+                    <label class="settings-toggle-row" data-testid="push-notifications-toggle">
+                        <span>@L["Settings_PushNotifications"]</span>
+                        <input type="checkbox"
+                               role="switch"
+                               checked="@_preferences.PushNotificationsEnabled"
+                               disabled="@_isConfiguringPush"
+                               @onchange="HandlePushNotificationsChanged" />
+                    </label>
+
+                    <label class="settings-toggle-row" data-testid="email-notifications-toggle">
+                        <span>@L["Settings_EmailNotifications"]</span>
+                        <input type="checkbox" role="switch" @bind="_preferences.EmailNotificationsEnabled" />
+                    </label>
+
+                    <label class="settings-toggle-row" data-testid="league-updates-toggle">
+                        <span>@L["Settings_LeagueUpdates"]</span>
+                        <input type="checkbox" role="switch" @bind="_preferences.LeagueUpdatesEnabled" />
+                    </label>
+
+                    <label class="settings-toggle-row" data-testid="achievement-notifications-toggle">
+                        <span>@L["Settings_AchievementNotifications"]</span>
+                        <input type="checkbox" role="switch" @bind="_preferences.AchievementNotificationsEnabled" />
+                    </label>
+
+                    <label class="settings-toggle-row" data-testid="daily-challenge-reminder-toggle">
+                        <span>@L["Settings_DailyChallengeReminder"]</span>
+                        <input type="checkbox" role="switch" @bind="_preferences.DailyChallengeReminderEnabled" />
+                    </label>
+
+                    <div class="settings-field compact" data-testid="streak-reminder-time-input">
+                        <label for="settings-reminder-time">@L["Settings_StreakReminderTime"]</label>
+                        <input id="settings-reminder-time"
+                               type="text"
+                               inputmode="numeric"
+                               placeholder="@L["Settings_TimePlaceholder"]"
+                               value="@_streakReminderInput"
+                               @onchange="HandleReminderTimeChanged" />
+                    </div>
+                </div>
+
+                <div class="settings-divider"></div>
+
+                <div class="settings-section-heading">
+                    <h2>@L["Settings_Display"]</h2>
+                    <p>@L["Settings_DisplayDescription"]</p>
+                </div>
+
+                <fieldset class="settings-radio-group" data-testid="theme-group">
+                    <legend>@L["Settings_Theme"]</legend>
+                    <label data-testid="theme-option-light">
+                        <input type="radio"
+                               name="settings-theme"
+                               checked="@(_preferences.Theme == AppTheme.Light)"
+                               @onchange="() => _preferences.Theme = AppTheme.Light" />
+                        <span>@L["Settings_ThemeLight"]</span>
+                    </label>
+                    <label data-testid="theme-option-dark">
+                        <input type="radio"
+                               name="settings-theme"
+                               checked="@(_preferences.Theme == AppTheme.Dark)"
+                               @onchange="() => _preferences.Theme = AppTheme.Dark" />
+                        <span>@L["Settings_ThemeDark"]</span>
+                    </label>
+                    <label data-testid="theme-option-auto">
+                        <input type="radio"
+                               name="settings-theme"
+                               checked="@(_preferences.Theme == AppTheme.Auto)"
+                               @onchange="() => _preferences.Theme = AppTheme.Auto" />
+                        <span>@L["Settings_ThemeAuto"]</span>
+                    </label>
+                </fieldset>
+
+                <div class="settings-two-column">
+                    <div class="settings-field compact" data-testid="language-select">
+                        <label for="settings-language">@L["Settings_Language"]</label>
+                        <select id="settings-language" @bind="_preferences.Language">
+                            <option value="cs">@L["Settings_LanguageCs"]</option>
+                            <option value="sk">@L["Settings_LanguageSk"]</option>
+                            <option value="en">@L["Settings_LanguageEn"]</option>
+                        </select>
+                    </div>
+
+                    <label class="settings-toggle-row" data-testid="animations-toggle">
+                        <span>@L["Settings_Animations"]</span>
+                        <input type="checkbox" role="switch" @bind="_preferences.AnimationsEnabled" />
+                    </label>
+
+                    <label class="settings-toggle-row" data-testid="sounds-toggle">
+                        <span>@L["Settings_Sounds"]</span>
+                        <input type="checkbox" role="switch" @bind="_preferences.SoundsEnabled" />
+                    </label>
+                </div>
+
+                <div data-testid="save-preferences-btn">
+                    <button type="button" class="settings-btn settings-btn-primary" @onclick="SavePreferences">
+                        @L["Settings_SaveChanges"]
+                    </button>
+                </div>
+            </section>
+
+            <section class="settings-card settings-card-wide" data-testid="privacy-section">
+                <div class="settings-section-heading">
+                    <h2>@L["Settings_PrivacyTitle"]</h2>
+                    <p>@L["Settings_PrivacyDescription"]</p>
+                </div>
+
+                <fieldset class="settings-radio-group" data-testid="profile-visibility-group">
+                    <legend>@L["Settings_ProfileVisibility"]</legend>
+                    <label data-testid="visibility-option-public">
+                        <input type="radio"
+                               name="settings-profile-visibility"
+                               checked="@(_privacy.ProfileVisibility == ProfileVisibility.Public)"
+                               @onchange="() => _privacy.ProfileVisibility = ProfileVisibility.Public" />
+                        <span>@L["Settings_VisibilityPublic"]</span>
+                    </label>
+                    <label data-testid="visibility-option-friends">
+                        <input type="radio"
+                               name="settings-profile-visibility"
+                               checked="@(_privacy.ProfileVisibility == ProfileVisibility.Friends)"
+                               @onchange="() => _privacy.ProfileVisibility = ProfileVisibility.Friends" />
+                        <span>@L["Settings_VisibilityFriends"]</span>
+                    </label>
+                    <label data-testid="visibility-option-private">
+                        <input type="radio"
+                               name="settings-profile-visibility"
+                               checked="@(_privacy.ProfileVisibility == ProfileVisibility.Private)"
+                               @onchange="() => _privacy.ProfileVisibility = ProfileVisibility.Private" />
+                        <span>@L["Settings_VisibilityPrivate"]</span>
+                    </label>
+                </fieldset>
+
+                <div class="settings-two-column">
+                    <label class="settings-toggle-row" data-testid="leaderboard-visibility-toggle">
+                        <span>@L["Settings_LeaderboardVisible"]</span>
+                        <input type="checkbox" role="switch" @bind="_privacy.LeaderboardVisible" />
+                    </label>
+
+                    <label class="settings-toggle-row" data-testid="stats-sharing-toggle">
+                        <span>@L["Settings_StatsSharing"]</span>
+                        <input type="checkbox" role="switch" @bind="_privacy.StatsSharingEnabled" />
+                    </label>
+                </div>
+
+                <div data-testid="save-privacy-btn">
+                    <button type="button" class="settings-btn settings-btn-primary" @onclick="SavePrivacy">
+                        @L["Settings_SaveChanges"]
+                    </button>
+                </div>
+            </section>
+
+            <section class="settings-card settings-card-wide danger-card" data-testid="danger-zone">
+                <div class="settings-section-heading">
+                    <h2>@L["Settings_DangerZone"]</h2>
+                    <p>@L["Settings_DangerZoneDescription"]</p>
+                </div>
+
+                <div class="danger-list">
+                    <div class="danger-row">
+                        <div>
+                            <h3>@L["Settings_Logout"]</h3>
+                            <p>@L["Settings_LogoutDescription"]</p>
+                        </div>
+                        <div data-testid="settings-logout-btn">
+                            <button type="button" class="settings-btn settings-btn-secondary" @onclick="Logout">
+                                @L["Settings_LogoutBtn"]
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="danger-row">
+                        <div>
+                            <h3>@L["Settings_DeactivateAccount"]</h3>
+                            <p>@L["Settings_DeactivateAccountDescription"]</p>
+                        </div>
+                        <div data-testid="settings-deactivate-btn">
+                            <button type="button" class="settings-btn settings-btn-warning" @onclick="ShowDeactivateConfirm">
+                                @L["Settings_DeactivateAccountBtn"]
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="danger-row">
+                        <div>
+                            <h3>@L["Settings_DeleteAccount"]</h3>
+                            <p>@L["Settings_DeleteAccountDescription"]</p>
+                        </div>
+                        <div data-testid="settings-delete-btn">
+                            <button type="button" class="settings-btn settings-btn-danger" @onclick="ShowDeleteConfirm">
+                                @L["Settings_DeleteAccountBtn"]
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    }
 </div>
 
+@if (_dangerAction != DangerAction.None)
+{
+    <div class="settings-modal-backdrop" role="presentation">
+        <section class="settings-confirm-modal"
+                 role="dialog"
+                 aria-modal="true"
+                 aria-labelledby="settings-confirm-title"
+                 data-testid="settings-confirm-modal">
+            <h2 id="settings-confirm-title">@DangerModalTitle</h2>
+            <p>@DangerModalDescription</p>
+            <p class="settings-confirm-code">@string.Format(L["Settings_ConfirmCodeInstruction"], DangerConfirmCode)</p>
+
+            <div class="settings-field" data-testid="settings-confirm-input">
+                <label for="settings-confirm-text">@L["Settings_ConfirmInputLabel"]</label>
+                <input id="settings-confirm-text"
+                       type="text"
+                       autocomplete="off"
+                       @bind="_dangerConfirmText"
+                       @bind:event="oninput" />
+            </div>
+
+            <div class="settings-modal-actions">
+                <div data-testid="settings-confirm-secondary">
+                    <button type="button" class="settings-btn settings-btn-secondary" @onclick="HideConfirm">
+                        @L["Settings_ConfirmCancel"]
+                    </button>
+                </div>
+                <div data-testid="settings-confirm-primary">
+                    <button type="button"
+                            class="settings-btn settings-btn-danger"
+                            disabled="@(!IsDangerConfirmValid || _isDangerActionRunning)"
+                            @onclick="ConfirmDangerAction">
+                        @DangerPrimaryButton
+                    </button>
+                </div>
+            </div>
+        </section>
+    </div>
+}
+
 @code {
+    private const long AvatarMaxSize = 512 * 1024;
+    private static readonly HashSet<string> AllowedAvatarTypes = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "image/png",
+        "image/jpeg",
+        "image/webp"
+    };
+
     private bool _isLoading = true;
     private bool _isSaving;
     private bool _isChangingPassword;
-    private bool _isCheckingUsername;
-    private bool? _usernameAvailable;
-    
+    private bool _isDangerActionRunning;
+    private bool _isConfiguringPush;
+    private string? _avatarPreviewUrl;
+    private string? _avatarError;
+    private string? _passwordStatusMessage;
+    private bool _passwordStatusIsError;
+    private string _streakReminderInput = string.Empty;
+    private string _dangerConfirmText = string.Empty;
+    private DangerAction _dangerAction;
+
     private UserProfileDto? _profile;
     private UpdateProfileRequest _updateRequest = new();
     private ChangePasswordRequest _passwordRequest = new();
     private UserPreferencesDto _preferences = new();
     private PrivacySettingsDto _privacy = new();
 
-    private List<RadioOption<AppTheme>> _themeOptions = new()
+    private string DangerModalTitle => _dangerAction switch
     {
-        new RadioOption<AppTheme>("Light", AppTheme.Light),
-        new RadioOption<AppTheme>("Dark", AppTheme.Dark),
-        new RadioOption<AppTheme>("Auto", AppTheme.Auto)
+        DangerAction.Deactivate => L["Settings_DeactivateConfirmTitle"],
+        DangerAction.Delete => L["Settings_DeleteConfirmTitle"],
+        _ => string.Empty
     };
 
-    private List<RadioOption<ProfileVisibility>> _visibilityOptions = new()
+    private string DangerModalDescription => _dangerAction switch
     {
-        new RadioOption<ProfileVisibility>("Public", ProfileVisibility.Public),
-        new RadioOption<ProfileVisibility>("Friends", ProfileVisibility.Friends),
-        new RadioOption<ProfileVisibility>("Private", ProfileVisibility.Private)
+        DangerAction.Deactivate => L["Settings_DeactivateConfirmDescription"],
+        DangerAction.Delete => L["Settings_DeleteConfirmDescription"],
+        _ => string.Empty
     };
+
+    private string DangerConfirmCode => _dangerAction switch
+    {
+        DangerAction.Deactivate => L["Settings_DeactivateConfirmCode"],
+        DangerAction.Delete => L["Settings_DeleteConfirmCode"],
+        _ => string.Empty
+    };
+
+    private string DangerPrimaryButton => _dangerAction switch
+    {
+        DangerAction.Deactivate => L["Settings_DeactivateAccountBtn"],
+        DangerAction.Delete => L["Settings_DeleteAccountBtn"],
+        _ => string.Empty
+    };
+
+    private bool IsDangerConfirmValid =>
+        string.Equals(_dangerConfirmText.Trim(), DangerConfirmCode, StringComparison.OrdinalIgnoreCase);
 
     protected override async Task OnInitializedAsync()
     {
@@ -306,10 +474,14 @@
                 _updateRequest = new UpdateProfileRequest
                 {
                     Username = _profile.Username,
-                    Email = _profile.Email
+                    Email = _profile.Email,
+                    AvatarUrl = _profile.AvatarUrl
                 };
+                _avatarPreviewUrl = _profile.AvatarUrl;
                 _preferences = _profile.Preferences;
+                ApplyNotificationPreferences(await NotificationService.GetPreferencesAsync());
                 _privacy = _profile.Privacy;
+                _streakReminderInput = _preferences.StreakReminderTime?.ToString(@"hh\:mm") ?? string.Empty;
             }
         }
         finally
@@ -318,14 +490,102 @@
         }
     }
 
+    private async Task HandleAvatarSelected(InputFileChangeEventArgs args)
+    {
+        _avatarError = null;
+        var file = args.File;
+
+        if (!AllowedAvatarTypes.Contains(file.ContentType))
+        {
+            _avatarError = L["Settings_AvatarInvalidType"];
+            return;
+        }
+
+        if (file.Size > AvatarMaxSize)
+        {
+            _avatarError = L["Settings_AvatarTooLarge"];
+            return;
+        }
+
+        try
+        {
+            await using var stream = file.OpenReadStream(AvatarMaxSize);
+            using var memory = new MemoryStream();
+            await stream.CopyToAsync(memory);
+
+            var dataUrl = $"data:{file.ContentType};base64,{Convert.ToBase64String(memory.ToArray())}";
+            _avatarPreviewUrl = dataUrl;
+            _updateRequest.AvatarUrl = dataUrl;
+        }
+        catch
+        {
+            _avatarError = L["Settings_AvatarReadError"];
+        }
+    }
+
+    private void HandleReminderTimeChanged(ChangeEventArgs args)
+    {
+        _streakReminderInput = args.Value?.ToString() ?? string.Empty;
+    }
+
+    private async Task HandlePushNotificationsChanged(ChangeEventArgs args)
+    {
+        var enabled = args.Value is bool value && value;
+        _preferences.PushNotificationsEnabled = enabled;
+
+        if (!enabled)
+        {
+            return;
+        }
+
+        _isConfiguringPush = true;
+        try
+        {
+            var subscription = await JSRuntime.InvokeAsync<PushSubscriptionDto?>("lexiQuestPush.requestSubscription");
+            if (subscription == null || string.IsNullOrWhiteSpace(subscription.Endpoint))
+            {
+                _preferences.PushNotificationsEnabled = false;
+                ToastService.ShowError(L["Settings_PushPermissionDenied"]);
+                return;
+            }
+
+            await NotificationService.SavePushSubscriptionAsync(subscription);
+            ToastService.ShowSuccess(L["Settings_PushEnabled"]);
+        }
+        catch
+        {
+            _preferences.PushNotificationsEnabled = false;
+            ToastService.ShowError(L["Settings_PushEnableFailed"]);
+        }
+        finally
+        {
+            _isConfiguringPush = false;
+        }
+    }
+
     private async Task SaveProfile()
     {
+        if (_profile == null)
+        {
+            return;
+        }
+
         _isSaving = true;
         try
         {
+            if (!string.Equals(_profile.Username, _updateRequest.Username, StringComparison.OrdinalIgnoreCase)
+                && !await UserService.IsUsernameAvailableAsync(_updateRequest.Username))
+            {
+                ToastService.ShowError(L["Settings_UsernameTaken"]);
+                return;
+            }
+
             var success = await UserService.UpdateProfileAsync(_updateRequest);
             if (success)
             {
+                _profile.Username = _updateRequest.Username;
+                _profile.Email = _updateRequest.Email;
+                _profile.AvatarUrl = _updateRequest.AvatarUrl;
                 ToastService.ShowSuccess(L["Settings_ProfileSaved"]);
             }
             else
@@ -342,17 +602,22 @@
     private async Task ChangePassword()
     {
         _isChangingPassword = true;
+        _passwordStatusMessage = null;
+        _passwordStatusIsError = false;
         try
         {
             var success = await UserService.ChangePasswordAsync(_passwordRequest);
             if (success)
             {
-                ToastService.ShowSuccess(L["Settings_PasswordChanged"]);
+                _passwordStatusMessage = L["Settings_PasswordChanged"];
+                ToastService.ShowSuccess(_passwordStatusMessage);
                 _passwordRequest = new ChangePasswordRequest();
             }
             else
             {
-                ToastService.ShowError(L["Settings_PasswordChangeFailed"]);
+                _passwordStatusIsError = true;
+                _passwordStatusMessage = L["Settings_PasswordChangeFailed"];
+                ToastService.ShowError(_passwordStatusMessage);
             }
         }
         finally
@@ -363,11 +628,45 @@
 
     private async Task SavePreferences()
     {
+        _preferences.StreakReminderTime = TimeSpan.TryParse(_streakReminderInput, out var reminderTime)
+            ? reminderTime
+            : null;
+
         var success = await UserService.UpdatePreferencesAsync(_preferences);
+        try
+        {
+            await NotificationService.UpdatePreferencesAsync(new UpdatePreferencesRequest(
+                _preferences.PushNotificationsEnabled,
+                _preferences.EmailNotificationsEnabled,
+                true,
+                _preferences.StreakReminderTime ?? TimeSpan.FromHours(20),
+                _preferences.LeagueUpdatesEnabled,
+                _preferences.AchievementNotificationsEnabled,
+                _preferences.DailyChallengeReminderEnabled));
+        }
+        catch
+        {
+            success = false;
+        }
+
         if (success)
         {
             ToastService.ShowSuccess(L["Settings_PreferencesSaved"]);
         }
+        else
+        {
+            ToastService.ShowError(L["Settings_PreferencesSaveFailed"]);
+        }
+    }
+
+    private void ApplyNotificationPreferences(NotificationPreferenceDto notificationPreferences)
+    {
+        _preferences.PushNotificationsEnabled = notificationPreferences.PushEnabled;
+        _preferences.EmailNotificationsEnabled = notificationPreferences.EmailEnabled;
+        _preferences.StreakReminderTime = notificationPreferences.StreakReminderTime;
+        _preferences.LeagueUpdatesEnabled = notificationPreferences.LeagueUpdates;
+        _preferences.AchievementNotificationsEnabled = notificationPreferences.AchievementNotifications;
+        _preferences.DailyChallengeReminderEnabled = notificationPreferences.DailyChallengeReminder;
     }
 
     private async Task SavePrivacy()
@@ -377,15 +676,88 @@
         {
             ToastService.ShowSuccess(L["Settings_PrivacySaved"]);
         }
+        else
+        {
+            ToastService.ShowError(L["Settings_PrivacySaveFailed"]);
+        }
     }
 
-    private void Logout()
+    private async Task Logout()
     {
-        NavigationManager.NavigateTo("/logout");
+        await AuthService.LogoutAsync();
+        NavigationManager.NavigateTo("/login", replace: true);
+    }
+
+    private void ShowDeactivateConfirm()
+    {
+        _dangerAction = DangerAction.Deactivate;
+        _dangerConfirmText = string.Empty;
     }
 
     private void ShowDeleteConfirm()
     {
-        // Show confirmation modal
+        _dangerAction = DangerAction.Delete;
+        _dangerConfirmText = string.Empty;
+    }
+
+    private void HideConfirm()
+    {
+        _dangerAction = DangerAction.None;
+        _dangerConfirmText = string.Empty;
+    }
+
+    private async Task ConfirmDangerAction()
+    {
+        if (!IsDangerConfirmValid)
+        {
+            return;
+        }
+
+        _isDangerActionRunning = true;
+        try
+        {
+            var success = _dangerAction switch
+            {
+                DangerAction.Deactivate => await UserService.DeactivateAccountAsync(),
+                DangerAction.Delete => await UserService.DeleteAccountAsync(),
+                _ => false
+            };
+
+            if (!success)
+            {
+                ToastService.ShowError(L["Settings_DangerFailed"]);
+                return;
+            }
+
+            ToastService.ShowSuccess(_dangerAction == DangerAction.Deactivate
+                ? L["Settings_AccountDeactivated"]
+                : L["Settings_AccountDeleted"]);
+            await AuthService.LogoutAsync();
+            NavigationManager.NavigateTo("/login", replace: true);
+        }
+        finally
+        {
+            _isDangerActionRunning = false;
+        }
+    }
+
+    private string GetAvatarInitials()
+    {
+        var username = _updateRequest.Username;
+        if (string.IsNullOrWhiteSpace(username))
+        {
+            return "?";
+        }
+
+        return username.Length == 1
+            ? username[..1].ToUpperInvariant()
+            : username[..2].ToUpperInvariant();
+    }
+
+    private enum DangerAction
+    {
+        None,
+        Deactivate,
+        Delete
     }
 }

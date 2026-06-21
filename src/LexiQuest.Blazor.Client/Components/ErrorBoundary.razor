@@ -6,12 +6,12 @@
 
 @if (CurrentException is not null)
 {
-    <div class="error-boundary">
-        <div class="tm-alert tm-alert-error">
-            <div class="tm-alert-title">@L["Error.Title"]</div>
-            <div class="tm-alert-body">@L["Error.Message"]</div>
-            <button class="tm-btn tm-btn-primary" @onclick="Recover">
-                @L["Button.Retry"]
+    <div class="error-boundary" data-testid="global-error-boundary" role="alert">
+        <div class="error-boundary-panel">
+            <h2 class="error-boundary-title">@L["Error_Title"]</h2>
+            <p class="error-boundary-message">@L["Error_Description"]</p>
+            <button type="button" class="tm-btn tm-btn-primary" data-testid="global-error-boundary-retry" @onclick="Recover">
+                @L["Error_TryAgain"]
             </button>
         </div>
     </div>

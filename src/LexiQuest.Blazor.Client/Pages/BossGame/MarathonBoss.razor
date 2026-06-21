@@ -4,7 +4,7 @@
 @inject IGameService GameService
 @inject NavigationManager NavigationManager
 
-<div class="min-h-screen bg-gray-50 dark:bg-gray-900">
+<div class="boss-page boss-page--marathon">
     @if (_session == null)
     {
         <TmSkeleton Type="Rectangle" Class="h-32 mb-4" />
@@ -59,21 +59,22 @@
         </div>
 
         <!-- Game Arena -->
-        <div class="max-w-4xl mx-auto p-6">
+        <div class="boss-arena max-w-4xl mx-auto p-6">
             @if (!_session.IsGameOver && !_session.IsCompleted)
             {
                 <TmCard Variant="CardVariant.Elevated" Class="p-8">
                     <!-- Scrambled Word Display -->
                     <div class="text-center mb-8">
-                        <div class="text-5xl font-bold tracking-widest text-gray-800 dark:text-gray-100 mb-4">
-                            @_currentScrambledWord
-                        </div>
+                            <div data-testid="boss-scrambled-word" class="text-5xl font-bold tracking-widest text-gray-800 dark:text-gray-100 mb-4">
+                                @_currentScrambledWord
+                            </div>
                         <p class="text-gray-500">@L["MarathonBoss_UnscrambleHint"]</p>
                     </div>
 
                     <!-- Answer Input -->
                     <TmFormField Label="@L["MarathonBoss_AnswerLabel"]" Class="mb-6">
                         <TmTextInput 
+                            data-testid="boss-answer-input"
                             @bind-Value="_currentAnswer"
                             Placeholder="@L["MarathonBoss_AnswerPlaceholder"]"
                             Size="InputSize.Large"
@@ -83,6 +84,7 @@
 
                     <!-- Submit Button -->
                     <TmButton 
+                        data-testid="boss-submit"
                         Variant="ButtonVariant.Primary"
                         OnClick="SubmitAnswer"
                         Class="w-full"
@@ -239,6 +241,7 @@
     protected override void OnInitialized()
     {
         _session = Session;
+        ApplySessionState();
     }
 
     protected override async Task OnInitializedAsync()
@@ -246,6 +249,7 @@
         if (_session == null)
         {
             _session = await BossService.GetBossStateAsync(SessionId);
+            ApplySessionState();
         }
     }
 
@@ -293,19 +297,23 @@
             _session!.LivesRemaining = result.LivesRemaining;
             _session.IsGameOver = result.IsGameOver;
             _session.IsCompleted = result.IsCompleted;
-            _session.TotalXP += result.XPGained;
+            _session.TotalXP = result.TotalXP;
+            _session.CurrentRound = result.CurrentRound;
+            _session.EndedAt = result.EndedAt;
             
+            if (result.NextScrambledWord != null)
+            {
+                _currentScrambledWord = result.NextScrambledWord;
+                _session.WordLength = result.WordLength ?? _session.WordLength;
+                _currentAnswer = "";
+            }
+
             if (result.IsCorrect)
             {
                 _session.CorrectAnswers++;
-                if (!result.IsCompleted)
-                {
-                    _session.CurrentRound++;
-                    _currentScrambledWord = result.NextScrambledWord ?? "NEXTWORD";
-                    _currentAnswer = "";
-                }
             }
-            else if (!result.IsGameOver)
+
+            if (!result.IsGameOver && !result.IsCompleted)
             {
                 _currentAnswer = "";
             }
@@ -313,6 +321,14 @@
         finally
         {
             _isSubmitting = false;
+        }
+    }
+
+    private void ApplySessionState()
+    {
+        if (!string.IsNullOrWhiteSpace(_session?.CurrentScrambledWord))
+        {
+            _currentScrambledWord = _session.CurrentScrambledWord;
         }
     }
 

@@ -6,6 +6,7 @@ using LexiQuest.Infrastructure.Persistence;
 using LexiQuest.Shared.DTOs.Auth;
 using LexiQuest.Shared.DTOs.Dictionaries;
 using LexiQuest.Shared.Enums;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace LexiQuest.Api.Tests.IntegrationTests;
@@ -42,6 +43,11 @@ public class DictionaryFlowTests
         var registerResponse = await client.PostAsJsonAsync("/api/v1/users/register", registerRequest);
         registerResponse.EnsureSuccessStatusCode();
         var authResponse = await registerResponse.Content.ReadFromJsonAsync<AuthResponse>();
+
+        var user = await dbContext.Users.SingleAsync(u => u.Email == registerRequest.Email);
+        user.Premium.Activate("Test", DateTime.UtcNow.AddDays(30));
+        await dbContext.SaveChangesAsync();
+
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", authResponse!.AccessToken);
 
         return client;

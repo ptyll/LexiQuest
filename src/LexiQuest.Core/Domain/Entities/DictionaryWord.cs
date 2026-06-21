@@ -72,8 +72,8 @@ public class DictionaryWord
         if (word.Length < 3)
             return new ValidationResult(false, "Word must be at least 3 characters long.");
 
-        if (word.Length > 50)
-            return new ValidationResult(false, "Word cannot exceed 50 characters.");
+        if (word.Length > 20)
+            return new ValidationResult(false, "Word cannot exceed 20 characters.");
 
         if (word.Contains(' '))
             return new ValidationResult(false, "Word cannot contain spaces.");

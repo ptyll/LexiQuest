@@ -1,0 +1,224 @@
+@page "/multiplayer/room/{RoomCode}"
+@namespace LexiQuest.Blazor.Pages
+@inject IMatchHubClient MatchHubClient
+@inject IUserService UserService
+@inject IStringLocalizer<Multiplayer> Localizer
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
+@implements IAsyncDisposable
+
+@using LexiQuest.Shared.DTOs.Users
+
+<div class="private-room-page" data-testid="private-room-page">
+    @if (_isLoading)
+    {
+        <div class="private-room-loading" data-testid="private-room-loading">
+            <TmSpinner Size="SpinnerSize.Lg" />
+            <span>@Localizer["Room_Loading"]</span>
+        </div>
+    }
+    else if (!string.IsNullOrWhiteSpace(_errorMessage))
+    {
+        <TmAlert Severity="AlertSeverity.Error" Class="private-room-error" AdditionalAttributes="@TestId("private-room-error")">
+            @_errorMessage
+        </TmAlert>
+        <TmButton Variant="ButtonVariant.Primary" OnClick="GoBack">
+            @Localizer["MatchHistory_Back"]
+        </TmButton>
+    }
+    else
+    {
+        <RoomLobby 
+            RoomStatus="_roomStatus"
+            IsHost="@IsHost"
+            IsReady="@IsReady"
+            IsExpired="_isExpired"
+            CountdownSeconds="_countdownSeconds"
+            ChatMessages="_chatMessages"
+            ChatErrorMessage="@_chatErrorMessage"
+            OnSetReady="SetReadyAsync"
+            OnCancelReady="CancelReadyAsync"
+            OnLeave="LeaveRoomAsync"
+            OnSendMessage="SendMessageAsync"
+            OnCopyCode="CopyRoomCodeAsync" />
+    }
+</div>
+
+@code {
+    [Parameter] public string RoomCode { get; set; } = string.Empty;
+
+    private RoomStatusDto? _roomStatus;
+    private UserProfileDto? _profile;
+    private bool _isLoading = true;
+    private bool _isExpired;
+    private int _countdownSeconds;
+    private string? _errorMessage;
+    private string? _chatErrorMessage;
+    private readonly List<LobbyMessageDto> _chatMessages = new();
+
+    private bool IsHost =>
+        _roomStatus?.Players.Any(p => p.IsHost && p.Username == _profile?.Username) == true;
+
+    private bool IsReady =>
+        _roomStatus?.Players.FirstOrDefault(p => p.Username == _profile?.Username)?.IsReady == true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        MatchHubClient.OnPlayerJoinedRoom += OnPlayerJoinedRoom;
+        MatchHubClient.OnPlayerLeftRoom += OnPlayerLeftRoom;
+        MatchHubClient.OnPlayerReadyStateChanged += OnPlayerReadyStateChanged;
+        MatchHubClient.OnRoomStateReset += OnRoomStateReset;
+        MatchHubClient.OnRoomExpired += OnRoomExpired;
+        MatchHubClient.OnLobbyMessage += OnLobbyMessage;
+        MatchHubClient.OnChatError += OnChatError;
+        MatchHubClient.OnCountdownTick += OnCountdownTick;
+        MatchHubClient.OnMatchFound += OnPrivateMatchFound;
+
+        await LoadRoomAsync();
+    }
+
+    private async Task LoadRoomAsync()
+    {
+        _isLoading = true;
+        _errorMessage = null;
+
+        try
+        {
+            await MatchHubClient.StartAsync();
+            _profile = await UserService.GetProfileAsync();
+            _roomStatus = await MatchHubClient.GetRoomStatusAsync(RoomCode);
+
+            if (_profile == null || _roomStatus == null)
+            {
+                _errorMessage = Localizer["Room_LoadFailed"];
+            }
+        }
+        catch
+        {
+            _errorMessage = Localizer["Room_LoadFailed"];
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private async Task RefreshRoomStatusAsync()
+    {
+        try
+        {
+            var roomStatus = await MatchHubClient.GetRoomStatusAsync(RoomCode);
+            if (roomStatus == null)
+            {
+                _roomStatus = null;
+                _errorMessage = Localizer["Room_Cancelled"];
+            }
+            else
+            {
+                _roomStatus = roomStatus;
+                _errorMessage = null;
+            }
+        }
+        catch
+        {
+            _errorMessage = Localizer["Room_LoadFailed"];
+        }
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private Task SetReadyAsync() => MatchHubClient.SetReadyAsync(true);
+
+    private Task CancelReadyAsync() => MatchHubClient.SetReadyAsync(false);
+
+    private async Task LeaveRoomAsync()
+    {
+        await MatchHubClient.LeaveRoomAsync();
+        NavigationManager.NavigateTo("/multiplayer");
+    }
+
+    private async Task SendMessageAsync(string message)
+    {
+        _chatErrorMessage = null;
+        await MatchHubClient.SendLobbyMessageAsync(message);
+    }
+
+    private async Task CopyRoomCodeAsync()
+    {
+        var code = _roomStatus?.RoomCode ?? RoomCode;
+        await JSRuntime.InvokeVoidAsync("navigator.clipboard.writeText", code);
+    }
+
+    private void OnPlayerJoinedRoom(object? sender, PlayerJoinedRoomEvent e) =>
+        _ = RefreshRoomStatusAsync();
+
+    private void OnPlayerLeftRoom(object? sender, EventArgs e) =>
+        _ = RefreshRoomStatusAsync();
+
+    private void OnPlayerReadyStateChanged(object? sender, PlayerReadyStateDto e) =>
+        _ = RefreshRoomStatusAsync();
+
+    private void OnRoomStateReset(object? sender, IReadOnlyList<PlayerReadyStateDto> e) =>
+        _ = RefreshRoomStatusAsync();
+
+    private void OnRoomExpired(object? sender, EventArgs e)
+    {
+        _isExpired = true;
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    private void OnLobbyMessage(object? sender, LobbyMessageDto message)
+    {
+        _chatErrorMessage = null;
+        _chatMessages.Add(message);
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    private void OnChatError(object? sender, string error)
+    {
+        _chatErrorMessage = FormatChatError(error);
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    private string FormatChatError(string error) => error switch
+    {
+        "Chat.RateLimit" => Localizer["Room_Lobby_Chat_RateLimit"].Value,
+        _ => Localizer["Room_Lobby_Chat_Error"].Value
+    };
+
+    private void OnCountdownTick(object? sender, int seconds)
+    {
+        _countdownSeconds = seconds;
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    private void OnPrivateMatchFound(object? sender, MatchFoundEvent match)
+    {
+        if (!match.IsPrivateRoom)
+        {
+            return;
+        }
+
+        _ = InvokeAsync(() => NavigationManager.NavigateTo($"/multiplayer/game/{match.MatchId}"));
+    }
+
+    private void GoBack() => NavigationManager.NavigateTo("/multiplayer");
+
+    private static Dictionary<string, object> TestId(string value) =>
+        new() { ["data-testid"] = value };
+
+    public ValueTask DisposeAsync()
+    {
+        MatchHubClient.OnPlayerJoinedRoom -= OnPlayerJoinedRoom;
+        MatchHubClient.OnPlayerLeftRoom -= OnPlayerLeftRoom;
+        MatchHubClient.OnPlayerReadyStateChanged -= OnPlayerReadyStateChanged;
+        MatchHubClient.OnRoomStateReset -= OnRoomStateReset;
+        MatchHubClient.OnRoomExpired -= OnRoomExpired;
+        MatchHubClient.OnLobbyMessage -= OnLobbyMessage;
+        MatchHubClient.OnChatError -= OnChatError;
+        MatchHubClient.OnCountdownTick -= OnCountdownTick;
+        MatchHubClient.OnMatchFound -= OnPrivateMatchFound;
+
+        return ValueTask.CompletedTask;
+    }
+}

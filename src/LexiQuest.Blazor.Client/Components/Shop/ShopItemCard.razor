@@ -1,15 +1,16 @@
 @using LexiQuest.Shared.DTOs.Shop
 @inject IStringLocalizer<ShopItemCard> L
 
-<TmCard Variant="CardVariant.Default" Class="@GetCardClass()">
-    <div class="shop-item-card">
+<div class="@GetCardClass()" data-testid="@GetCardTestId()">
+<TmCard Variant="CardVariant.Default" Class="shop-item-card-surface">
+    <div class="shop-item-card" data-testid="shop-item-card">
         @* Rarity border indicator *@
         <div class="rarity-border" style="border-color: @Item.RarityColor"></div>
         
         @* Premium lock overlay *@
         @if (Item.IsPremiumOnly && !IsOwned)
         {
-            <div class="premium-overlay">
+            <div class="premium-overlay" data-testid="shop-premium-badge">
                 <TmBadge Variant="BadgeVariant.Warning" Icon="@IconNames.Lock">
                     @L["Item_PremiumOnly"]
                 </TmBadge>
@@ -21,7 +22,7 @@
             <img src="@Item.ImageUrl" alt="@Item.Name" class="item-image" />
             @if (IsOwned)
             {
-                <div class="owned-badge">
+                <div class="owned-badge" data-testid="shop-owned-badge">
                     <TmBadge Variant="BadgeVariant.Success" Icon="@IconNames.Check">
                         @L["Item_Owned"]
                     </TmBadge>
@@ -35,9 +36,11 @@
             <p class="item-description">@Item.Description</p>
             
             <div class="item-meta">
-                <TmBadge Variant="GetRarityBadgeVariant()">
-                    @Item.Rarity
-                </TmBadge>
+                <div data-testid="shop-rarity-badge">
+                    <TmBadge Variant="GetRarityBadgeVariant()">
+                        @GetRarityLabel()
+                    </TmBadge>
+                </div>
                 
                 @if (Item.IsLimited)
                 {
@@ -54,36 +57,43 @@
             {
                 @if (IsEquipped)
                 {
-                    <TmButton Variant="ButtonVariant.Secondary" 
-                              Icon="@IconNames.Check"
-                              Disabled="true"
-                              Block="true">
-                        @L["Button_Equipped"]
-                    </TmButton>
+                    <div data-testid="shop-equipped">
+                        <TmButton Variant="ButtonVariant.Secondary" 
+                                  Icon="@IconNames.Check"
+                                  Disabled="true"
+                                  Block="true">
+                            @L["Button_Equipped"]
+                        </TmButton>
+                    </div>
                 }
                 else
                 {
-                    <TmButton Variant="ButtonVariant.Primary" 
-                              Icon="@IconNames.Star"
-                              OnClick="OnEquip"
-                              Block="true">
-                        @L["Button_Equip"]
-                    </TmButton>
+                    <div data-testid="shop-equip">
+                        <TmButton Variant="ButtonVariant.Primary" 
+                                  Icon="@IconNames.Star"
+                                  OnClick="OnEquip"
+                                  Block="true">
+                            @L["Button_Equip"]
+                        </TmButton>
+                    </div>
                 }
             }
             else
             {
-                <TmButton Variant="ButtonVariant.Primary" 
-                          Icon="@IconNames.Plus"
-                          OnClick="OnPurchase"
-                          Disabled="!Item.IsAvailable || (Item.IsPremiumOnly && !IsPremium)"
-                          Block="true">
-                        @Item.Price 🪙
-                </TmButton>
+                <div data-testid="shop-buy">
+                    <TmButton Variant="ButtonVariant.Primary" 
+                              Icon="@IconNames.Plus"
+                              OnClick="OnPurchase"
+                              Disabled="!Item.IsAvailable || (Item.IsPremiumOnly && !IsPremium)"
+                              Block="true">
+                            @Item.Price 🪙
+                    </TmButton>
+                </div>
             }
         </div>
     </div>
 </TmCard>
+</div>
 
 @code {
     [Parameter]
@@ -114,6 +124,19 @@
         return classes;
     }
 
+    private string GetCardTestId()
+    {
+        return $"shop-item-card-{CreateSlug(Item.Name)}";
+    }
+
+    private string GetRarityLabel()
+    {
+        var localized = L[$"Rarity_{Item.Rarity}"];
+        return localized is { ResourceNotFound: false } && !string.IsNullOrWhiteSpace(localized.Value)
+            ? localized.Value
+            : Item.Rarity;
+    }
+
     private BadgeVariant GetRarityBadgeVariant()
     {
         return Item.Rarity switch
@@ -123,5 +146,27 @@
             "Rare" => BadgeVariant.Primary,
             _ => BadgeVariant.Default
         };
+    }
+
+    private static string CreateSlug(string value)
+    {
+        return value
+            .ToLowerInvariant()
+            .Replace("á", "a", StringComparison.Ordinal)
+            .Replace("č", "c", StringComparison.Ordinal)
+            .Replace("ď", "d", StringComparison.Ordinal)
+            .Replace("é", "e", StringComparison.Ordinal)
+            .Replace("ě", "e", StringComparison.Ordinal)
+            .Replace("í", "i", StringComparison.Ordinal)
+            .Replace("ň", "n", StringComparison.Ordinal)
+            .Replace("ó", "o", StringComparison.Ordinal)
+            .Replace("ř", "r", StringComparison.Ordinal)
+            .Replace("š", "s", StringComparison.Ordinal)
+            .Replace("ť", "t", StringComparison.Ordinal)
+            .Replace("ú", "u", StringComparison.Ordinal)
+            .Replace("ů", "u", StringComparison.Ordinal)
+            .Replace("ý", "y", StringComparison.Ordinal)
+            .Replace("ž", "z", StringComparison.Ordinal)
+            .Replace(" ", "-", StringComparison.Ordinal);
     }
 }

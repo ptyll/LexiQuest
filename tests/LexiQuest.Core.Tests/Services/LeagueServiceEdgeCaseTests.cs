@@ -109,6 +109,39 @@ public class LeagueServiceEdgeCaseTests
     // --- Promotion/demotion boundary cases ---
 
     [Fact]
+    public async Task GetCurrentLeague_SingleParticipant_HasNoDemotionZone()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var league = CreateLeagueWithParticipants(LeagueTier.Bronze, 1, userId);
+        _leagueRepository.GetActiveLeagueForUserAsync(userId, Arg.Any<CancellationToken>()).Returns(league);
+
+        // Act
+        var result = await _sut.GetCurrentLeagueAsync(userId);
+
+        // Assert
+        result.Should().NotBeNull();
+        result!.PromotionThreshold.Should().Be(1);
+        result.DemotionThreshold.Should().Be(2);
+        result.CurrentRank.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task CalculatePromotions_SingleParticipant_IsPromotedButNotDemoted()
+    {
+        // Arrange
+        var league = CreateLeagueWithParticipants(LeagueTier.Bronze, 1);
+
+        // Act
+        await _sut.CalculatePromotionsAndDemotionsAsync(league);
+
+        // Assert
+        var participant = league.Participants.Single();
+        participant.IsPromoted.Should().BeTrue();
+        participant.IsDemoted.Should().BeFalse();
+    }
+
+    [Fact]
     public async Task CalculatePromotions_ExactlyAtCutoff_RankFiveIsPromoted()
     {
         // Arrange - 10 participants, top 5 promoted for non-Legend tiers

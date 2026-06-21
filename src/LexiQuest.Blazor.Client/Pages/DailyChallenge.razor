@@ -6,7 +6,7 @@
 @inject IStringLocalizer<DailyChallenge> L
 @inject NavigationManager NavigationManager
 
-<div class="daily-challenge-page">
+<div class="daily-challenge-page" data-testid="daily-page">
     @if (isLoading)
     {
         <div class="loading-state">
@@ -25,7 +25,7 @@
     }
     else if (isCompleted)
     {
-        <div class="completed-state">
+        <div class="completed-state" data-testid="daily-completed-state">
             <TmCard>
                 <div class="completed-content">
                     <TmIcon Name="check-circle" Class="completed-icon" />
@@ -37,15 +37,15 @@
                         <div class="result-stats">
                             <div class="stat">
                                 <span class="stat-label">@L["Result.Time"]</span>
-                                <span class="stat-value">@FormatTime(result.TimeTaken)</span>
+                                <span class="stat-value" data-testid="daily-result-time">@FormatTime(result.TimeTaken)</span>
                             </div>
                             <div class="stat">
                                 <span class="stat-label">@L["Result.XP"]</span>
-                                <span class="stat-value">+@result.XPEarned</span>
+                                <span class="stat-value" data-testid="daily-result-xp">+@result.XPEarned</span>
                             </div>
                             <div class="stat">
                                 <span class="stat-label">@L["Result.Rank"]</span>
-                                <span class="stat-value">#@result.Rank</span>
+                                <span class="stat-value" data-testid="daily-result-rank">#@result.Rank</span>
                             </div>
                         </div>
                     }
@@ -55,10 +55,10 @@
     }
     else
     {
-        <div class="challenge-header">
+        <div class="challenge-header" data-testid="daily-challenge-card">
             <TmCard>
                 <div class="header-content">
-                    <div class="modifier-badge @GetModifierClass(challenge.Modifier)">
+                    <div class="modifier-badge @GetModifierClass(challenge.Modifier)" data-testid="daily-modifier">
                         <TmIcon Name="@GetModifierIcon(challenge.Modifier)" />
                         <span>@GetModifierName(challenge.Modifier)</span>
                     </div>
@@ -72,26 +72,68 @@
             </TmCard>
         </div>
 
-        <div class="challenge-actions">
-            <TmButton Variant="ButtonVariant.Primary" OnClick="StartChallenge">
-                @L["Button.Play"]
-            </TmButton>
-        </div>
+        @if (!isStarted)
+        {
+            <div class="challenge-actions">
+                <button class="tm-btn tm-btn--primary" type="button" data-testid="daily-start" @onclick="StartChallenge">
+                    @L["Button.Play"]
+                </button>
+            </div>
+        }
+        else
+        {
+            <div class="daily-play-panel" data-testid="daily-play-panel">
+                <TmCard>
+                    <div class="daily-play-content">
+                        <div class="scrambled-word" data-testid="daily-scrambled-word">@challenge.ScrambledWord</div>
+                        <div class="word-length">@L["Play.WordLength", challenge.WordLength]</div>
+                        <label class="answer-field">
+                            <span>@L["Play.Answer"]</span>
+                            <input data-testid="daily-answer-input"
+                                   value="@answer"
+                                   @oninput="HandleAnswerInput"
+                                   maxlength="50"
+                                   autocomplete="off" />
+                        </label>
+                        @if (!string.IsNullOrWhiteSpace(submitError))
+                        {
+                            <div class="submit-error" data-testid="daily-submit-error">@submitError</div>
+                        }
+                        <button class="tm-btn tm-btn--primary"
+                                type="button"
+                                data-testid="daily-submit"
+                                disabled="@isSubmitting"
+                                @onclick="SubmitChallenge">
+                            @L["Button.Submit"]
+                        </button>
+                    </div>
+                </TmCard>
+            </div>
+        }
     }
 
     @if (challenge != null)
     {
         <div class="leaderboard-section">
             <h2>@L["Leaderboard.Title"]</h2>
-            <div class="leaderboard">
-                @foreach (var entry in leaderboard)
+            <div class="leaderboard" data-testid="daily-leaderboard">
+                @if (leaderboard.Count == 0)
                 {
-                    <div class="leaderboard-row @(entry.IsCurrentUser ? "is-current-user" : "")">
-                        <span class="rank">#@entry.Rank</span>
-                        <span class="username">@entry.Username</span>
-                        <span class="time">@FormatTime(entry.TimeTaken)</span>
-                        <span class="xp">@entry.XPEarned XP</span>
+                    <div class="leaderboard-empty" data-testid="daily-leaderboard-empty">
+                        @L["Leaderboard.Empty"]
                     </div>
+                }
+                else
+                {
+                    @foreach (var entry in leaderboard)
+                    {
+                        <div class="leaderboard-row @(entry.IsCurrentUser ? "is-current-user" : "")" data-testid="daily-leaderboard-row">
+                            <span class="rank">#@entry.Rank</span>
+                            <span class="username">@entry.Username</span>
+                            <span class="time">@FormatTime(entry.TimeTaken)</span>
+                            <span class="xp">@entry.XPEarned XP</span>
+                        </div>
+                    }
                 }
             </div>
         </div>
@@ -104,6 +146,11 @@
     private ChallengeResultDto? result;
     private bool isLoading = true;
     private bool isCompleted = false;
+    private bool isStarted;
+    private bool isSubmitting;
+    private DateTime startedAtUtc;
+    private string answer = string.Empty;
+    private string? submitError;
 
     protected override async Task OnInitializedAsync()
     {
@@ -137,10 +184,57 @@
 
     private void StartChallenge()
     {
-        if (challenge != null)
+        isStarted = true;
+        startedAtUtc = DateTime.UtcNow;
+        submitError = null;
+    }
+
+    private async Task SubmitChallenge()
+    {
+        if (challenge == null || string.IsNullOrWhiteSpace(answer))
         {
-            NavigationManager.NavigateTo($"/game?mode=daily&wordId={challenge.WordId}");
+            submitError = L["Error.EmptyAnswer"].Value;
+            return;
         }
+
+        isSubmitting = true;
+        submitError = null;
+
+        try
+        {
+            var elapsed = DateTime.UtcNow - startedAtUtc;
+            if (elapsed < TimeSpan.FromSeconds(1))
+            {
+                elapsed = TimeSpan.FromSeconds(1);
+            }
+
+            var submitResult = await DailyChallengeService.SubmitAnswerAsync(answer, elapsed);
+            if (submitResult == null)
+            {
+                submitError = L["Error.SubmitFailed"].Value;
+                return;
+            }
+
+            if (!submitResult.IsCorrect)
+            {
+                submitError = L["Error.WrongAnswer", submitResult.CorrectAnswer].Value;
+                return;
+            }
+
+            result = submitResult;
+            isCompleted = true;
+            isStarted = false;
+            leaderboard = await DailyChallengeService.GetLeaderboardAsync();
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+
+    private void HandleAnswerInput(ChangeEventArgs args)
+    {
+        answer = args.Value?.ToString() ?? string.Empty;
     }
 
     private string GetModifierClass(DailyModifier modifier) => $"modifier-{modifier.ToString().ToLower()}";
@@ -160,8 +254,13 @@
 
     private static string FormatTime(TimeSpan time)
     {
-        if (time.TotalSeconds < 60)
-            return $"{time.Seconds}s";
-        return $"{time.Minutes}:{time.Seconds:D2}";
+        if (time <= TimeSpan.Zero)
+            return "0s";
+
+        var totalSeconds = Math.Max(1, (int)Math.Ceiling(time.TotalSeconds));
+        if (totalSeconds < 60)
+            return $"{totalSeconds}s";
+
+        return $"{totalSeconds / 60}:{totalSeconds % 60:D2}";
     }
 }

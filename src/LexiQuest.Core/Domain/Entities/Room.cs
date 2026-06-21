@@ -227,5 +227,6 @@ public class Room
     public void Expire()
     {
         Status = RoomStatus.Expired;
+        ExpiresAt = DateTime.UtcNow.AddSeconds(-1);
     }
 }

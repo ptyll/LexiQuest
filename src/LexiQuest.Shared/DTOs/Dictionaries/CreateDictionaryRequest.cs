@@ -4,5 +4,6 @@ namespace LexiQuest.Shared.DTOs.Dictionaries;
 
 public record CreateDictionaryRequest(
     [Required] string Name,
-    string Description
+    string Description,
+    bool IsPublic = false
 );

@@ -4,6 +4,7 @@ using LexiQuest.Core.Interfaces.Repositories;
 using LexiQuest.Core.Services;
 using LexiQuest.Shared.DTOs.Game;
 using LexiQuest.Shared.Enums;
+using Microsoft.Extensions.Localization;
 using NSubstitute;
 
 namespace LexiQuest.Core.Tests.Services;
@@ -12,13 +13,15 @@ public class AIChallengeServiceTests
 {
     private readonly IGameSessionRepository _gameSessionRepository;
     private readonly IWordRepository _wordRepository;
+    private readonly IStringLocalizer<AIChallengeService> _localizer;
     private readonly AIChallengeService _sut;
 
     public AIChallengeServiceTests()
     {
         _gameSessionRepository = Substitute.For<IGameSessionRepository>();
         _wordRepository = Substitute.For<IWordRepository>();
-        _sut = new AIChallengeService(_gameSessionRepository, _wordRepository);
+        _localizer = CreateLocalizer();
+        _sut = new AIChallengeService(_gameSessionRepository, _wordRepository, _localizer);
     }
 
     [Fact]
@@ -103,9 +106,28 @@ public class AIChallengeServiceTests
 
         // Assert
         result.CategoryPerformance.Should().NotBeEmpty();
-        var hardCategory = result.CategoryPerformance.FirstOrDefault(c => c.Category == "Advanced");
+        var hardCategory = result.CategoryPerformance.FirstOrDefault(c => c.Category == "Expert");
         hardCategory.Should().NotBeNull();
         hardCategory!.AvgTimeSeconds.Should().BeGreaterThan(10);
+    }
+
+    [Fact]
+    public async Task AIChallengeService_Analyze_NoHistory_ShowsNoDataTip()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        _gameSessionRepository.GetByUserIdWithRoundsAsync(userId, Arg.Any<int>(), Arg.Any<CancellationToken>())
+            .Returns(new List<GameSession>().AsReadOnly());
+
+        // Act
+        var result = await _sut.AnalyzePlayerAsync(userId);
+
+        // Assert
+        result.WeakLetters.Should().BeEmpty();
+        result.CategoryPerformance.Should().BeEmpty();
+        result.Tips.Should().ContainSingle()
+            .Which.Should().Contain("Zatím nemáme dost dat");
+        result.Tips.Should().NotContain(tip => tip.Contains("Daří se", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -138,8 +160,7 @@ public class AIChallengeServiceTests
             Word.Create("TABLE", DifficultyLevel.Beginner, WordCategory.Household)
         };
 
-        _wordRepository.GetRandomBatchAsync(Arg.Any<int>(), Arg.Any<DifficultyLevel?>(), Arg.Any<WordCategory?>(), Arg.Any<CancellationToken>())
-            .Returns(wordsWithQ.AsReadOnly());
+        SetupWords(wordsWithQ);
 
         var request = new AIChallengeRequest(AIChallengeType.WeaknessFocus);
 
@@ -171,8 +192,7 @@ public class AIChallengeServiceTests
             Word.Create("HIPPOPOTAMUS", DifficultyLevel.Advanced, WordCategory.Animals)
         };
 
-        _wordRepository.GetRandomBatchAsync(Arg.Any<int>(), Arg.Any<DifficultyLevel?>(), Arg.Any<WordCategory?>(), Arg.Any<CancellationToken>())
-            .Returns(words.AsReadOnly());
+        SetupWords(words);
 
         var request = new AIChallengeRequest(AIChallengeType.SpeedTraining);
 
@@ -211,6 +231,12 @@ public class AIChallengeServiceTests
 
         _gameSessionRepository.GetByUserIdWithRoundsAsync(userId, Arg.Any<int>(), Arg.Any<CancellationToken>())
             .Returns(new List<GameSession> { session }.AsReadOnly());
+
+        SetupWords(
+        [
+            Word.Create("SCIENCE", DifficultyLevel.Intermediate, WordCategory.Science),
+            Word.Create("CULTURE", DifficultyLevel.Intermediate, WordCategory.Abstract)
+        ]);
 
         var request = new AIChallengeRequest(AIChallengeType.MemoryGame);
 
@@ -254,8 +280,7 @@ public class AIChallengeServiceTests
             Word.Create("EXTRAORDINARILY", DifficultyLevel.Advanced, WordCategory.Abstract) // 15 letters
         };
 
-        _wordRepository.GetRandomBatchAsync(Arg.Any<int>(), Arg.Any<DifficultyLevel?>(), Arg.Any<WordCategory?>(), Arg.Any<CancellationToken>())
-            .Returns(words.AsReadOnly());
+        SetupWords(words);
 
         var request = new AIChallengeRequest(AIChallengeType.PatternRecognition);
 
@@ -294,8 +319,7 @@ public class AIChallengeServiceTests
             Word.Create("EXAM", DifficultyLevel.Beginner, WordCategory.Everyday)
         };
 
-        _wordRepository.GetRandomBatchAsync(Arg.Any<int>(), Arg.Any<DifficultyLevel?>(), Arg.Any<WordCategory?>(), Arg.Any<CancellationToken>())
-            .Returns(words.AsReadOnly());
+        SetupWords(words);
 
         var request = new AIChallengeRequest(AIChallengeType.SpeedTraining);
 
@@ -314,5 +338,54 @@ public class AIChallengeServiceTests
     {
         var roundsProperty = typeof(GameSession).GetProperty("Rounds")!;
         roundsProperty.SetValue(session, rounds);
+    }
+
+    private void SetupWords(IReadOnlyList<Word> words)
+    {
+        _wordRepository.GetAllAsync(Arg.Any<CancellationToken>()).Returns(words);
+        _wordRepository.GetRandomBatchAsync(
+                Arg.Any<int>(),
+                Arg.Any<DifficultyLevel?>(),
+                Arg.Any<WordCategory?>(),
+                Arg.Any<CancellationToken>())
+            .Returns(words);
+    }
+
+    private static IStringLocalizer<AIChallengeService> CreateLocalizer()
+    {
+        var values = new Dictionary<string, string>
+        {
+            ["Difficulty.Beginner"] = "Začátečník",
+            ["Difficulty.Intermediate"] = "Pokročilý",
+            ["Difficulty.Advanced"] = "Expert",
+            ["Difficulty.Expert"] = "Mistr",
+            ["Reason.GeneralPractice"] = "Obecný trénink",
+            ["Reason.WeakLetters"] = "Obsahuje slabé písmeno: {0}",
+            ["Reason.SpeedTraining"] = "Krátké slovo",
+            ["Reason.PreviousMistake"] = "Dříve špatně",
+            ["Reason.Pattern"] = "Vzor: {0}",
+            ["Tip.WeakLetters"] = "Trénujte {0}",
+            ["Tip.SlowCategory"] = "Zrychlete {0}",
+            ["Tip.WeakCategory"] = "Procvičte {0}",
+            ["Tip.NoData"] = "Zatím nemáme dost dat pro přesné tipy. Odehrajte několik her a AI výzva se zpřesní.",
+            ["Tip.NoWeakness"] = "Daří se vám"
+        };
+
+        var localizer = Substitute.For<IStringLocalizer<AIChallengeService>>();
+        localizer[Arg.Any<string>()].Returns(call =>
+        {
+            var name = (string)call[0]!;
+            return new LocalizedString(name, values.GetValueOrDefault(name, name));
+        });
+
+        localizer[Arg.Any<string>(), Arg.Any<object[]>()].Returns(call =>
+        {
+            var name = (string)call[0]!;
+            var arguments = (object[])call[1]!;
+            var template = values.GetValueOrDefault(name, name);
+            return new LocalizedString(name, string.Format(template, arguments));
+        });
+
+        return localizer;
     }
 }

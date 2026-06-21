@@ -1,0 +1,86 @@
+@page "/paths/{PathId:guid}"
+@using LexiQuest.Blazor.Components.Paths
+@using LexiQuest.Blazor.Services
+@using LexiQuest.Shared.DTOs.Game
+@inject IPathService PathService
+@inject IStringLocalizer<PathDetail> L
+@inject NavigationManager NavigationManager
+
+<div class="path-detail-page" data-testid="path-detail-page">
+    @if (isLoading)
+    {
+        <div class="path-detail-loading" data-testid="path-detail-loading">
+            <TmSkeleton Type="Rectangle" Height="120px" />
+            <TmSkeleton Type="Rectangle" Height="260px" />
+        </div>
+    }
+    else if (progress == null)
+    {
+        <div class="path-detail-error" data-testid="path-detail-error">
+            <h1>@L["Error.Title"]</h1>
+            <button type="button" class="btn btn-secondary" @onclick="BackToPaths">@L["Button.Back"]</button>
+        </div>
+    }
+    else
+    {
+        <header class="path-detail-header">
+            <button type="button" class="btn btn-secondary" data-testid="path-detail-back" @onclick="BackToPaths">
+                @L["Button.Back"]
+            </button>
+            <div>
+                <h1>@L["Title"]</h1>
+                <p>@string.Format(L["Summary"], progress.CompletedLevels, progress.TotalLevels)</p>
+            </div>
+        </header>
+
+        <section class="path-map-section" data-testid="path-map-section">
+            <PathMap Levels="progress.Levels"
+                     CurrentLevel="progress.CurrentLevel"
+                     OnLevelSelected="ShowLevelDetail" />
+        </section>
+
+        <LevelDetailModal IsVisible="selectedLevel != null"
+                          Level="selectedLevel"
+                          PathId="PathId"
+                          OnClose="CloseLevelDetail" />
+    }
+</div>
+
+@code {
+    [Parameter] public Guid PathId { get; set; }
+
+    private PathProgressDto? progress;
+    private PathLevelDto? selectedLevel;
+    private bool isLoading = true;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        isLoading = true;
+        selectedLevel = null;
+
+        try
+        {
+            progress = await PathService.GetPathProgressAsync(PathId);
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void ShowLevelDetail(PathLevelDto level)
+    {
+        selectedLevel = level;
+    }
+
+    private Task CloseLevelDetail()
+    {
+        selectedLevel = null;
+        return Task.CompletedTask;
+    }
+
+    private void BackToPaths()
+    {
+        NavigationManager.NavigateTo("/paths");
+    }
+}

@@ -21,13 +21,19 @@ public class StreakIndicatorTests : TestContext
         _localizer["TimeRemaining"].Returns(new LocalizedString("TimeRemaining", "Zbývá"));
         _localizer["ShieldActive"].Returns(new LocalizedString("ShieldActive", "🛡️ Štít aktivní"));
         _localizer["ShieldExpired"].Returns(new LocalizedString("ShieldExpired", "Štít expiroval"));
-        _localizer["FreezeAvailable"].Returns(new LocalizedString("FreezeAvailable", "❄️ Freeze dostupný"));
+        _localizer["FreezeAvailable"].Returns(new LocalizedString("FreezeAvailable", "❄️ Zmrazení dostupné"));
         _localizer["ActivateShield"].Returns(new LocalizedString("ActivateShield", "Aktivovat štít"));
         _localizer["BuyShields"].Returns(new LocalizedString("BuyShields", "Koupit štíty"));
         _localizer["FreeShieldAvailable"].Returns(new LocalizedString("FreeShieldAvailable", "Dostupný zdarma"));
         _localizer["PremiumShieldAvailable"].Returns(new LocalizedString("PremiumShieldAvailable", "Dostupný (Premium)"));
         _localizer["NextShieldAvailable"].Returns(new LocalizedString("NextShieldAvailable", "Další za"));
         _localizer["Days"].Returns(new LocalizedString("Days", "dní"));
+        _localizer["Days.One"].Returns(new LocalizedString("Days.One", "den"));
+        _localizer["Days.Few"].Returns(new LocalizedString("Days.Few", "dny"));
+        _localizer["Days.Many"].Returns(new LocalizedString("Days.Many", "dní"));
+        _localizer["StreakDays.One"].Returns(new LocalizedString("StreakDays.One", "den v řadě"));
+        _localizer["StreakDays.Few"].Returns(new LocalizedString("StreakDays.Few", "dny v řadě"));
+        _localizer["StreakDays.Many"].Returns(new LocalizedString("StreakDays.Many", "dní v řadě"));
         Services.AddSingleton(_localizer);
     }
 
@@ -199,8 +205,8 @@ public class StreakIndicatorTests : TestContext
     [Fact]
     public void StreakIndicator_NextShieldAvailable_ShowsCountdown()
     {
-        // Arrange - use AddDays(6) to ensure (nextAvailable - UtcNow).Days is reliably 5
-        var nextAvailable = DateTime.UtcNow.Date.AddDays(6);
+        // Arrange - keep the remaining whole-day count stable at 4.
+        var nextAvailable = DateTime.UtcNow.AddDays(4).AddHours(12);
         var shieldProtection = new StreakProtectionDto(
             ShieldsRemaining: 0,
             HasActiveShield: false,
@@ -216,6 +222,7 @@ public class StreakIndicatorTests : TestContext
 
         // Act & Assert
         component.Markup.Should().Contain("Další za");
+        component.Markup.Should().Contain("4 dny");
         component.Find(".shield-countdown").Should().NotBeNull();
     }
 

@@ -1,46 +1,65 @@
 @page "/team"
 @inject IStringLocalizer<Team> L
 @inject ITeamService TeamService
+@inject IUserService UserService
+@inject IPremiumService PremiumService
+@inject IShopService ShopService
 @inject NavigationManager Navigation
 
-<div class="team-page">
+<div class="team-page" data-testid="team-page">
     <h2 class="page-title">@L["Page_Title"]</h2>
 
     @if (_isLoading)
     {
-        <TmSpinner Size="SpinnerSize.Lg" />
+        <div class="team-loading-skeleton" data-testid="team-loading" aria-busy="true">
+            <TmSkeleton Type="Rectangle" Height="120px" />
+            <div class="team-loading-stats">
+                <TmSkeleton Type="Rectangle" Height="96px" />
+                <TmSkeleton Type="Rectangle" Height="96px" />
+                <TmSkeleton Type="Rectangle" Height="96px" />
+            </div>
+            <TmSkeleton Type="Rectangle" Height="260px" />
+        </div>
     }
     else if (_team == null)
     {
-        <!-- No Team State -->
-        <div class="empty-state">
-            <TmEmptyState Title="@L["NoTeam_Title"]" Description="@L["NoTeam_Description"]" />
+        <div class="empty-state" data-testid="team-empty-state">
+            <h3 data-testid="team-empty-title">@L["NoTeam_Title"]</h3>
+            <p data-testid="team-empty-description">@L["NoTeam_Description"]</p>
             <div class="empty-actions">
-                <TmButton Variant="ButtonVariant.Primary" Size="ButtonSize.Lg" OnClick="ShowCreateModal">
+                <TmButton Variant="ButtonVariant.Primary"
+                    Size="ButtonSize.Lg"
+                    AdditionalAttributes="@TestId("team-create")"
+                    OnClick="ShowCreateModal">
                     @L["Button_CreateTeam"]
                 </TmButton>
-                <TmButton Variant="ButtonVariant.Outline" Size="ButtonSize.Lg" OnClick="ShowRanking">
+                <TmButton Variant="ButtonVariant.Outline"
+                    Size="ButtonSize.Lg"
+                    AdditionalAttributes="@TestId("team-search")"
+                    OnClick="ShowRanking">
                     @L["Button_SearchTeam"]
                 </TmButton>
             </div>
 
             @if (_myInvites.Any())
             {
-                <TmCard>
+                <TmCard AdditionalAttributes="@TestId("team-invites-section")">
                     <h3>@L["Invites_Title"]</h3>
                     @foreach (var invite in _myInvites)
                     {
-                        <div class="invite-item">
+                        <div class="invite-item" data-testid="team-invite-row">
                             <div class="invite-info">
                                 <TmBadge Variant="BadgeVariant.Primary">@invite.TeamTag</TmBadge>
                                 <span>@invite.TeamName</span>
                             </div>
                             <div class="invite-actions">
                                 <TmButton Variant="ButtonVariant.Primary" Size="ButtonSize.Sm"
+                                    AdditionalAttributes="@TestId("team-invite-accept")"
                                     OnClick="() => AcceptInvite(invite.Id)">
                                     @L["Invites_Accept"]
                                 </TmButton>
                                 <TmButton Variant="ButtonVariant.Ghost" Size="ButtonSize.Sm"
+                                    AdditionalAttributes="@TestId("team-invite-reject")"
                                     OnClick="() => RejectInvite(invite.Id)">
                                     @L["Invites_Reject"]
                                 </TmButton>
@@ -53,8 +72,7 @@
     }
     else
     {
-        <!-- Team Dashboard -->
-        <div class="team-dashboard">
+        <div class="team-dashboard" data-testid="team-dashboard">
             <div class="team-header">
                 <div class="team-identity">
                     @if (!string.IsNullOrEmpty(_team.LogoUrl))
@@ -62,32 +80,34 @@
                         <TmAvatar Src="@_team.LogoUrl" Size="AvatarSize.Lg" />
                     }
                     <div>
-                        <h3>@_team.Name</h3>
-                        <span class="team-tag"><TmBadge Variant="BadgeVariant.Primary">@_team.Tag</TmBadge></span>
+                        <h3 data-testid="team-dashboard-name">@_team.Name</h3>
+                        <span class="team-tag" data-testid="team-dashboard-tag">
+                            <TmBadge Variant="BadgeVariant.Primary">@_team.Tag</TmBadge>
+                        </span>
                     </div>
                 </div>
                 @if (!string.IsNullOrEmpty(_team.Description))
                 {
-                    <p class="team-description">@_team.Description</p>
+                    <p class="team-description" data-testid="team-dashboard-description">@_team.Description</p>
                 }
             </div>
 
             <!-- Stats -->
             <div class="stats-grid">
                 <TmCard>
-                    <div class="stat-value">@_team.Stats.WeeklyXP</div>
+                    <div class="stat-value" data-testid="team-stats-weekly-xp">@_team.Stats.WeeklyXP</div>
                     <div class="stat-label">@L["Stats_WeeklyXP"]</div>
                 </TmCard>
                 <TmCard>
-                    <div class="stat-value">@_team.Stats.AllTimeXP</div>
+                    <div class="stat-value" data-testid="team-stats-alltime-xp">@_team.Stats.AllTimeXP</div>
                     <div class="stat-label">@L["Stats_AllTimeXP"]</div>
                 </TmCard>
                 <TmCard>
-                    <div class="stat-value">#@_team.Stats.Rank</div>
+                    <div class="stat-value" data-testid="team-stats-rank">#@_team.Stats.Rank</div>
                     <div class="stat-label">@L["Stats_Rank"]</div>
                 </TmCard>
                 <TmCard>
-                    <div class="stat-value">@_team.Stats.TotalWins</div>
+                    <div class="stat-value" data-testid="team-stats-wins">@_team.Stats.TotalWins</div>
                     <div class="stat-label">@L["Stats_Wins"]</div>
                 </TmCard>
             </div>
@@ -95,15 +115,18 @@
             <!-- Members -->
             <TmCard>
                 <div class="section-header">
-                    <h3>@L["Dashboard_Members"] (@_team.MemberCount/20)</h3>
+                    <h3 data-testid="team-members-heading">@L["Dashboard_Members"] (@_team.MemberCount/20)</h3>
                     @if (_isLeader || _isOfficer)
                     {
-                        <TmButton Variant="ButtonVariant.Primary" Size="ButtonSize.Sm" OnClick="ShowInviteModal">
+                        <TmButton Variant="ButtonVariant.Primary"
+                            Size="ButtonSize.Sm"
+                            AdditionalAttributes="@TestId("team-invite-open")"
+                            OnClick="ShowInviteModal">
                             @L["Button_Invite"]
                         </TmButton>
                     }
                 </div>
-                <table class="members-table">
+                <table class="members-table" data-testid="team-members-table">
                     <thead>
                         <tr>
                             <th>@L["Members_Username"]</th>
@@ -119,7 +142,7 @@
                     <tbody>
                         @foreach (var member in _members)
                         {
-                            <tr>
+                            <tr data-testid="team-member-row">
                                 <td>
                                     <div class="member-info">
                                         <TmAvatar Src="@member.AvatarUrl" Size="AvatarSize.Sm" />
@@ -136,9 +159,10 @@
                                 @if (_isLeader || _isOfficer)
                                 {
                                     <td>
-                                        @if (member.Role != TeamRoleDto.Leader)
+                                        @if (CanKickMember(member))
                                         {
                                             <TmButton Variant="ButtonVariant.Danger" Size="ButtonSize.Sm"
+                                                AdditionalAttributes="@TestId("team-member-kick")"
                                                 OnClick="() => KickMember(member.UserId)">
                                                 @L["Button_Kick"]
                                             </TmButton>
@@ -154,11 +178,11 @@
             <!-- Join Requests (Leader/Officer only) -->
             @if ((_isLeader || _isOfficer) && _joinRequests.Any())
             {
-                <TmCard>
+                <TmCard AdditionalAttributes="@TestId("team-join-requests-section")">
                     <h3>@L["JoinRequests_Title"]</h3>
                     @foreach (var request in _joinRequests)
                     {
-                        <div class="join-request-item">
+                        <div class="join-request-item" data-testid="team-join-request-row">
                             <div class="request-info">
                                 <span class="request-username">@request.Username</span>
                                 @if (!string.IsNullOrEmpty(request.Message))
@@ -168,10 +192,12 @@
                             </div>
                             <div class="request-actions">
                                 <TmButton Variant="ButtonVariant.Primary" Size="ButtonSize.Sm"
+                                    AdditionalAttributes="@TestId("team-join-request-accept")"
                                     OnClick="() => ApproveRequest(request.Id)">
                                     @L["JoinRequests_Accept"]
                                 </TmButton>
                                 <TmButton Variant="ButtonVariant.Ghost" Size="ButtonSize.Sm"
+                                    AdditionalAttributes="@TestId("team-join-request-reject")"
                                     OnClick="() => RejectRequest(request.Id)">
                                     @L["JoinRequests_Reject"]
                                 </TmButton>
@@ -185,16 +211,25 @@
             <div class="management-actions">
                 @if (_isLeader)
                 {
-                    <TmButton Variant="ButtonVariant.Outline" OnClick="ShowTransferModal">
-                        @L["Button_TransferLeadership"]
-                    </TmButton>
-                    <TmButton Variant="ButtonVariant.Danger" OnClick="DisbandTeam">
+                    @if (CanTransferLeadership())
+                    {
+                        <TmButton Variant="ButtonVariant.Outline"
+                            AdditionalAttributes="@TestId("team-transfer-open")"
+                            OnClick="ShowTransferModal">
+                            @L["Button_TransferLeadership"]
+                        </TmButton>
+                    }
+                    <TmButton Variant="ButtonVariant.Danger"
+                        AdditionalAttributes="@TestId("team-disband")"
+                        OnClick="DisbandTeam">
                         @L["Button_DisbandTeam"]
                     </TmButton>
                 }
                 else
                 {
-                    <TmButton Variant="ButtonVariant.Ghost" OnClick="LeaveTeam">
+                    <TmButton Variant="ButtonVariant.Ghost"
+                        AdditionalAttributes="@TestId("team-leave")"
+                        OnClick="LeaveTeam">
                         @L["Button_LeaveTeam"]
                     </TmButton>
                 }
@@ -207,19 +242,23 @@
     {
         <TmCard>
             <h3>@L["Dashboard_Ranking"]</h3>
-            <table class="ranking-table">
+            <table class="ranking-table" data-testid="team-ranking-table">
                 <thead>
                     <tr>
                         <th>@L["Ranking_Position"]</th>
                         <th>@L["Ranking_TeamName"]</th>
                         <th>@L["Ranking_WeeklyXP"]</th>
                         <th>@L["Ranking_Members"]</th>
+                        @if (_team == null)
+                        {
+                            <th></th>
+                        }
                     </tr>
                 </thead>
                 <tbody>
                     @foreach (var entry in _ranking)
                     {
-                        <tr>
+                        <tr data-testid="team-ranking-row">
                             <td>#@entry.Rank</td>
                             <td>
                                 <span>@entry.Name</span>
@@ -227,6 +266,17 @@
                             </td>
                             <td>@entry.WeeklyXP</td>
                             <td>@entry.MemberCount</td>
+                            @if (_team == null)
+                            {
+                                <td>
+                                    <TmButton Variant="ButtonVariant.Primary"
+                                        Size="ButtonSize.Sm"
+                                        AdditionalAttributes="@TestId("team-join-request-open")"
+                                        OnClick="() => ShowJoinRequestModal(entry)">
+                                        @L["JoinRequest_Button"]
+                                    </TmButton>
+                                </td>
+                            }
                         </tr>
                     }
                 </tbody>
@@ -235,13 +285,244 @@
     }
 </div>
 
+@if (_showCreateModal)
+{
+    <div class="modal-backdrop">
+        <section class="team-modal" data-testid="team-create-modal" role="dialog" aria-modal="true" aria-labelledby="team-create-title">
+            <div class="team-modal-header">
+                <h2 id="team-create-title">@L["Create_Title"]</h2>
+                <p data-testid="team-create-cost">@GetCreateCostText()</p>
+            </div>
+
+            @if (!string.IsNullOrWhiteSpace(_createError))
+            {
+                <div class="team-error" data-testid="team-create-error" role="alert">@_createError</div>
+            }
+
+            <div class="team-form-field">
+                <label for="team-create-name">@L["Create_Name"]</label>
+                <input id="team-create-name"
+                       data-testid="team-create-name"
+                       class="team-input"
+                       maxlength="30"
+                       placeholder="@L["Create_Name_Placeholder"]"
+                       @bind="_createName"
+                       @bind:event="oninput" />
+                @if (!string.IsNullOrWhiteSpace(_createNameError))
+                {
+                    <span class="team-validation" data-testid="team-create-name-error">@_createNameError</span>
+                }
+            </div>
+
+            <div class="team-form-field">
+                <label for="team-create-tag">@L["Create_Tag"]</label>
+                <input id="team-create-tag"
+                       data-testid="team-create-tag"
+                       class="team-input"
+                       maxlength="4"
+                       placeholder="@L["Create_Tag_Placeholder"]"
+                       @bind="_createTag"
+                       @bind:event="oninput" />
+                @if (!string.IsNullOrWhiteSpace(_createTagError))
+                {
+                    <span class="team-validation" data-testid="team-create-tag-error">@_createTagError</span>
+                }
+            </div>
+
+            <div class="team-form-field">
+                <label for="team-create-description">@L["Create_Description"]</label>
+                <textarea id="team-create-description"
+                          data-testid="team-create-description"
+                          class="team-input"
+                          maxlength="500"
+                          rows="3"
+                          placeholder="@L["Create_Description_Placeholder"]"
+                          @bind="_createDescription"
+                          @bind:event="oninput"></textarea>
+                @if (!string.IsNullOrWhiteSpace(_createDescriptionError))
+                {
+                    <span class="team-validation" data-testid="team-create-description-error">@_createDescriptionError</span>
+                }
+            </div>
+
+            <div class="team-modal-actions">
+                <button type="button" class="team-btn team-btn-secondary" data-testid="team-create-cancel" @onclick="CloseCreateModal">
+                    @L["Button_Cancel"]
+                </button>
+                <button type="button" class="team-btn team-btn-primary" data-testid="team-create-submit" disabled="@_isCreatingTeam" @onclick="CreateTeam">
+                    @L["Button_Create"]
+                </button>
+            </div>
+        </section>
+    </div>
+}
+
+@if (_showInviteModal)
+{
+    <div class="modal-backdrop">
+        <section class="team-modal" data-testid="team-invite-modal" role="dialog" aria-modal="true" aria-labelledby="team-invite-title">
+            <div class="team-modal-header">
+                <h2 id="team-invite-title">@L["Invite_Title"]</h2>
+            </div>
+
+            @if (!string.IsNullOrWhiteSpace(_inviteError))
+            {
+                <div class="team-error" data-testid="team-invite-error" role="alert">@_inviteError</div>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(_inviteSuccess))
+            {
+                <div class="team-success" data-testid="team-invite-success" role="status">@_inviteSuccess</div>
+            }
+
+            <div class="team-form-field">
+                <label for="team-invite-username">@L["Invite_Username"]</label>
+                <input id="team-invite-username"
+                       data-testid="team-invite-username"
+                       class="team-input"
+                       maxlength="30"
+                       placeholder="@L["Invite_Username_Placeholder"]"
+                       @bind="_inviteUsername"
+                       @bind:event="oninput" />
+                @if (!string.IsNullOrWhiteSpace(_inviteUsernameError))
+                {
+                    <span class="team-validation" data-testid="team-invite-username-error">@_inviteUsernameError</span>
+                }
+            </div>
+
+            <div class="team-modal-actions">
+                <button type="button" class="team-btn team-btn-secondary" data-testid="team-invite-cancel" @onclick="CloseInviteModal">
+                    @L["Button_Cancel"]
+                </button>
+                <button type="button" class="team-btn team-btn-primary" data-testid="team-invite-submit" disabled="@_isInviting" @onclick="InviteMemberByUsername">
+                    @L["Button_Invite"]
+                </button>
+            </div>
+        </section>
+    </div>
+}
+
+@if (_showJoinModal)
+{
+    <div class="modal-backdrop">
+        <section class="team-modal" data-testid="team-join-modal" role="dialog" aria-modal="true" aria-labelledby="team-join-title">
+            <div class="team-modal-header">
+                <h2 id="team-join-title">@L["JoinRequest_Title"]</h2>
+                @if (_joinTarget != null)
+                {
+                    <p>@_joinTarget.Name</p>
+                }
+            </div>
+
+            @if (!string.IsNullOrWhiteSpace(_joinError))
+            {
+                <div class="team-error" data-testid="team-join-error" role="alert">@_joinError</div>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(_joinSuccess))
+            {
+                <div class="team-success" data-testid="team-join-success" role="status">@_joinSuccess</div>
+            }
+
+            <div class="team-form-field">
+                <label for="team-join-message">@L["JoinRequest_Message"]</label>
+                <textarea id="team-join-message"
+                          data-testid="team-join-message"
+                          class="team-input"
+                          maxlength="500"
+                          rows="3"
+                          @bind="_joinMessage"
+                          @bind:event="oninput"></textarea>
+            </div>
+
+            <div class="team-modal-actions">
+                <button type="button" class="team-btn team-btn-secondary" data-testid="team-join-cancel" @onclick="CloseJoinRequestModal">
+                    @L["Button_Cancel"]
+                </button>
+                <button type="button" class="team-btn team-btn-primary" data-testid="team-join-submit" disabled="@_isSendingJoinRequest" @onclick="SendJoinRequest">
+                    @L["JoinRequest_Button"]
+                </button>
+            </div>
+        </section>
+    </div>
+}
+
+@if (_showTransferModal)
+{
+    <div class="modal-backdrop">
+        <section class="team-modal" data-testid="team-transfer-modal" role="dialog" aria-modal="true" aria-labelledby="team-transfer-title">
+            <div class="team-modal-header">
+                <h2 id="team-transfer-title">@L["Transfer_Title"]</h2>
+                <p>@L["Transfer_Description"]</p>
+            </div>
+
+            @if (!string.IsNullOrWhiteSpace(_transferError))
+            {
+                <div class="team-error" data-testid="team-transfer-error" role="alert">@_transferError</div>
+            }
+
+            <div class="team-transfer-list">
+                @foreach (var member in GetTransferCandidates())
+                {
+                    <button type="button"
+                            class="team-transfer-member @(member.UserId == _transferTargetUserId ? "is-selected" : null)"
+                            data-testid="team-transfer-member"
+                            @onclick="() => SelectTransferTarget(member.UserId)">
+                        <span>@member.Username</span>
+                        <span>@GetRoleLabel(member.Role)</span>
+                    </button>
+                }
+            </div>
+
+            <div class="team-modal-actions">
+                <button type="button" class="team-btn team-btn-secondary" data-testid="team-transfer-cancel" @onclick="CloseTransferModal">
+                    @L["Button_Cancel"]
+                </button>
+                <button type="button" class="team-btn team-btn-primary" data-testid="team-transfer-submit" disabled="@(_isTransferring || _transferTargetUserId == null)" @onclick="TransferLeadership">
+                    @L["Transfer_Submit"]
+                </button>
+            </div>
+        </section>
+    </div>
+}
+
 @code {
     private bool _isLoading = true;
     private bool _showRanking;
+    private bool _showCreateModal;
+    private bool _showInviteModal;
+    private bool _showJoinModal;
+    private bool _showTransferModal;
+    private bool _isCreatingTeam;
+    private bool _isInviting;
+    private bool _isSendingJoinRequest;
+    private bool _isTransferring;
+    private bool _isPremium;
+    private bool _canCreateTeam;
     private bool _isLeader;
     private bool _isOfficer;
+    private Guid? _currentUserId;
+    private int _coinBalance;
+
+    private string _createName = string.Empty;
+    private string _createTag = string.Empty;
+    private string _createDescription = string.Empty;
+    private string? _createError;
+    private string? _createNameError;
+    private string? _createTagError;
+    private string? _createDescriptionError;
+    private string _inviteUsername = string.Empty;
+    private string? _inviteError;
+    private string? _inviteSuccess;
+    private string? _inviteUsernameError;
+    private string _joinMessage = string.Empty;
+    private string? _joinError;
+    private string? _joinSuccess;
+    private string? _transferError;
+    private Guid? _transferTargetUserId;
 
     private TeamDto? _team;
+    private TeamRankingDto? _joinTarget;
     private List<TeamMemberDto> _members = [];
     private List<TeamInviteDto> _myInvites = [];
     private List<TeamJoinRequestDto> _joinRequests = [];
@@ -249,18 +530,22 @@
 
     protected override async Task OnInitializedAsync()
     {
+        var profile = await UserService.GetProfileAsync();
+        _currentUserId = profile?.Id;
         _team = await TeamService.GetMyTeamAsync();
 
         if (_team != null)
         {
             _members = await TeamService.GetTeamMembersAsync(_team.Id);
             _joinRequests = await TeamService.GetJoinRequestsAsync(_team.Id);
-            _isLeader = true; // In production, compare with current user ID
-            _isOfficer = false;
+            UpdateCurrentUserRole();
         }
         else
         {
             _myInvites = await TeamService.GetMyInvitesAsync();
+            _isPremium = await PremiumService.IsPremiumAsync();
+            _coinBalance = await ShopService.GetUserCoinsAsync();
+            _canCreateTeam = await TeamService.CanCreateTeamAsync();
         }
 
         _ranking = await TeamService.GetRankingAsync();
@@ -269,22 +554,314 @@
 
     private void ShowCreateModal()
     {
-        // Modal logic handled in component
+        _createError = null;
+        _createNameError = null;
+        _createTagError = null;
+        _createDescriptionError = null;
+        _showCreateModal = true;
     }
+
+    private void CloseCreateModal()
+    {
+        _showCreateModal = false;
+        _createError = null;
+    }
+
+    private async Task CreateTeam()
+    {
+        if (!ValidateCreateTeam())
+        {
+            return;
+        }
+
+        _isCreatingTeam = true;
+        _createError = null;
+
+        try
+        {
+            var request = new CreateTeamRequest(
+                _createName.Trim(),
+                _createTag.Trim().ToUpperInvariant(),
+                string.IsNullOrWhiteSpace(_createDescription) ? null : _createDescription.Trim(),
+                null);
+
+            var result = await TeamService.CreateTeamWithResultAsync(request);
+            if (result.Team == null)
+            {
+                _createError = GetCreateErrorText(result.Error);
+                return;
+            }
+
+            var team = result.Team;
+            _team = team;
+            _members = await TeamService.GetTeamMembersAsync(team.Id);
+            _joinRequests = await TeamService.GetJoinRequestsAsync(team.Id);
+            _myInvites = [];
+            _currentUserId ??= team.LeaderId;
+            UpdateCurrentUserRole();
+            _showCreateModal = false;
+            ResetCreateForm();
+        }
+        finally
+        {
+            _isCreatingTeam = false;
+        }
+    }
+
+    private bool ValidateCreateTeam()
+    {
+        _createError = null;
+        _createNameError = null;
+        _createTagError = null;
+        _createDescriptionError = null;
+
+        var isValid = true;
+        var name = _createName.Trim();
+        var tag = _createTag.Trim();
+
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            _createNameError = L["Validation_Name_Required"];
+            isValid = false;
+        }
+        else if (name.Length < 3 || name.Length > 30)
+        {
+            _createNameError = L["Validation_Name_Length"];
+            isValid = false;
+        }
+
+        if (string.IsNullOrWhiteSpace(tag))
+        {
+            _createTagError = L["Validation_Tag_Required"];
+            isValid = false;
+        }
+        else if (tag.Length < 2 || tag.Length > 4)
+        {
+            _createTagError = L["Validation_Tag_Length"];
+            isValid = false;
+        }
+        else if (!tag.All(c => (c >= 'A' && c <= 'Z') || char.IsDigit(c)))
+        {
+            _createTagError = L["Validation_Tag_Format"];
+            isValid = false;
+        }
+
+        if (_createDescription.Length > 500)
+        {
+            _createDescriptionError = L["Validation_Description_Length"];
+            isValid = false;
+        }
+
+        return isValid;
+    }
+
+    private void ResetCreateForm()
+    {
+        _createName = string.Empty;
+        _createTag = string.Empty;
+        _createDescription = string.Empty;
+        _createError = null;
+        _createNameError = null;
+        _createTagError = null;
+        _createDescriptionError = null;
+    }
+
+    private void UpdateCurrentUserRole()
+    {
+        var currentRole = _members.FirstOrDefault(m => m.UserId == _currentUserId)?.Role;
+        _isLeader = currentRole == TeamRoleDto.Leader;
+        _isOfficer = currentRole == TeamRoleDto.Officer;
+    }
+
+    private bool CanKickMember(TeamMemberDto member)
+    {
+        if (member.UserId == _currentUserId)
+        {
+            return false;
+        }
+
+        if (_isLeader)
+        {
+            return member.Role != TeamRoleDto.Leader;
+        }
+
+        return _isOfficer && member.Role == TeamRoleDto.Member;
+    }
+
+    private bool CanTransferLeadership() =>
+        _isLeader && _members.Any(member => member.UserId != _currentUserId);
+
+    private IEnumerable<TeamMemberDto> GetTransferCandidates() =>
+        _members.Where(member => member.UserId != _currentUserId);
+
+    private string GetCreateCostText() =>
+        _isPremium
+            ? L["Create_Cost_Premium"]
+            : string.Format(L["Create_Cost_Coins_WithBalance"], _coinBalance);
+
+    private string GetCreateErrorText(CreateTeamClientError error) => error switch
+    {
+        CreateTeamClientError.CannotCreate => L["Error_CannotCreate"],
+        CreateTeamClientError.DuplicateName => L["Error_DuplicateName"],
+        CreateTeamClientError.DuplicateTag => L["Error_DuplicateTag"],
+        CreateTeamClientError.AlreadyInTeam => L["Error_AlreadyInTeam"],
+        _ => _canCreateTeam ? L["Error_CreateFailed"] : L["Error_CannotCreate"]
+    };
 
     private void ShowRanking()
     {
         _showRanking = !_showRanking;
     }
 
+    private void ShowJoinRequestModal(TeamRankingDto team)
+    {
+        _joinTarget = team;
+        _joinMessage = string.Empty;
+        _joinError = null;
+        _joinSuccess = null;
+        _showJoinModal = true;
+    }
+
+    private void CloseJoinRequestModal()
+    {
+        _showJoinModal = false;
+        _joinTarget = null;
+        _joinError = null;
+        _joinSuccess = null;
+    }
+
+    private async Task SendJoinRequest()
+    {
+        if (_joinTarget == null)
+        {
+            return;
+        }
+
+        _joinError = null;
+        _joinSuccess = null;
+        _isSendingJoinRequest = true;
+
+        try
+        {
+            var request = new CreateJoinRequest(
+                string.IsNullOrWhiteSpace(_joinMessage) ? null : _joinMessage.Trim());
+
+            var success = await TeamService.RequestJoinAsync(_joinTarget.TeamId, request);
+            if (!success)
+            {
+                _joinError = L["JoinRequest_Error"];
+                return;
+            }
+
+            _joinMessage = string.Empty;
+            _joinSuccess = string.Format(L["JoinRequest_Success"], _joinTarget.Name);
+        }
+        finally
+        {
+            _isSendingJoinRequest = false;
+        }
+    }
+
     private void ShowInviteModal()
     {
-        // Modal logic handled in component
+        _inviteUsername = string.Empty;
+        _inviteError = null;
+        _inviteSuccess = null;
+        _inviteUsernameError = null;
+        _showInviteModal = true;
+    }
+
+    private void CloseInviteModal()
+    {
+        _showInviteModal = false;
+        _inviteError = null;
+        _inviteSuccess = null;
+        _inviteUsernameError = null;
+    }
+
+    private async Task InviteMemberByUsername()
+    {
+        if (_team == null)
+        {
+            return;
+        }
+
+        _inviteError = null;
+        _inviteSuccess = null;
+        _inviteUsernameError = null;
+
+        var username = _inviteUsername.Trim();
+        if (string.IsNullOrWhiteSpace(username))
+        {
+            _inviteUsernameError = L["Validation_InviteUsername_Required"];
+            return;
+        }
+
+        _isInviting = true;
+        try
+        {
+            var result = await TeamService.InviteMemberByUsernameAsync(_team.Id, username);
+            if (!result.Success)
+            {
+                _inviteError = GetInviteErrorText(result.Error);
+                return;
+            }
+
+            _inviteUsername = string.Empty;
+            _inviteSuccess = string.Format(L["Invite_Success"], username);
+        }
+        finally
+        {
+            _isInviting = false;
+        }
     }
 
     private void ShowTransferModal()
     {
-        // Modal logic handled in component
+        _transferError = null;
+        _transferTargetUserId = GetTransferCandidates().FirstOrDefault()?.UserId;
+        _showTransferModal = true;
+    }
+
+    private void CloseTransferModal()
+    {
+        _showTransferModal = false;
+        _transferError = null;
+        _transferTargetUserId = null;
+    }
+
+    private void SelectTransferTarget(Guid userId)
+    {
+        _transferTargetUserId = userId;
+        _transferError = null;
+    }
+
+    private async Task TransferLeadership()
+    {
+        if (_team == null || _transferTargetUserId == null)
+        {
+            return;
+        }
+
+        try
+        {
+            _isTransferring = true;
+            _transferError = null;
+
+            var success = await TeamService.TransferLeadershipAsync(_team.Id, _transferTargetUserId.Value);
+            if (!success)
+            {
+                _transferError = L["Transfer_Error"];
+                return;
+            }
+
+            CloseTransferModal();
+            await RefreshCurrentTeamAsync();
+        }
+        finally
+        {
+            _isTransferring = false;
+        }
     }
 
     private async Task KickMember(Guid userId)
@@ -294,7 +871,7 @@
             var success = await TeamService.KickMemberAsync(_team.Id, userId);
             if (success)
             {
-                _members = await TeamService.GetTeamMembersAsync(_team.Id);
+                await RefreshCurrentTeamAsync();
             }
         }
     }
@@ -308,6 +885,7 @@
             {
                 _team = null;
                 _members = [];
+                UpdateCurrentUserRole();
             }
         }
     }
@@ -321,6 +899,7 @@
             {
                 _team = null;
                 _members = [];
+                UpdateCurrentUserRole();
             }
         }
     }
@@ -332,6 +911,7 @@
         if (_team != null)
         {
             _members = await TeamService.GetTeamMembersAsync(_team.Id);
+            UpdateCurrentUserRole();
         }
         _myInvites = await TeamService.GetMyInvitesAsync();
     }
@@ -347,7 +927,7 @@
         if (success && _team != null)
         {
             _joinRequests = await TeamService.GetJoinRequestsAsync(_team.Id);
-            _members = await TeamService.GetTeamMembersAsync(_team.Id);
+            await RefreshCurrentTeamAsync();
         }
     }
 
@@ -360,11 +940,42 @@
         }
     }
 
+    private async Task RefreshCurrentTeamAsync()
+    {
+        if (_team == null)
+        {
+            return;
+        }
+
+        var currentTeam = await TeamService.GetMyTeamAsync();
+        if (currentTeam == null)
+        {
+            _team = null;
+            _members = [];
+            UpdateCurrentUserRole();
+            return;
+        }
+
+        _team = currentTeam;
+        _members = await TeamService.GetTeamMembersAsync(currentTeam.Id);
+        UpdateCurrentUserRole();
+    }
+
     private string GetRoleLabel(TeamRoleDto role) => role switch
     {
         TeamRoleDto.Leader => L["Role_Leader"],
         TeamRoleDto.Officer => L["Role_Officer"],
         _ => L["Role_Member"]
+    };
+
+    private string GetInviteErrorText(InviteMemberClientError error) => error switch
+    {
+        InviteMemberClientError.UsernameRequired => L["Validation_InviteUsername_Required"],
+        InviteMemberClientError.UserNotFound => L["Error_InviteUserNotFound"],
+        InviteMemberClientError.AlreadyInTeam => L["Error_InviteAlreadyInTeam"],
+        InviteMemberClientError.DuplicateInvite => L["Error_InviteDuplicate"],
+        InviteMemberClientError.NoPermission => L["Error_InviteNoPermission"],
+        _ => L["Error_InviteFailed"]
     };
 
     private BadgeVariant GetRoleBadgeVariant(TeamRoleDto role) => role switch
@@ -373,4 +984,7 @@
         TeamRoleDto.Officer => BadgeVariant.Info,
         _ => BadgeVariant.Info
     };
+
+    private static Dictionary<string, object> TestId(string value) =>
+        new() { ["data-testid"] = value };
 }

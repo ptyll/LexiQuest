@@ -16,13 +16,13 @@
     align-items: center;
     margin-bottom: var(--tm-spacing-6);
     flex-wrap: wrap;
-    gap: var(--tm-spacing-4);
+    gap: var(--tm-spacing-4, 1rem);
 }
 
 .footer-logo {
     display: flex;
     align-items: center;
-    gap: var(--tm-spacing-2);
+    gap: var(--tm-spacing-2, 0.5rem);
     font-size: var(--tm-font-size-xl);
     font-weight: var(--tm-font-weight-bold);
     color: var(--tm-color-text-primary);
@@ -30,7 +30,7 @@
 
 .footer-nav {
     display: flex;
-    gap: var(--tm-spacing-6);
+    gap: var(--tm-spacing-6, 1.5rem);
 }
 
 .footer-nav a {
@@ -46,7 +46,7 @@
 
 .footer-social {
     display: flex;
-    gap: var(--tm-spacing-3);
+    gap: var(--tm-spacing-3, 0.75rem);
 }
 
 .footer-social a {
@@ -80,5 +80,6 @@
     .footer-nav {
         flex-wrap: wrap;
         justify-content: center;
+        gap: var(--tm-spacing-3, 0.75rem) var(--tm-spacing-4, 1rem);
     }
 }

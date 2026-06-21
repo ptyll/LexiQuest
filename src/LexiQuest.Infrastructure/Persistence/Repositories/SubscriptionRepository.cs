@@ -48,6 +48,18 @@ public class SubscriptionRepository : ISubscriptionRepository
             .ToListAsync();
     }
 
+    public async Task<IEnumerable<Subscription>> GetActiveSubscriptionsExpiringBetweenAsync(
+        DateTime fromUtc,
+        DateTime toUtc,
+        CancellationToken cancellationToken = default)
+    {
+        return await _context.Subscriptions
+            .Where(s => s.Status == SubscriptionStatus.Active
+                && s.ExpiresAt >= fromUtc
+                && s.ExpiresAt <= toUtc)
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task AddAsync(Subscription subscription)
     {
         await _context.Subscriptions.AddAsync(subscription);

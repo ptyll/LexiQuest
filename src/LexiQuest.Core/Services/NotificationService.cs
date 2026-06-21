@@ -11,6 +11,7 @@ public class NotificationService : INotificationService
 {
     private readonly INotificationRepository _notificationRepository;
     private readonly INotificationPreferenceRepository _preferenceRepository;
+    private readonly IUserRepository _userRepository;
     private readonly IPushService _pushService;
     private readonly IEmailService _emailService;
     private readonly IUnitOfWork _unitOfWork;
@@ -20,12 +21,14 @@ public class NotificationService : INotificationService
     public NotificationService(
         INotificationRepository notificationRepository,
         INotificationPreferenceRepository preferenceRepository,
+        IUserRepository userRepository,
         IPushService pushService,
         IEmailService emailService,
         IUnitOfWork unitOfWork)
     {
         _notificationRepository = notificationRepository;
         _preferenceRepository = preferenceRepository;
+        _userRepository = userRepository;
         _pushService = pushService;
         _emailService = emailService;
         _unitOfWork = unitOfWork;
@@ -64,8 +67,12 @@ public class NotificationService : INotificationService
 
         if (preference.EmailEnabled)
         {
-            await _emailService.SendNotificationEmailAsync(
-                request.UserId.ToString(), request.Title, request.Message, cancellationToken);
+            var user = await _userRepository.GetByIdAsync(request.UserId, cancellationToken);
+            if (!string.IsNullOrWhiteSpace(user?.Email))
+            {
+                await _emailService.SendNotificationEmailAsync(
+                    user.Email, request.Title, request.Message, cancellationToken);
+            }
         }
     }
 
@@ -125,6 +132,7 @@ public class NotificationService : INotificationService
     public async Task UpdatePreferencesAsync(Guid userId, UpdatePreferencesRequest request, CancellationToken cancellationToken = default)
     {
         var preference = await _preferenceRepository.GetByUserIdAsync(userId, cancellationToken);
+        var isNew = preference == null;
         if (preference == null)
         {
             preference = NotificationPreference.CreateDefault(userId);
@@ -140,7 +148,11 @@ public class NotificationService : INotificationService
             request.AchievementNotifications,
             request.DailyChallengeReminder);
 
-        _preferenceRepository.Update(preference);
+        if (!isNew)
+        {
+            _preferenceRepository.Update(preference);
+        }
+
         await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
 

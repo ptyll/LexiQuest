@@ -48,6 +48,11 @@ public interface IMatchHistoryService
         Guid playerId,
         CancellationToken cancellationToken = default);
 
+    Task<MatchResultDto?> GetMatchResultAsync(
+        Guid matchId,
+        Guid playerId,
+        CancellationToken cancellationToken = default);
+
     Task<MatchResult?> GetMatchByIdAsync(
         Guid matchId,
         CancellationToken cancellationToken = default);

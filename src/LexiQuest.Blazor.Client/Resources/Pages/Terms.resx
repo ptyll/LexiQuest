@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Terms_PageTitle" xml:space="preserve">
+    <value>Podmínky používání</value>
+  </data>
+  <data name="Terms_Title" xml:space="preserve">
+    <value>Podmínky používání</value>
+  </data>
+  <data name="Terms_AcceptanceTitle" xml:space="preserve">
+    <value>Přijetí podmínek</value>
+  </data>
+  <data name="Terms_AcceptanceText" xml:space="preserve">
+    <value>Používáním LexiQuest souhlasíš s těmito podmínkami a zavazuješ se používat aplikaci poctivě.</value>
+  </data>
+  <data name="Terms_UsageTitle" xml:space="preserve">
+    <value>Používání služby</value>
+  </data>
+  <data name="Terms_UsageText" xml:space="preserve">
+    <value>Aplikace je určena pro osobní hraní, učení a soutěžení. Automatizované zneužívání, obcházení limitů nebo narušování hry není povoleno.</value>
+  </data>
+  <data name="Terms_AccountsTitle" xml:space="preserve">
+    <value>Uživatelské účty</value>
+  </data>
+  <data name="Terms_AccountsText" xml:space="preserve">
+    <value>Za bezpečnost svého účtu odpovídáš ty. Používej silné heslo a nesdílej přístupové údaje s dalšími osobami.</value>
+  </data>
+  <data name="Terms_ContentTitle" xml:space="preserve">
+    <value>Obsah a férová hra</value>
+  </data>
+  <data name="Terms_ContentText" xml:space="preserve">
+    <value>Herní obsah, slovníky a výsledky mohou být průběžně upravovány, aby hra zůstala vyvážená a užitečná.</value>
+  </data>
+  <data name="Terms_PrivacyTitle" xml:space="preserve">
+    <value>Soukromí</value>
+  </data>
+  <data name="Terms_PrivacyText" xml:space="preserve">
+    <value>Informace o zpracování osobních údajů najdeš v dokumentu </value>
+  </data>
+  <data name="Terms_PrivacyLink" xml:space="preserve">
+    <value>Ochrana soukromí</value>
+  </data>
+  <data name="Terms_LiabilityTitle" xml:space="preserve">
+    <value>Odpovědnost</value>
+  </data>
+  <data name="Terms_LiabilityText" xml:space="preserve">
+    <value>LexiQuest poskytujeme s péčí, ale bez záruky nepřetržité dostupnosti nebo absence chyb ve všech situacích.</value>
+  </data>
+  <data name="Terms_ChangesTitle" xml:space="preserve">
+    <value>Změny podmínek</value>
+  </data>
+  <data name="Terms_ChangesText" xml:space="preserve">
+    <value>Podmínky můžeme aktualizovat. Významné změny oznámíme v aplikaci nebo e-mailem, pokud to bude vhodné.</value>
+  </data>
+</root>

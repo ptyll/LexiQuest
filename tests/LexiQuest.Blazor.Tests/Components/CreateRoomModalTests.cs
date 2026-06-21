@@ -32,19 +32,23 @@ public class CreateRoomModalTests : BunitContext
         _localizer["Room_Settings_Title"].Returns(new LocalizedString("Room_Settings_Title", "Nastavení hry"));
         _localizer["Room_Settings_WordCount"].Returns(new LocalizedString("Room_Settings_WordCount", "Počet slov"));
         _localizer["Room_Settings_TimeLimit"].Returns(new LocalizedString("Room_Settings_TimeLimit", "Časový limit"));
+        _localizer["Room_Settings_Minutes"].Returns(new LocalizedString("Room_Settings_Minutes", "{0} min"));
         _localizer["Room_Settings_Difficulty"].Returns(new LocalizedString("Room_Settings_Difficulty", "Obtížnost"));
-        _localizer["Room_Settings_BestOf"].Returns(new LocalizedString("Room_Settings_BestOf", "Best of"));
+        _localizer["Room_Settings_BestOf"].Returns(new LocalizedString("Room_Settings_BestOf", "Série"));
+        _localizer["Room_Settings_BestOfSingle"].Returns(new LocalizedString("Room_Settings_BestOfSingle", "1 hra"));
+        _localizer["Room_Settings_BestOfSeries"].Returns(new LocalizedString("Room_Settings_BestOfSeries", "Na {0} hry"));
+        _localizer["Room_Settings_BestOfSeriesMany"].Returns(new LocalizedString("Room_Settings_BestOfSeriesMany", "Na {0} her"));
         _localizer["Room_NoLeagueXP_Info"].Returns(new LocalizedString("Room_NoLeagueXP_Info", "Soukromé místnosti nedávají liga XP (prevence farmení)"));
         _localizer["Button_Create"].Returns(new LocalizedString("Button_Create", "Vytvořit"));
         _localizer["Button_Cancel"].Returns(new LocalizedString("Button_Cancel", "Zrušit"));
-        _localizer["Difficulty_Beginner"].Returns(new LocalizedString("Difficulty_Beginner", "Beginner 🌱"));
-        _localizer["Difficulty_Intermediate"].Returns(new LocalizedString("Difficulty_Intermediate", "Intermediate 🌿"));
-        _localizer["Difficulty_Advanced"].Returns(new LocalizedString("Difficulty_Advanced", "Advanced 🌳"));
+        _localizer["Difficulty_Beginner"].Returns(new LocalizedString("Difficulty_Beginner", "Začátečník 🌱"));
+        _localizer["Difficulty_Intermediate"].Returns(new LocalizedString("Difficulty_Intermediate", "Mírně pokročilý 🌿"));
+        _localizer["Difficulty_Advanced"].Returns(new LocalizedString("Difficulty_Advanced", "Pokročilý 🌳"));
         _localizer["Difficulty_Expert"].Returns(new LocalizedString("Difficulty_Expert", "Expert 🔥"));
         _localizer["Difficulty_Mix"].Returns(new LocalizedString("Difficulty_Mix", "Mix (všechny)"));
         _localizer["Validation_WordCount_Invalid"].Returns(new LocalizedString("Validation_WordCount_Invalid", "Počet slov musí být 10, 15 nebo 20"));
         _localizer["Validation_TimeLimit_Invalid"].Returns(new LocalizedString("Validation_TimeLimit_Invalid", "Časový limit musí být 2, 3 nebo 5 minut"));
-        _localizer["Validation_BestOf_Invalid"].Returns(new LocalizedString("Validation_BestOf_Invalid", "Best of musí být 1, 3 nebo 5"));
+        _localizer["Validation_BestOf_Invalid"].Returns(new LocalizedString("Validation_BestOf_Invalid", "Série musí být na 1, 3 nebo 5 her"));
     }
 
     [Fact]

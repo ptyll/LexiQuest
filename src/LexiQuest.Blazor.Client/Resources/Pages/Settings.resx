@@ -9,14 +9,35 @@
   <data name="Settings_LoadErrorDescription" xml:space="preserve">
     <value>Nepodařilo se načíst nastavení. Zkuste to prosím později.</value>
   </data>
+  <data name="Settings_Retry" xml:space="preserve">
+    <value>Zkusit znovu</value>
+  </data>
   <data name="Settings_ProfileTab" xml:space="preserve">
     <value>Profil</value>
   </data>
   <data name="Settings_ProfileTitle" xml:space="preserve">
     <value>Osobní údaje</value>
   </data>
+  <data name="Settings_ProfileDescription" xml:space="preserve">
+    <value>Jméno, email a avatar, které se zobrazují v herních žebříčcích.</value>
+  </data>
+  <data name="Settings_AvatarAlt" xml:space="preserve">
+    <value>Avatar uživatele {0}</value>
+  </data>
   <data name="Settings_ChangeAvatar" xml:space="preserve">
     <value>Změnit avatar</value>
+  </data>
+  <data name="Settings_AvatarHelp" xml:space="preserve">
+    <value>PNG, JPG nebo WebP do 512 KB.</value>
+  </data>
+  <data name="Settings_AvatarInvalidType" xml:space="preserve">
+    <value>Avatar musí být PNG, JPG nebo WebP.</value>
+  </data>
+  <data name="Settings_AvatarTooLarge" xml:space="preserve">
+    <value>Avatar může mít maximálně 512 KB.</value>
+  </data>
+  <data name="Settings_AvatarReadError" xml:space="preserve">
+    <value>Avatar se nepodařilo načíst.</value>
   </data>
   <data name="Settings_Username" xml:space="preserve">
     <value>Uživatelské jméno</value>
@@ -36,6 +57,9 @@
   <data name="Settings_ProfileSaved" xml:space="preserve">
     <value>Profil byl úspěšně uložen.</value>
   </data>
+  <data name="Settings_UsernameTaken" xml:space="preserve">
+    <value>Uživatelské jméno je už obsazené.</value>
+  </data>
   <data name="Settings_SaveFailed" xml:space="preserve">
     <value>Uložení se nezdařilo. Zkuste to prosím znovu.</value>
   </data>
@@ -44,6 +68,9 @@
   </data>
   <data name="Settings_ChangePassword" xml:space="preserve">
     <value>Změna hesla</value>
+  </data>
+  <data name="Settings_PasswordDescription" xml:space="preserve">
+    <value>Po změně bude pro další přihlášení platit jen nové heslo.</value>
   </data>
   <data name="Settings_CurrentPassword" xml:space="preserve">
     <value>Aktuální heslo</value>
@@ -78,6 +105,9 @@
   <data name="Settings_Notifications" xml:space="preserve">
     <value>Notifikace</value>
   </data>
+  <data name="Settings_NotificationsDescription" xml:space="preserve">
+    <value>Nastavte, co vám má LexiQuest připomínat během hry a sezony.</value>
+  </data>
   <data name="Settings_PushNotifications" xml:space="preserve">
     <value>Push notifikace</value>
   </data>
@@ -88,13 +118,46 @@
     <value>Aktualizace ligy</value>
   </data>
   <data name="Settings_AchievementNotifications" xml:space="preserve">
-    <value>Notifikace o achievementech</value>
+    <value>Notifikace o úspěších</value>
+  </data>
+  <data name="Settings_DailyChallengeReminder" xml:space="preserve">
+    <value>Připomínka denní výzvy</value>
+  </data>
+  <data name="Settings_StreakReminderTime" xml:space="preserve">
+    <value>Čas připomínky streaku</value>
+  </data>
+  <data name="Settings_TimePlaceholder" xml:space="preserve">
+    <value>HH:mm</value>
   </data>
   <data name="Settings_Display" xml:space="preserve">
     <value>Zobrazení</value>
   </data>
+  <data name="Settings_DisplayDescription" xml:space="preserve">
+    <value>Motiv, jazyk a smyslové efekty aplikace.</value>
+  </data>
   <data name="Settings_Theme" xml:space="preserve">
     <value>Motiv</value>
+  </data>
+  <data name="Settings_ThemeLight" xml:space="preserve">
+    <value>Světlý</value>
+  </data>
+  <data name="Settings_ThemeDark" xml:space="preserve">
+    <value>Tmavý</value>
+  </data>
+  <data name="Settings_ThemeAuto" xml:space="preserve">
+    <value>Automaticky</value>
+  </data>
+  <data name="Settings_Language" xml:space="preserve">
+    <value>Jazyk</value>
+  </data>
+  <data name="Settings_LanguageCs" xml:space="preserve">
+    <value>Čeština</value>
+  </data>
+  <data name="Settings_LanguageSk" xml:space="preserve">
+    <value>Slovenština</value>
+  </data>
+  <data name="Settings_LanguageEn" xml:space="preserve">
+    <value>Angličtina</value>
   </data>
   <data name="Settings_Animations" xml:space="preserve">
     <value>Animace</value>
@@ -105,14 +168,29 @@
   <data name="Settings_PreferencesSaved" xml:space="preserve">
     <value>Předvolby byly uloženy.</value>
   </data>
+  <data name="Settings_PreferencesSaveFailed" xml:space="preserve">
+    <value>Předvolby se nepodařilo uložit.</value>
+  </data>
   <data name="Settings_PrivacyTab" xml:space="preserve">
     <value>Soukromí</value>
   </data>
   <data name="Settings_PrivacyTitle" xml:space="preserve">
     <value>Nastavení soukromí</value>
   </data>
+  <data name="Settings_PrivacyDescription" xml:space="preserve">
+    <value>Určete, kdo uvidí váš profil, žebříčky a statistiky.</value>
+  </data>
   <data name="Settings_ProfileVisibility" xml:space="preserve">
     <value>Viditelnost profilu</value>
+  </data>
+  <data name="Settings_VisibilityPublic" xml:space="preserve">
+    <value>Veřejný</value>
+  </data>
+  <data name="Settings_VisibilityFriends" xml:space="preserve">
+    <value>Přátelé</value>
+  </data>
+  <data name="Settings_VisibilityPrivate" xml:space="preserve">
+    <value>Soukromý</value>
   </data>
   <data name="Settings_LeaderboardVisible" xml:space="preserve">
     <value>Zobrazit v žebříčku</value>
@@ -123,8 +201,14 @@
   <data name="Settings_PrivacySaved" xml:space="preserve">
     <value>Nastavení soukromí bylo uloženo.</value>
   </data>
+  <data name="Settings_PrivacySaveFailed" xml:space="preserve">
+    <value>Nastavení soukromí se nepodařilo uložit.</value>
+  </data>
   <data name="Settings_DangerZone" xml:space="preserve">
     <value>Nebezpečná zóna</value>
+  </data>
+  <data name="Settings_DangerZoneDescription" xml:space="preserve">
+    <value>Akce, které ukončí sezení nebo změní dostupnost účtu.</value>
   </data>
   <data name="Settings_Logout" xml:space="preserve">
     <value>Odhlásit se</value>
@@ -135,6 +219,15 @@
   <data name="Settings_LogoutBtn" xml:space="preserve">
     <value>Odhlásit</value>
   </data>
+  <data name="Settings_DeactivateAccount" xml:space="preserve">
+    <value>Deaktivovat účet</value>
+  </data>
+  <data name="Settings_DeactivateAccountDescription" xml:space="preserve">
+    <value>Účet se uzamkne a nepůjde se k němu přihlásit.</value>
+  </data>
+  <data name="Settings_DeactivateAccountBtn" xml:space="preserve">
+    <value>Deaktivovat</value>
+  </data>
   <data name="Settings_DeleteAccount" xml:space="preserve">
     <value>Smazat účet</value>
   </data>
@@ -143,5 +236,50 @@
   </data>
   <data name="Settings_DeleteAccountBtn" xml:space="preserve">
     <value>Smazat</value>
+  </data>
+  <data name="Settings_DeactivateConfirmTitle" xml:space="preserve">
+    <value>Opravdu deaktivovat účet?</value>
+  </data>
+  <data name="Settings_DeactivateConfirmDescription" xml:space="preserve">
+    <value>Po potvrzení budete odhlášeni a účet zůstane uzamčený.</value>
+  </data>
+  <data name="Settings_DeleteConfirmTitle" xml:space="preserve">
+    <value>Opravdu smazat účet?</value>
+  </data>
+  <data name="Settings_DeleteConfirmDescription" xml:space="preserve">
+    <value>Tahle akce je trvalá a odstraní účet i navázaná herní data.</value>
+  </data>
+  <data name="Settings_ConfirmCodeInstruction" xml:space="preserve">
+    <value>Pro potvrzení napište {0}.</value>
+  </data>
+  <data name="Settings_ConfirmInputLabel" xml:space="preserve">
+    <value>Potvrzovací text</value>
+  </data>
+  <data name="Settings_ConfirmCancel" xml:space="preserve">
+    <value>Zrušit</value>
+  </data>
+  <data name="Settings_DeactivateConfirmCode" xml:space="preserve">
+    <value>DEAKTIVOVAT</value>
+  </data>
+  <data name="Settings_DeleteConfirmCode" xml:space="preserve">
+    <value>SMAZAT</value>
+  </data>
+  <data name="Settings_AccountDeactivated" xml:space="preserve">
+    <value>Účet byl deaktivován.</value>
+  </data>
+  <data name="Settings_AccountDeleted" xml:space="preserve">
+    <value>Účet byl smazán.</value>
+  </data>
+  <data name="Settings_DangerFailed" xml:space="preserve">
+    <value>Akci se nepodařilo dokončit.</value>
+  </data>
+  <data name="Settings_PushEnabled" xml:space="preserve">
+    <value>Push notifikace jsou zapnuté.</value>
+  </data>
+  <data name="Settings_PushPermissionDenied" xml:space="preserve">
+    <value>Pro push notifikace je potřeba povolit oznámení v prohlížeči.</value>
+  </data>
+  <data name="Settings_PushEnableFailed" xml:space="preserve">
+    <value>Push notifikace se nepodařilo zapnout.</value>
   </data>
 </root>

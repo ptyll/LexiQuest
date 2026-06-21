@@ -55,12 +55,12 @@ public class StreakProtectionServiceEdgeCaseTests
     }
 
     [Fact]
-    public void Streak_MissOneDay_StreakBroken()
+    public void Streak_Over48Hours_StreakBroken()
     {
         // Arrange
         var streak = Streak.CreateDefault();
         var day1 = new DateTime(2026, 3, 10, 12, 0, 0, DateTimeKind.Utc);
-        var day3 = new DateTime(2026, 3, 12, 12, 0, 0, DateTimeKind.Utc); // Skipped Mar 11
+        var day3 = new DateTime(2026, 3, 12, 12, 1, 0, DateTimeKind.Utc);
 
         // Act
         streak.RecordActivity(day1);
@@ -73,20 +73,18 @@ public class StreakProtectionServiceEdgeCaseTests
     // --- Grace period edge (exactly 48 hours gap) ---
 
     [Fact]
-    public void Streak_Exactly48HoursGap_StreakBroken()
+    public void Streak_Exactly48HoursGap_ContinuesStreak()
     {
         // Arrange
         var streak = Streak.CreateDefault();
         var day1 = new DateTime(2026, 3, 10, 12, 0, 0, DateTimeKind.Utc);
-        // 48 hours later = Mar 12 12:00 - day gap is 2 days, streak breaks
         var day3 = new DateTime(2026, 3, 12, 12, 0, 0, DateTimeKind.Utc);
 
         // Act
         streak.RecordActivity(day1);
         streak.RecordActivity(day3);
 
-        // Assert - Mar 10 and Mar 12 are not consecutive
-        streak.CurrentDays.Should().Be(1);
+        streak.CurrentDays.Should().Be(2);
     }
 
     [Fact]
@@ -165,33 +163,53 @@ public class StreakProtectionServiceEdgeCaseTests
     // --- StreakProtection service tests ---
 
     [Fact]
-    public async Task ActivateShield_NoProtection_ThrowsInvalidOperation()
+    public async Task ActivateShield_NoProtection_CreatesFreeShield()
     {
         // Arrange
         var userId = Guid.NewGuid();
         _protectionRepository.GetByUserIdAsync(userId).Returns((StreakProtection?)null);
 
         // Act
-        var act = () => _sut.ActivateShieldAsync(userId);
+        var result = await _sut.ActivateShieldAsync(userId);
 
         // Assert
-        await act.Should().ThrowAsync<InvalidOperationException>();
+        result.Should().BeTrue();
+        await _protectionRepository.Received(1).AddAsync(Arg.Any<StreakProtection>());
+        await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
     [Fact]
-    public async Task ActivateShield_NoShieldsRemaining_ReturnsFalse()
+    public async Task ActivateShield_NoShieldsRemainingAndFreeAvailable_ActivatesFreeShield()
     {
         // Arrange
         var userId = Guid.NewGuid();
         var protection = StreakProtection.Create(userId);
-        // 0 shields remaining by default
         _protectionRepository.GetByUserIdAsync(userId).Returns(protection);
 
         // Act
         var result = await _sut.ActivateShieldAsync(userId);
 
         // Assert
+        result.Should().BeTrue();
+        protection.IsShieldActive.Should().BeTrue();
+        await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task ActivateShield_NoShieldsRemainingAndFreeCooldown_ReturnsFalse()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var protection = StreakProtection.Create(userId);
+        protection.LastShieldActivatedAt = DateTime.UtcNow.AddDays(-15);
+        _protectionRepository.GetByUserIdAsync(userId).Returns(protection);
+
+        // Act
+        var result = await _sut.ActivateShieldAsync(userId, isPremium: false);
+
+        // Assert
         result.Should().BeFalse();
+        protection.IsShieldActive.Should().BeFalse();
         await _unitOfWork.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 

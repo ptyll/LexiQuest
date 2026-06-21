@@ -24,6 +24,7 @@ public class AuthServiceTests
         _jsRuntime = Substitute.For<IJSRuntime>();
         _httpClientFactory = Substitute.For<IHttpClientFactory>();
         _localizer = Substitute.For<IStringLocalizer<AuthService>>();
+        _httpClientFactory.CreateClient(Arg.Any<string>()).Returns(_httpClient);
         
         // Setup localizer mock
         _localizer["Error.Register.Duplicate"].Returns(new LocalizedString("Error.Register.Duplicate", "Uživatel s tímto emailem nebo uživatelským jménem již existuje."));
@@ -51,5 +52,47 @@ public class AuthServiceTests
     {
         // This test would require mocking HttpMessageHandler and JSRuntime
         // Skipping for now as it requires more complex setup
+    }
+
+    [Fact]
+    public async Task AuthService_GetTokenAsync_DuringPrerender_ReturnsNull()
+    {
+        var sut = new AuthService(_httpClientFactory, new PrerenderJsRuntime(), _localizer);
+
+        var token = await sut.GetTokenAsync();
+
+        token.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task AuthService_RefreshTokenAsync_DuringPrerender_ReturnsNoTokenResult()
+    {
+        var sut = new AuthService(_httpClientFactory, new PrerenderJsRuntime(), _localizer);
+
+        var result = await sut.RefreshTokenAsync();
+
+        result.Success.Should().BeFalse();
+        result.ErrorMessage.Should().Be("Error.Refresh.NoToken");
+    }
+
+    private sealed class PrerenderJsRuntime : IJSRuntime
+    {
+        public ValueTask<TValue> InvokeAsync<TValue>(string identifier, object?[]? args)
+        {
+            return ThrowPrerenderException<TValue>();
+        }
+
+        public ValueTask<TValue> InvokeAsync<TValue>(
+            string identifier,
+            CancellationToken cancellationToken,
+            object?[]? args)
+        {
+            return ThrowPrerenderException<TValue>();
+        }
+
+        private static ValueTask<TValue> ThrowPrerenderException<TValue>()
+        {
+            throw new InvalidOperationException("JavaScript interop calls cannot be issued at this time.");
+        }
     }
 }

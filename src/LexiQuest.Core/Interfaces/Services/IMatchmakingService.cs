@@ -9,6 +9,11 @@ public interface IMatchmakingService
     /// Adds a player to the matchmaking queue.
     /// </summary>
     Task<bool> JoinQueueAsync(Guid userId, int level, string username, string? avatar, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Adds a player to the queue and returns a match immediately when a suitable opponent is available.
+    /// </summary>
+    Task<MatchmakingJoinResult> JoinQueueAndTryMatchAsync(Guid userId, int level, string username, string? avatar, CancellationToken cancellationToken = default);
     
     /// <summary>
     /// Removes a player from the matchmaking queue.
@@ -51,6 +56,8 @@ public class MatchFoundEventArgs : EventArgs
     public string? Player1Avatar { get; set; }
     public string? Player2Avatar { get; set; }
 }
+
+public record MatchmakingJoinResult(bool Joined, MatchFoundEventArgs? Match);
 
 /// <summary>
 /// Event args for matchmaking timeout event.

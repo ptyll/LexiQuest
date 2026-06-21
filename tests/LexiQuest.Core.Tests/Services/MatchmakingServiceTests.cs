@@ -120,6 +120,39 @@ public class MatchmakingServiceTests
     }
 
     [Fact]
+    public async Task MatchmakingService_FarLevelPlayer_RemainsQueuedUntilSimilarOpponentArrives()
+    {
+        // Arrange
+        var player1Id = Guid.NewGuid();
+        var farPlayerId = Guid.NewGuid();
+        var similarPlayerId = Guid.NewGuid();
+        var matchFoundEvents = new List<MatchFoundEventArgs>();
+
+        _sut.OnMatchFound += (sender, args) => matchFoundEvents.Add(args);
+
+        // Act
+        await _sut.JoinQueueAsync(player1Id, 5, "Player1", null);
+        await _sut.JoinQueueAsync(farPlayerId, 20, "FarPlayer", null);
+        await Task.Delay(250);
+
+        // Assert
+        matchFoundEvents.Should().BeEmpty();
+        (await _sut.GetQueueCountAsync()).Should().Be(2);
+
+        // Act
+        await _sut.JoinQueueAsync(similarPlayerId, 7, "SimilarPlayer", null);
+        await Task.Delay(200);
+
+        // Assert
+        matchFoundEvents.Should().ContainSingle();
+        var matchedPlayerIds = new[] { matchFoundEvents[0].Player1Id, matchFoundEvents[0].Player2Id };
+        matchedPlayerIds.Should().Contain(player1Id);
+        matchedPlayerIds.Should().Contain(similarPlayerId);
+        matchedPlayerIds.Should().NotContain(farPlayerId);
+        (await _sut.IsInQueueAsync(farPlayerId)).Should().BeTrue();
+    }
+
+    [Fact]
     public async Task MatchmakingService_Timeout_30s_NotifiesPlayer()
     {
         // Arrange

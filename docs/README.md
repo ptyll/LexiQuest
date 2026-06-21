@@ -31,6 +31,7 @@
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
 - [SQL Server](https://www.microsoft.com/sql-server) (LocalDB, Express nebo plna verze)
+- [Docker](https://www.docker.com/) (povinny pro E2E testy s Testcontainers)
 - [Node.js 18+](https://nodejs.org/) (pouze pro Playwright E2E testy)
 - IDE: Visual Studio 2025, VS Code nebo Rider
 
@@ -124,6 +125,43 @@ dotnet test tests/LexiQuest.Api.Tests
 dotnet test tests/LexiQuest.Blazor.Tests
 dotnet test tests/LexiQuest.Infrastructure.Tests
 ```
+
+### Playwright E2E testy
+
+E2E sada spousti automaticky SQL Server Testcontainer, smtp4dev Testcontainer, API proces a Web proces. Nepouziva lokalni vyvojovou databazi ani realny SMTP server.
+
+Pred prvnim spustenim nainstalujte Playwright browser:
+
+```bash
+dotnet build tests/LexiQuest.E2E.Tests/LexiQuest.E2E.Tests.csproj
+pwsh tests/LexiQuest.E2E.Tests/bin/Debug/net10.0/playwright.ps1 install --with-deps chromium
+```
+
+Zakladni prikazy:
+
+```bash
+# Rychla sada pro PR/smoke overeni
+dotnet test tests/LexiQuest.E2E.Tests/LexiQuest.E2E.Tests.csproj --filter "Category=Smoke"
+
+# Plna aktualni E2E sada
+dotnet test tests/LexiQuest.E2E.Tests/LexiQuest.E2E.Tests.csproj --filter "Category=Full"
+
+# Screenshot/UX scenare
+dotnet test tests/LexiQuest.E2E.Tests/LexiQuest.E2E.Tests.csproj --filter "Category=Visual"
+
+# Emailove scenare pres smtp4dev
+dotnet test tests/LexiQuest.E2E.Tests/LexiQuest.E2E.Tests.csproj --filter "Category=Email"
+```
+
+Debug promene:
+
+```bash
+E2E_HEADLESS=false
+E2E_TRACE=on
+E2E_SLOWMO_MS=100
+```
+
+Artefakty se ukladaji do `artifacts/e2e/`: screenshoty, metadata, videa, trace zipy a logy API/Web/containeru pri padu testu.
 
 ### Testy s detailnim vystupem
 

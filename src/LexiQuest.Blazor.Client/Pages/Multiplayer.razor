@@ -3,15 +3,22 @@
 @inject NavigationManager NavigationManager
 @inject IMatchHubClient MatchHubClient
 
-<div class="multiplayer-page">
+<div class="multiplayer-page" data-testid="multiplayer-page">
+    @if (!string.IsNullOrWhiteSpace(_roomError))
+    {
+        <TmAlert Severity="AlertSeverity.Error" Class="room-error" AdditionalAttributes="@TestId("private-room-error")">
+            @_roomError
+        </TmAlert>
+    }
+
     <div class="page-header">
         <h1 class="page-title">@Localizer["Page_Title"]</h1>
-        <p class="page-subtitle">Vyber si režim hry</p>
+        <p class="page-subtitle">@Localizer["Page_Subtitle"]</p>
     </div>
 
     <div class="game-modes">
         <!-- Quick Match Card -->
-        <div class="game-mode-card quick-match-card">
+        <div class="game-mode-card quick-match-card" data-testid="multiplayer-quick-match-card">
             <div class="card-icon">⚔️</div>
             <h2 class="card-title">@Localizer["QuickMatch_Title"]</h2>
             <p class="card-description">@Localizer["QuickMatch_Description"]</p>
@@ -25,30 +32,25 @@
             <div class="card-rules">
                 <div class="rule">
                     <TmIcon Name="check" Size="IconSize.Sm" Color="IconColor.Success" />
-                    <span>15 slov</span>
+                    <span>@Localizer["QuickMatch_Rule_Words"]</span>
                 </div>
                 <div class="rule">
                     <TmIcon Name="check" Size="IconSize.Sm" Color="IconColor.Success" />
-                    <span>3 minuty</span>
+                    <span>@Localizer["QuickMatch_Rule_Time"]</span>
                 </div>
                 <div class="rule">
                     <TmIcon Name="check" Size="IconSize.Sm" Color="IconColor.Success" />
-                    <span>Automatický matchmaking</span>
+                    <span>@Localizer["QuickMatch_Rule_Matchmaking"]</span>
                 </div>
             </div>
 
-            <TmButton 
-                Variant="ButtonVariant.Primary" 
-                Size="ButtonSize.Lg" 
-                Block="true"
-                Class="quick-match-button"
-                OnClick="StartQuickMatch">
+            <button type="button" class="mode-action primary" data-testid="multiplayer-quick-match-start" @onclick="StartQuickMatch">
                 @Localizer["QuickMatch_Button"]
-            </TmButton>
+            </button>
         </div>
 
         <!-- Private Room Card -->
-        <div class="game-mode-card private-room-card">
+        <div class="game-mode-card private-room-card" data-testid="multiplayer-private-room-card">
             <div class="card-icon">🏠</div>
             <h2 class="card-title">@Localizer["PrivateRoom_Title"]</h2>
             <p class="card-description">@Localizer["PrivateRoom_Description"]</p>
@@ -60,35 +62,21 @@
             </div>
 
             <div class="private-room-actions">
-                <TmButton 
-                    Variant="ButtonVariant.Primary" 
-                    Size="ButtonSize.Lg" 
-                    Block="true"
-                    Class="create-room-button"
-                    OnClick="ShowCreateRoomModal">
+                <button type="button" class="mode-action primary" data-testid="multiplayer-create-room" @onclick="ShowCreateRoomModal">
                     @Localizer["PrivateRoom_CreateButton"]
-                </TmButton>
-                <TmButton 
-                    Variant="ButtonVariant.Outline" 
-                    Size="ButtonSize.Lg" 
-                    Block="true"
-                    Class="join-room-button"
-                    OnClick="ShowJoinRoomModal">
+                </button>
+                <button type="button" class="mode-action secondary" data-testid="multiplayer-join-room" @onclick="ShowJoinRoomModal">
                     @Localizer["PrivateRoom_JoinButton"]
-                </TmButton>
+                </button>
             </div>
         </div>
     </div>
 
     <!-- Match History Link -->
     <div class="history-section">
-        <TmButton 
-            Variant="ButtonVariant.Ghost" 
-            Size="ButtonSize.Md"
-            Class="history-link"
-            OnClick="GoToHistory">
-            📊 @Localizer["MatchHistory_Link"]
-        </TmButton>
+        <button type="button" class="history-link" data-testid="multiplayer-match-history" @onclick="GoToHistory">
+            @Localizer["MatchHistory_Link"]
+        </button>
     </div>
 </div>
 
@@ -107,6 +95,7 @@
 @code {
     private bool _showCreateRoomModal = false;
     private bool _showJoinRoomModal = false;
+    private string? _roomError;
 
     private void StartQuickMatch()
     {
@@ -115,11 +104,13 @@
 
     private void ShowCreateRoomModal()
     {
+        _roomError = null;
         _showCreateRoomModal = true;
     }
 
     private void ShowJoinRoomModal()
     {
+        _roomError = null;
         _showJoinRoomModal = true;
     }
 
@@ -132,15 +123,96 @@
     {
         _showCreateRoomModal = false;
         await MatchHubClient.StartAsync();
+        var roomCreatedTask = WaitForRoomCreatedAsync();
         await MatchHubClient.CreateRoomAsync(settings);
-        NavigationManager.NavigateTo("/multiplayer/room");
+        var room = await roomCreatedTask;
+
+        if (room != null)
+        {
+            NavigationManager.NavigateTo($"/multiplayer/room/{room.RoomCode}");
+        }
     }
 
     private async Task JoinRoom(string roomCode)
     {
         _showJoinRoomModal = false;
         await MatchHubClient.StartAsync();
+        var roomJoinedTask = WaitForRoomJoinedAsync();
         await MatchHubClient.JoinRoomAsync(roomCode);
-        NavigationManager.NavigateTo("/multiplayer/room");
+        var joinedRoomCode = await roomJoinedTask;
+
+        if (!string.IsNullOrWhiteSpace(joinedRoomCode))
+        {
+            NavigationManager.NavigateTo($"/multiplayer/room/{joinedRoomCode}");
+        }
     }
+
+    private async Task<RoomCreatedEvent?> WaitForRoomCreatedAsync()
+    {
+        var completion = new TaskCompletionSource<RoomCreatedEvent?>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        void Created(object? sender, RoomCreatedEvent room) => completion.TrySetResult(room);
+        void Failed(object? sender, string error)
+        {
+            _roomError = error;
+            completion.TrySetResult(null);
+        }
+
+        MatchHubClient.OnRoomCreated += Created;
+        MatchHubClient.OnRoomCreationFailed += Failed;
+
+        try
+        {
+            var completedTask = await Task.WhenAny(completion.Task, Task.Delay(TimeSpan.FromSeconds(10)));
+            if (completedTask != completion.Task)
+            {
+                _roomError = Localizer["Room_LoadFailed"];
+                return null;
+            }
+
+            return await completion.Task;
+        }
+        finally
+        {
+            MatchHubClient.OnRoomCreated -= Created;
+            MatchHubClient.OnRoomCreationFailed -= Failed;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private async Task<string?> WaitForRoomJoinedAsync()
+    {
+        var completion = new TaskCompletionSource<string?>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        void Joined(object? sender, string roomCode) => completion.TrySetResult(roomCode);
+        void Failed(object? sender, string error)
+        {
+            _roomError = error;
+            completion.TrySetResult(null);
+        }
+
+        MatchHubClient.OnRoomJoined += Joined;
+        MatchHubClient.OnRoomJoinFailed += Failed;
+
+        try
+        {
+            var completedTask = await Task.WhenAny(completion.Task, Task.Delay(TimeSpan.FromSeconds(10)));
+            if (completedTask != completion.Task)
+            {
+                _roomError = Localizer["Room_LoadFailed"];
+                return null;
+            }
+
+            return await completion.Task;
+        }
+        finally
+        {
+            MatchHubClient.OnRoomJoined -= Joined;
+            MatchHubClient.OnRoomJoinFailed -= Failed;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private static Dictionary<string, object> TestId(string value) =>
+        new() { ["data-testid"] = value };
 }

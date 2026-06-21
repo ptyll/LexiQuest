@@ -145,6 +145,46 @@ public static class UserEndpoints
         .Produces(StatusCodes.Status401Unauthorized)
         .Produces(StatusCodes.Status404NotFound);
 
+        // Deactivate current account
+        group.MapPost("/me/deactivate", async (
+            IUserService userService,
+            CancellationToken cancellationToken,
+            HttpContext httpContext) =>
+        {
+            var userId = GetCurrentUserId(httpContext);
+            if (userId == null)
+                return Results.Unauthorized();
+
+            var success = await userService.DeactivateAccountAsync(userId.Value, cancellationToken);
+            return success
+                ? Results.NoContent()
+                : Results.NotFound();
+        })
+        .WithName("DeactivateCurrentUser")
+        .Produces(StatusCodes.Status204NoContent)
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status404NotFound);
+
+        // Delete current account
+        group.MapDelete("/me", async (
+            IUserService userService,
+            CancellationToken cancellationToken,
+            HttpContext httpContext) =>
+        {
+            var userId = GetCurrentUserId(httpContext);
+            if (userId == null)
+                return Results.Unauthorized();
+
+            var success = await userService.DeleteAccountAsync(userId.Value, cancellationToken);
+            return success
+                ? Results.NoContent()
+                : Results.NotFound();
+        })
+        .WithName("DeleteCurrentUser")
+        .Produces(StatusCodes.Status204NoContent)
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status404NotFound);
+
         // Check username availability
         group.MapGet("/check-username", async (
             string username,

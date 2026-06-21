@@ -3,26 +3,30 @@
 @using LexiQuest.Blazor.Services
 @inject IStringLocalizer<GameArena> L
 
-<div class="game-arena" role="main" aria-label="@L["GameArena_Aria"]">
+<div class="game-arena" data-testid="game-arena" role="main" aria-label="@L["GameArena.Aria"]">
     <!-- Header -->
     <div class="game-header">
-        <TmButton Variant="ButtonVariant.Ghost"
-                  Size="ButtonSize.Sm"
-                  OnClick="OnBackClick"
-                  Class="btn-back">
-            <TmIcon Name="@IconNames.ArrowLeft" />
-            @L["Button_Back"]
-        </TmButton>
+        <div data-testid="game-back">
+            <TmButton Variant="ButtonVariant.Ghost"
+                      Size="ButtonSize.Sm"
+                      OnClick="OnBackClick"
+                      Class="btn-back">
+                <TmIcon Name="@IconNames.ArrowLeft" />
+                @L["Button.Back"]
+            </TmButton>
+        </div>
 
         <div class="level-info">
-            <span class="level-name">@string.Format(L["Level_Name"], CurrentRound)</span>
-            <span class="level-progress">@string.Format(L["Level_Progress"], CurrentRound, TotalRounds)</span>
+            <span class="level-name">@string.Format(L["Level.Name"], CurrentRound)</span>
+            <span class="level-progress">@string.Format(L["Level.Progress"], CurrentRound, TotalRounds)</span>
         </div>
+
+        <LivesIndicator Lives="LivesStatus" />
 
         @if (ComboCount > 0)
         {
             <div class="combo-badge">
-                @string.Format(L["Combo_Multiplier"], ComboCount)
+                @string.Format(L["Combo.Multiplier"], ComboCount)
             </div>
         }
     </div>
@@ -31,7 +35,7 @@
     <div class="word-display">
         @if (!string.IsNullOrEmpty(ScrambledWord))
         {
-            <div class="scrambled-letters">
+            <div class="scrambled-letters" data-testid="game-scrambled-word">
                 @foreach (var letter in ScrambledWord.ToUpper())
                 {
                     <div class="letter-card">@letter</div>
@@ -45,47 +49,52 @@
         <input type="text"
                value="@CurrentAnswer"
                @oninput="HandleInput"
-               placeholder="@L["Answer_Placeholder"]"
-               disabled="@IsSubmitting"
+               placeholder="@L["Answer.Placeholder"]"
+               disabled="@(IsSubmitting || IsGameOver)"
                class="answer-input @GetInputClass()"
+               data-testid="game-answer-input"
                @onkeydown="HandleKeyDown"
-               aria-label="@L["Answer_Placeholder"]"
+               aria-label="@L["Answer.Placeholder"]"
                autocomplete="off"
                autofocus />
 
         <div class="action-buttons">
-            <TmButton Variant="ButtonVariant.Primary"
-                      Size="ButtonSize.Lg"
-                      OnClick="SubmitAnswer"
-                      Disabled="@(!CanSubmit || IsSubmitting)"
-                      IsLoading="@IsSubmitting"
-                      LoadingText="@L["Button_Submitting"]"
-                      Class="btn-submit">
-                @L["Button_Submit"]
-            </TmButton>
+            <div data-testid="game-submit">
+                <TmButton Variant="ButtonVariant.Primary"
+                          Size="ButtonSize.Lg"
+                          OnClick="SubmitAnswer"
+                          Disabled="@(!CanSubmit || IsSubmitting || IsGameOver)"
+                          IsLoading="@IsSubmitting"
+                          LoadingText="@L["Button.Submitting"]"
+                          Class="btn-submit">
+                    @L["Button.Submit"]
+                </TmButton>
+            </div>
 
-            <TmButton Variant="ButtonVariant.Outline"
-                      Size="ButtonSize.Lg"
-                      OnClick="SkipRound"
-                      Disabled="@IsSubmitting"
-                      Class="btn-skip">
-                @L["Button_Skip"]
-            </TmButton>
+            <div data-testid="game-skip">
+                <TmButton Variant="ButtonVariant.Outline"
+                          Size="ButtonSize.Lg"
+                          OnClick="SkipRound"
+                          Disabled="@(IsSubmitting || IsGameOver)"
+                          Class="btn-skip">
+                    @L["Button.Skip"]
+                </TmButton>
+            </div>
         </div>
     </div>
 
     <!-- Feedback -->
     @if (ShowFeedback)
     {
-        <div class="feedback @GetFeedbackClass()" role="status" aria-live="assertive">
+        <div class="feedback @GetFeedbackClass()" data-testid="game-feedback" role="status" aria-live="assertive">
             @if (LastResult?.IsCorrect == true)
             {
                 <div class="feedback-correct">
                     <TmIcon Name="@IconNames.Check" Class="feedback-icon" />
-                    <span>@string.Format(L["Feedback_Correct"], LastResult?.XPEarned)</span>
+                    <span>@string.Format(L["Feedback.Correct"], LastResult?.XPEarned)</span>
                     @if (LastResult?.SpeedBonus > 0)
                     {
-                        <span class="speed-bonus">+@LastResult?.SpeedBonus @L["SpeedBonus_Label"]</span>
+                        <span class="speed-bonus">+@LastResult?.SpeedBonus @L["SpeedBonus.Label"]</span>
                     }
                 </div>
             }
@@ -93,10 +102,10 @@
             {
                 <div class="feedback-wrong">
                     <TmIcon Name="@IconNames.X" Class="feedback-icon" />
-                    <span>@L["Feedback_Wrong"]</span>
+                    <span>@L["Feedback.Wrong"]</span>
                     @if (!string.IsNullOrEmpty(LastResult?.CorrectAnswer))
                     {
-                        <span class="correct-answer">@string.Format(L["Correct_Answer_Was"], LastResult?.CorrectAnswer)</span>
+                        <span class="correct-answer">@string.Format(L["CorrectAnswer.Was"], LastResult?.CorrectAnswer)</span>
                     }
                 </div>
             }
@@ -106,16 +115,32 @@
     <!-- Level Complete Overlay -->
     @if (IsLevelComplete)
     {
-        <div class="level-complete-overlay" role="dialog" aria-modal="true" aria-label="@L["LevelComplete_Title"]">
+        <div class="level-complete-overlay" data-testid="game-level-complete" role="dialog" aria-modal="true" aria-label="@L["LevelComplete.Title"]">
             <div class="level-complete-content">
                 <TmIcon Name="@IconNames.Trophy" Class="level-complete-icon" />
-                <h2>@L["LevelComplete_Title"]</h2>
-                <p>@string.Format(L["LevelComplete_XP"], TotalXPEarned)</p>
+                <h2>@L["LevelComplete.Title"]</h2>
+                <p>@string.Format(L["LevelComplete.XP"], TotalXPEarned)</p>
                 <TmButton Variant="ButtonVariant.Primary"
                           Size="ButtonSize.Lg"
                           OnClick="ContinueToNext"
                           Class="btn-continue">
-                    @L["Button_Continue"]
+                    @L["Button.Continue"]
+                </TmButton>
+            </div>
+        </div>
+    }
+
+    @if (IsGameOver)
+    {
+        <div class="game-over-overlay" data-testid="game-over" role="dialog" aria-modal="true" aria-label="@L["GameOver.Title"]">
+            <div class="game-over-content">
+                <h2>@L["GameOver.Title"]</h2>
+                <p>@L["GameOver.Description"]</p>
+                <TmButton Variant="ButtonVariant.Primary"
+                          Size="ButtonSize.Lg"
+                          OnClick="OnBackClick"
+                          Class="btn-continue">
+                    @L["Button.Continue"]
                 </TmButton>
             </div>
         </div>
@@ -129,6 +154,9 @@
     [Parameter] public int TotalRounds { get; set; } = 10;
     [Parameter] public int ComboCount { get; set; } = 0;
     [Parameter] public int LivesRemaining { get; set; } = 5;
+    [Parameter] public int MaxLives { get; set; } = 5;
+    [Parameter] public bool IsInfiniteLives { get; set; }
+    [Parameter] public DateTime? NextLifeRegenAt { get; set; }
     [Parameter] public EventCallback<string> OnSubmitAnswer { get; set; }
     [Parameter] public EventCallback OnSkipRound { get; set; }
     [Parameter] public EventCallback OnBack { get; set; }
@@ -139,9 +167,11 @@
     private bool ShowFeedback { get; set; } = false;
     private GameRoundResult? LastResult { get; set; }
     private bool IsLevelComplete { get; set; } = false;
+    private bool IsGameOver { get; set; } = false;
     private int TotalXPEarned { get; set; } = 0;
 
-    private bool CanSubmit => !string.IsNullOrWhiteSpace(CurrentAnswer) && CurrentAnswer.Length <= 50;
+    private bool CanSubmit => !IsGameOver && !string.IsNullOrWhiteSpace(CurrentAnswer) && CurrentAnswer.Length <= 50;
+    private LivesStatus LivesStatus => new(LivesRemaining, MaxLives, NextLifeRegenAt, IsInfiniteLives);
 
     private string GetInputClass() => ShowFeedback switch
     {
@@ -168,12 +198,13 @@
         finally
         {
             IsSubmitting = false;
+            StateHasChanged();
         }
     }
 
     private async Task SkipRound()
     {
-        if (IsSubmitting) return;
+        if (IsSubmitting || IsGameOver) return;
         await OnSkipRound.InvokeAsync();
     }
 
@@ -206,8 +237,10 @@
         {
             LastResult = result;
             TotalXPEarned = totalXP;
+            IsSubmitting = false;
             ShowFeedback = true;
             IsLevelComplete = result.IsLevelComplete;
+            IsGameOver = result.IsGameOver;
 
             if (result.IsCorrect)
             {
@@ -227,6 +260,7 @@
             CurrentAnswer = "";
             ShowFeedback = false;
             LastResult = null;
+            IsGameOver = false;
             StateHasChanged();
         });
     }
@@ -240,6 +274,7 @@
             ShowFeedback = false;
             LastResult = null;
             IsLevelComplete = false;
+            IsGameOver = false;
             StateHasChanged();
         });
     }

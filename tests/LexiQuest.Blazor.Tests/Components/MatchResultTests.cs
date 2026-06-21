@@ -27,6 +27,7 @@ public class MatchResultTests : BunitContext
         _localizer["Result_Victory_Title"].Returns(new LocalizedString("Result_Victory_Title", "🎉 VÍTĚZSTVÍ!"));
         _localizer["Result_Defeat_Title"].Returns(new LocalizedString("Result_Defeat_Title", "😔 PROHRA"));
         _localizer["Result_Draw_Title"].Returns(new LocalizedString("Result_Draw_Title", "🤝 REMÍZA!"));
+        _localizer["Result_Draw_Message"].Returns(new LocalizedString("Result_Draw_Message", "Oba hráči skončili se stejným výsledkem."));
         _localizer["Result_XP_Won"].Returns(new LocalizedString("Result_XP_Won", "⭐ +{0} XP"));
         _localizer["Result_XP_League"].Returns(new LocalizedString("Result_XP_League", "📈 Liga: +{0} XP"));
         _localizer["Result_Motivation"].Returns(new LocalizedString("Result_Motivation", "💪 Příště to dáš!"));
@@ -34,12 +35,17 @@ public class MatchResultTests : BunitContext
         _localizer["Result_Winner_Badge"].Returns(new LocalizedString("Result_Winner_Badge", "🏆"));
         _localizer["Button_NextMatch"].Returns(new LocalizedString("Button_NextMatch", "Další zápas"));
         _localizer["Button_Home"].Returns(new LocalizedString("Button_Home", "Domů"));
-        _localizer["Button_Rematch"].Returns(new LocalizedString("Button_Rematch", "Rematch"));
+        _localizer["Button_Rematch"].Returns(new LocalizedString("Button_Rematch", "Hrát znovu"));
         _localizer["Button_Revenge"].Returns(new LocalizedString("Button_Revenge", "Odveta"));
+        _localizer["Button_AcceptRematch"].Returns(new LocalizedString("Button_AcceptRematch", "Přijmout"));
+        _localizer["Button_DeclineRematch"].Returns(new LocalizedString("Button_DeclineRematch", "Odmítnout"));
+        _localizer["Rematch_Pending"].Returns(new LocalizedString("Rematch_Pending", "Čeká se na soupeře..."));
+        _localizer["Rematch_Request"].Returns(new LocalizedString("Rematch_Request", "Soupeř chce odvetu."));
+        _localizer["Rematch_Declined"].Returns(new LocalizedString("Rematch_Declined", "Soupeř odvetu odmítl."));
         _localizer["Player_You"].Returns(new LocalizedString("Player_You", "Vy"));
         _localizer["Player_Opponent"].Returns(new LocalizedString("Player_Opponent", "Soupeř"));
         _localizer["Score_Correct"].Returns(new LocalizedString("Score_Correct", "Správně"));
-        _localizer["PrivateRoom_NoLeagueXP"].Returns(new LocalizedString("PrivateRoom_NoLeagueXP", "Private room zápasy nedávají liga XP"));
+        _localizer["PrivateRoom_NoLeagueXP"].Returns(new LocalizedString("PrivateRoom_NoLeagueXP", "Soukromé místnosti nepřidávají ligové XP"));
         _localizer["Series_Score"].Returns(new LocalizedString("Series_Score", "Série: {0}:{1}"));
         
         Services.AddSingleton(_localizer);
@@ -80,7 +86,7 @@ public class MatchResultTests : BunitContext
     }
 
     [Fact]
-    public void MatchResult_Draw_ShowsSpeedWinner()
+    public void MatchResult_Draw_ShowsDrawMessage()
     {
         // Arrange
         var result = CreateDrawResult();
@@ -92,7 +98,8 @@ public class MatchResultTests : BunitContext
         
         // Assert
         cut.Find(".result-title").TextContent.Should().Contain("REMÍZA");
-        cut.Find(".tiebreaker-text").TextContent.Should().Contain("Rychlejší vyhrává");
+        cut.Find(".draw-text").TextContent.Should().Contain("stejným výsledkem");
+        cut.Markup.Should().NotContain("Rychlejší vyhrává");
     }
 
     [Fact]
@@ -125,6 +132,9 @@ public class MatchResultTests : BunitContext
         // Assert - Private Room nemá zobrazit liga XP
         var leagueBadges = cut.FindAll(".xp-league");
         leagueBadges.Count.Should().Be(0);
+
+        var noLeagueInfo = cut.Find("[data-testid='multiplayer-result-no-league-info']");
+        noLeagueInfo.TextContent.Should().Contain("Soukromé místnosti nepřidávají ligové XP");
     }
 
     [Fact]
@@ -154,9 +164,9 @@ public class MatchResultTests : BunitContext
             .Add(p => p.IsVisible, true)
             .Add(p => p.Result, result));
         
-        // Assert - Private Room poražený má "Rematch" tlačítko
+        // Assert - Private Room poražený má tlačítko pro další zápas
         var buttons = cut.FindAll("button");
-        buttons.Any(b => b.TextContent.Contains("Rematch")).Should().BeTrue();
+        buttons.Any(b => b.TextContent.Contains("Hrát znovu")).Should().BeTrue();
     }
 
     [Fact]
@@ -214,6 +224,85 @@ public class MatchResultTests : BunitContext
         
         // Assert
         homeClicked.Should().BeTrue();
+    }
+
+    [Fact]
+    public void MatchResult_PrivateRoom_RematchPending_ShowsWaitingAlert()
+    {
+        // Arrange
+        var result = CreateVictoryResult(isPrivateRoom: true);
+
+        // Act
+        var cut = Render<MatchResult>(parameters => parameters
+            .Add(p => p.IsVisible, true)
+            .Add(p => p.Result, result)
+            .Add(p => p.RematchRequestSent, true));
+
+        // Assert
+        cut.Find("[data-testid='multiplayer-result-rematch-pending']")
+            .TextContent.Should().Contain("Čeká se na soupeře");
+    }
+
+    [Fact]
+    public void MatchResult_PrivateRoom_RematchRequest_AcceptAndDeclineInvokeCallbacks()
+    {
+        // Arrange
+        var result = CreateVictoryResult(isPrivateRoom: true);
+        var accepted = false;
+        var declined = false;
+
+        // Act
+        var cut = Render<MatchResult>(parameters => parameters
+            .Add(p => p.IsVisible, true)
+            .Add(p => p.Result, result)
+            .Add(p => p.RematchRequestedByOpponent, true)
+            .Add(p => p.OnAcceptRematch, () => { accepted = true; })
+            .Add(p => p.OnDeclineRematch, () => { declined = true; }));
+
+        cut.Find("[data-testid='multiplayer-result-rematch-request']")
+            .TextContent.Should().Contain("Soupeř chce odvetu");
+
+        cut.Find("[data-testid='multiplayer-result-rematch-accept'] button").Click();
+        cut.Find("[data-testid='multiplayer-result-rematch-decline'] button").Click();
+
+        // Assert
+        accepted.Should().BeTrue();
+        declined.Should().BeTrue();
+    }
+
+    [Fact]
+    public void MatchResult_PrivateRoom_RematchRequest_HidesDuplicateNextAction()
+    {
+        // Arrange
+        var result = CreateDefeatResult(isPrivateRoom: true);
+
+        // Act
+        var cut = Render<MatchResult>(parameters => parameters
+            .Add(p => p.IsVisible, true)
+            .Add(p => p.Result, result)
+            .Add(p => p.RematchRequestedByOpponent, true));
+
+        // Assert
+        cut.FindAll("[data-testid='multiplayer-result-next']").Should().BeEmpty();
+        cut.Find("[data-testid='multiplayer-result-rematch-accept']").Should().NotBeNull();
+        cut.Find("[data-testid='multiplayer-result-rematch-decline']").Should().NotBeNull();
+    }
+
+    [Fact]
+    public void MatchResult_PrivateRoom_RematchDeclined_ShowsDeclinedAlert()
+    {
+        // Arrange
+        var result = CreateVictoryResult(isPrivateRoom: true);
+
+        // Act
+        var cut = Render<MatchResult>(parameters => parameters
+            .Add(p => p.IsVisible, true)
+            .Add(p => p.Result, result)
+            .Add(p => p.RematchDeclined, true));
+
+        // Assert
+        cut.Find("[data-testid='multiplayer-result-rematch-declined']")
+            .TextContent.Should().Contain("odvetu odmítl");
     }
 
     [Fact]

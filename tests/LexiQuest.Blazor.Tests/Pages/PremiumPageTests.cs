@@ -23,6 +23,11 @@ public class PremiumPageTests : BunitContext
         
         // Setup localizer returns
         _localizer[Arg.Any<string>()].Returns(ci => new LocalizedString(ci.Arg<string>(), ci.Arg<string>()));
+        _premiumService.GetFeaturesAsync().Returns(Task.FromResult<IReadOnlyList<PremiumFeatureDto>>(
+        [
+            new PremiumFeatureDto("NoAds", "Žádné reklamy", false),
+            new PremiumFeatureDto("DetailedStats", "Detailní statistiky", false)
+        ]));
         
         Services.AddSingleton(_premiumService);
         Services.AddSingleton(_localizer);

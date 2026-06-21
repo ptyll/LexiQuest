@@ -1,4 +1,4 @@
-@inject IStringLocalizer<FeaturesSection> L
+@inject IStringLocalizer<LexiQuest.Blazor.Pages.Index> L
 
 <section class="features-section" data-testid="features-section">
     <div class="container">
@@ -14,7 +14,7 @@
                         <div class="feature-image">
                             <div class="screenshot-placeholder">
                                 <TmIcon Name="sparkles" Size="IconSize.Xl" />
-                                <span>RPG Progress</span>
+                                <span>@L["Features.Tab1.Title"]</span>
                             </div>
                         </div>
                         <ul class="feature-list">
@@ -31,7 +31,7 @@
                         <div class="feature-image">
                             <div class="screenshot-placeholder">
                                 <TmIcon Name="sword" Size="IconSize.Xl" />
-                                <span>Boss Battles</span>
+                                <span>@L["Features.Tab2.Title"]</span>
                             </div>
                         </div>
                         <ul class="feature-list">
@@ -48,7 +48,7 @@
                         <div class="feature-image">
                             <div class="screenshot-placeholder">
                                 <TmIcon Name="trophy" Size="IconSize.Xl" />
-                                <span>Competitions</span>
+                                <span>@L["Features.Tab3.Title"]</span>
                             </div>
                         </div>
                         <ul class="feature-list">

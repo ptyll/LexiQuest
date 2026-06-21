@@ -1,0 +1,115 @@
+.levelup-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    background: rgba(15, 23, 42, 0.58);
+    backdrop-filter: blur(6px);
+}
+
+.levelup-modal {
+    width: min(100%, 420px);
+    padding: 1.5rem;
+    border: 1px solid rgba(148, 163, 184, 0.24);
+    border-radius: 8px;
+    background: #ffffff;
+    color: #1f2937;
+    box-shadow: 0 22px 48px rgba(15, 23, 42, 0.28);
+    text-align: center;
+}
+
+.levelup-title {
+    margin: 0 0 0.75rem;
+    font-size: 1.75rem;
+    line-height: 1.15;
+    color: #4f46e5;
+}
+
+.levelup-level {
+    margin: 0 auto 1.25rem;
+    color: #334155;
+    font-size: 1.05rem;
+    line-height: 1.45;
+    font-weight: 600;
+}
+
+.levelup-unlocks {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin: 1rem 0 1.25rem;
+    text-align: left;
+}
+
+.levelup-unlocks h3 {
+    margin: 0;
+    font-size: 0.95rem;
+    color: #475569;
+}
+
+.unlock-item {
+    display: grid;
+    gap: 0.25rem;
+    padding: 0.75rem;
+    border: 1px solid rgba(79, 70, 229, 0.18);
+    border-radius: 8px;
+    background: #f8fafc;
+}
+
+.unlock-name {
+    color: #312e81;
+    font-weight: 700;
+}
+
+.unlock-description {
+    color: #475569;
+    font-size: 0.92rem;
+    line-height: 1.4;
+}
+
+.levelup-continue-btn {
+    width: 100%;
+    min-height: 44px;
+    padding: 0.75rem 1rem;
+    border: none;
+    border-radius: 8px;
+    background: #4f46e5;
+    color: #ffffff;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.levelup-continue-btn:hover {
+    background: #4338ca;
+    transform: translateY(-1px);
+}
+
+.levelup-continue-btn:focus-visible {
+    outline: 3px solid rgba(79, 70, 229, 0.28);
+    outline-offset: 3px;
+}
+
+@media (max-width: 480px) {
+    .levelup-modal {
+        padding: 1.25rem;
+    }
+
+    .levelup-title {
+        font-size: 1.45rem;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .levelup-continue-btn {
+        transition: none;
+    }
+
+    .levelup-continue-btn:hover {
+        transform: none;
+    }
+}

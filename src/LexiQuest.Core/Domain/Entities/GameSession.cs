@@ -82,14 +82,20 @@ public class GameSession
         CorrectAnswers++;
     }
 
-    public void RecordWrongAnswer()
+    public void RecordWrongAnswer(bool loseLife = true, DateTime? endedAt = null)
     {
         ComboCount = 0;
+
+        if (!loseLife)
+        {
+            return;
+        }
+
         LivesRemaining--;
         
         if (LivesRemaining <= 0)
         {
-            Fail();
+            Fail(endedAt);
         }
     }
 
@@ -103,16 +109,16 @@ public class GameSession
         CurrentRound++;
     }
 
-    public void Complete()
+    public void Complete(DateTime? endedAt = null)
     {
         Status = GameSessionStatus.Completed;
-        EndedAt = DateTime.UtcNow;
+        EndedAt = endedAt ?? DateTime.UtcNow;
     }
 
-    public void Fail()
+    public void Fail(DateTime? endedAt = null)
     {
         Status = GameSessionStatus.Failed;
-        EndedAt = DateTime.UtcNow;
+        EndedAt = endedAt ?? DateTime.UtcNow;
     }
 
     public void Forfeit()
@@ -138,7 +144,11 @@ public class GameSession
         }
     }
 
-    public static GameSession CreateBossSession(Guid userId, BossType bossType, DifficultyLevel difficulty)
+    public static GameSession CreateBossSession(
+        Guid userId,
+        BossType bossType,
+        DifficultyLevel difficulty,
+        DateTime? startedAt = null)
     {
         var (totalRounds, lives) = bossType switch
         {
@@ -158,7 +168,7 @@ public class GameSession
             TotalRounds = totalRounds,
             LivesRemaining = lives,
             CurrentRound = 1,
-            StartedAt = DateTime.UtcNow,
+            StartedAt = startedAt ?? DateTime.UtcNow,
             TotalXP = 0,
             ComboCount = 0,
             CorrectAnswers = 0,

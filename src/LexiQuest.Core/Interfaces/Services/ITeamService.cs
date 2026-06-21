@@ -16,6 +16,7 @@ public interface ITeamService
 
     // Member Management
     Task<bool> InviteMemberAsync(Guid teamId, Guid inviterId, InviteMemberRequest request, CancellationToken cancellationToken = default);
+    Task<bool> InviteMemberByUsernameAsync(Guid teamId, Guid inviterId, InviteMemberByUsernameRequest request, CancellationToken cancellationToken = default);
     Task<bool> AcceptInviteAsync(Guid inviteId, Guid userId, CancellationToken cancellationToken = default);
     Task<bool> RejectInviteAsync(Guid inviteId, Guid userId, CancellationToken cancellationToken = default);
     Task<bool> CancelInviteAsync(Guid inviteId, Guid cancellerId, CancellationToken cancellationToken = default);

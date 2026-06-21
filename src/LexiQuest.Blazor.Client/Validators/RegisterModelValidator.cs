@@ -11,6 +11,8 @@ public class RegisterModelValidator : AbstractValidator<RegisterModel>
         RuleFor(x => x.Email)
             .NotEmpty()
             .WithMessage(localizer["Validation.Email.Required"])
+            .MaximumLength(256)
+            .WithMessage(_ => localizer["Validation.Email.MaxLength", 256].Value)
             .EmailAddress()
             .WithMessage(localizer["Validation.Email.Invalid"]);
 
@@ -18,9 +20,9 @@ public class RegisterModelValidator : AbstractValidator<RegisterModel>
             .NotEmpty()
             .WithMessage(localizer["Validation.Username.Required"])
             .MinimumLength(3)
-            .WithMessage(localizer["Validation.Username.MinLength"])
+            .WithMessage(_ => localizer["Validation.Username.MinLength", 3].Value)
             .MaximumLength(30)
-            .WithMessage(localizer["Validation.Username.MaxLength"])
+            .WithMessage(_ => localizer["Validation.Username.MaxLength", 30].Value)
             .Matches("^[a-zA-Z0-9_]+$")
             .WithMessage(localizer["Validation.Username.InvalidChars"]);
 
@@ -28,7 +30,7 @@ public class RegisterModelValidator : AbstractValidator<RegisterModel>
             .NotEmpty()
             .WithMessage(localizer["Validation.Password.Required"])
             .MinimumLength(8)
-            .WithMessage(localizer["Validation.Password.MinLength"])
+            .WithMessage(_ => localizer["Validation.Password.MinLength", 8].Value)
             .Matches("[A-Z]")
             .WithMessage(localizer["Validation.Password.Uppercase"])
             .Matches("[a-z]")

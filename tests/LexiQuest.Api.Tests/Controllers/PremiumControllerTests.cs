@@ -5,6 +5,7 @@ using LexiQuest.Core.Domain.Entities;
 // SubscriptionPlan and SubscriptionStatus are from LexiQuest.Shared.DTOs.Premium
 using LexiQuest.Core.Interfaces.Services;
 using LexiQuest.Shared.DTOs.Premium;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using NSubstitute;
@@ -16,6 +17,7 @@ public class PremiumControllerTests
 {
     private readonly ISubscriptionService _subscriptionService;
     private readonly IPremiumFeatureService _premiumFeatureService;
+    private readonly IWebHostEnvironment _environment;
     private readonly PremiumController _controller;
     private readonly Guid _testUserId;
 
@@ -23,7 +25,9 @@ public class PremiumControllerTests
     {
         _subscriptionService = Substitute.For<ISubscriptionService>();
         _premiumFeatureService = Substitute.For<IPremiumFeatureService>();
-        _controller = new PremiumController(_subscriptionService, _premiumFeatureService);
+        _environment = Substitute.For<IWebHostEnvironment>();
+        _environment.EnvironmentName.Returns("Test");
+        _controller = new PremiumController(_subscriptionService, _premiumFeatureService, _environment);
         _testUserId = Guid.NewGuid();
 
         // Setup authenticated user

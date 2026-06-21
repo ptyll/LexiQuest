@@ -4,6 +4,8 @@ public record CreateCheckoutRequest(SubscriptionPlan Plan);
 
 public record CheckoutResponse(string StripeCheckoutUrl);
 
+public record CompleteFakeCheckoutRequest(string SessionId, SubscriptionPlan Plan);
+
 public record SubscriptionStatusDto(
     bool IsActive,
     SubscriptionPlan? Plan,

@@ -11,6 +11,7 @@
     <Project Path="tests/LexiQuest.Api.Tests/LexiQuest.Api.Tests.csproj" />
     <Project Path="tests/LexiQuest.Blazor.Tests/LexiQuest.Blazor.Tests.csproj" />
     <Project Path="tests/LexiQuest.Core.Tests/LexiQuest.Core.Tests.csproj" />
+    <Project Path="tests/LexiQuest.E2E.Tests/LexiQuest.E2E.Tests.csproj" />
     <Project Path="tests/LexiQuest.Infrastructure.Tests/LexiQuest.Infrastructure.Tests.csproj" />
   </Folder>
 </Solution>

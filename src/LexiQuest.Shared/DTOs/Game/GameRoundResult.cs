@@ -13,5 +13,8 @@ public record GameRoundResult(
     int LivesRemaining,
     string? NextScrambledWord = null,
     int? NextRoundNumber = null,
-    bool IsGameOver = false
+    bool IsGameOver = false,
+    DateTime? NextLifeRegenAt = null,
+    XPGainedEvent? XpEvent = null,
+    List<LexiQuest.Shared.DTOs.Achievements.AchievementUnlockDto>? UnlockedAchievements = null
 );

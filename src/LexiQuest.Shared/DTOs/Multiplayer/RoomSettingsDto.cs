@@ -9,5 +9,7 @@ public record RoomSettingsDto(
     int WordCount,
     int TimeLimitMinutes,
     DifficultyLevel Difficulty,
-    int BestOf
-);
+    int BestOf)
+{
+    public int? TimeLimitSeconds { get; init; }
+}

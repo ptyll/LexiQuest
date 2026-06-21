@@ -55,7 +55,7 @@ public class LeagueResetJob
         {
             var nextTier = GetNextTier(league.Tier);
             _logger.LogInformation("Promoting user {UserId} to {Tier}", user.UserId, nextTier);
-            await _leagueService.AssignUserToLeagueAsync(user.UserId, weekStart, weekEnd, cancellationToken);
+            await _leagueService.AssignUserToLeagueAsync(user.UserId, nextTier, weekStart, weekEnd, cancellationToken);
         }
 
         // Assign demoted users to lower tier
@@ -63,20 +63,14 @@ public class LeagueResetJob
         {
             var previousTier = GetPreviousTier(league.Tier);
             _logger.LogInformation("Demoting user {UserId} to {Tier}", user.UserId, previousTier);
-            await _leagueService.AssignUserToLeagueAsync(user.UserId, weekStart, weekEnd, cancellationToken);
+            await _leagueService.AssignUserToLeagueAsync(user.UserId, previousTier, weekStart, weekEnd, cancellationToken);
         }
 
         // Assign staying users to same tier
         foreach (var user in stayingUsers)
         {
             _logger.LogInformation("Keeping user {UserId} in {Tier}", user.UserId, league.Tier);
-            await _leagueService.AssignUserToLeagueAsync(user.UserId, weekStart, weekEnd, cancellationToken);
-        }
-
-        // Reset weekly XP for all participants
-        foreach (var participant in league.Participants)
-        {
-            participant.ResetWeeklyXP();
+            await _leagueService.AssignUserToLeagueAsync(user.UserId, league.Tier, weekStart, weekEnd, cancellationToken);
         }
 
         _logger.LogInformation("Processed league {LeagueId}: {Promoted} promoted, {Demoted} demoted, {Stayed} stayed",

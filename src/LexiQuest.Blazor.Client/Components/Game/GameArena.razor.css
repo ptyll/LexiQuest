@@ -6,7 +6,7 @@
     flex-direction: column;
     gap: var(--tm-spacing-6);
     padding: var(--tm-spacing-6);
-    max-width: 600px;
+    width: min(100%, 720px);
     margin: 0 auto;
 }
 
@@ -15,7 +15,10 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: var(--tm-spacing-3);
+    gap: var(--tm-spacing-4);
+    flex-wrap: wrap;
+    width: min(100%, 560px);
+    align-self: center;
 }
 
 .btn-back {
@@ -47,7 +50,58 @@
     border-radius: 20px;
     font-weight: 600;
     font-size: 0.9rem;
+    flex: 0 0 auto;
+    white-space: nowrap;
     animation: pulse 1.5s infinite;
+}
+
+.game-arena ::deep .lives-indicator {
+    display: flex;
+    align-items: center;
+    gap: var(--tm-spacing-2);
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    flex: 0 0 auto;
+    min-width: max-content;
+    white-space: nowrap;
+    color: var(--tm-color-text-primary);
+}
+
+.game-arena ::deep .lives-label {
+    font-size: 0.85rem;
+    color: var(--tm-color-text-secondary);
+}
+
+.game-arena ::deep .lives-count,
+.game-arena ::deep .lives-infinite {
+    font-weight: 700;
+}
+
+.game-arena ::deep .lives-hearts {
+    display: flex;
+    gap: 0.125rem;
+}
+
+.game-arena ::deep .lives-heart.filled {
+    color: #dc3545;
+}
+
+.game-arena ::deep .lives-heart.empty {
+    color: var(--tm-color-text-secondary);
+}
+
+.game-arena ::deep .lives-warning {
+    padding: 0.125rem 0.5rem;
+    border-radius: var(--tm-radius-sm);
+    background: #fff3cd;
+    color: #7a4d00;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.game-arena ::deep .lives-regen-timer {
+    color: var(--tm-color-text-secondary);
+    font-size: 0.8rem;
 }
 
 @keyframes pulse {
@@ -59,7 +113,8 @@
 .word-display {
     display: flex;
     justify-content: center;
-    padding: var(--tm-spacing-8) 0;
+    padding: var(--tm-spacing-8) 0 var(--tm-spacing-6);
+    margin-bottom: var(--tm-spacing-6);
 }
 
 .scrambled-letters {
@@ -67,11 +122,12 @@
     flex-wrap: wrap;
     justify-content: center;
     gap: var(--tm-spacing-2);
+    padding-bottom: var(--tm-spacing-6);
 }
 
 .letter-card {
-    width: 60px;
-    height: 70px;
+    width: clamp(3.75rem, 7vw, 4.5rem);
+    height: clamp(4.25rem, 8vw, 5.25rem);
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
     display: flex;
@@ -100,34 +156,38 @@
     display: flex;
     flex-direction: column;
     gap: var(--tm-spacing-4);
+    width: min(100%, 460px);
+    align-self: center;
+    margin-top: var(--tm-spacing-6);
 }
 
-/* Custom styling for TmTextInput in game context */
-.answer-section ::deep .tm-input {
+.answer-input {
     width: 100%;
-    height: 72px;
-    font-size: 2rem;
+    min-height: 3.75rem;
+    font: inherit;
+    font-size: 1.25rem;
+    font-weight: 600;
     text-align: center;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    border: 3px solid var(--tm-color-border);
-    border-radius: var(--tm-radius-xl);
+    border: 2px solid var(--tm-color-border);
+    border-radius: var(--tm-radius-lg);
+    background: var(--tm-color-surface);
+    color: var(--tm-color-text-primary);
     padding: 0 var(--tm-spacing-4);
-    transition: all 0.3s ease;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
 }
 
-.answer-section ::deep .tm-input:focus {
+.answer-input:focus {
     outline: none;
     border-color: #667eea;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.16);
 }
 
-.answer-section.input-correct ::deep .tm-input {
+.answer-input.input-correct {
     border-color: var(--tm-color-success);
     background-color: rgba(40, 167, 69, 0.1);
 }
 
-.answer-section.input-wrong ::deep .tm-input {
+.answer-input.input-wrong {
     border-color: var(--tm-color-danger);
     background-color: rgba(220, 53, 69, 0.1);
     animation: shake 0.5s ease-in-out;
@@ -140,21 +200,26 @@
 }
 
 .action-buttons {
-    display: flex;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: var(--tm-spacing-4);
+    width: 100%;
+}
+
+.action-buttons > div {
+    min-width: 0;
+}
+
+.action-buttons ::deep .btn-submit,
+.action-buttons ::deep .btn-skip {
+    width: 100%;
     justify-content: center;
-}
-
-.btn-submit {
-    flex: 2;
-}
-
-.btn-skip {
-    flex: 1;
 }
 
 /* Feedback */
 .feedback {
+    width: min(100%, 520px);
+    align-self: center;
     padding: var(--tm-spacing-4);
     border-radius: var(--tm-radius-lg);
     text-align: center;
@@ -208,8 +273,9 @@
     text-transform: uppercase;
 }
 
-/* Level Complete Overlay */
-.level-complete-overlay {
+/* Result Overlays */
+.level-complete-overlay,
+.game-over-overlay {
     position: fixed;
     top: 0;
     left: 0;
@@ -228,10 +294,14 @@
     to { opacity: 1; }
 }
 
-.level-complete-content {
-    background: var(--tm-color-bg-primary);
+.level-complete-content,
+.game-over-content {
+    position: relative;
+    z-index: 1;
+    background: var(--tm-color-surface, #fff);
     padding: var(--tm-spacing-8);
-    border-radius: var(--tm-radius-2xl);
+    border: 1px solid var(--tm-color-border, #e5e7eb);
+    border-radius: var(--tm-radius-lg);
     text-align: center;
     animation: scaleIn 0.3s ease-out;
     max-width: 400px;
@@ -262,7 +332,14 @@
     font-size: 1.75rem;
 }
 
-.level-complete-content p {
+.game-over-content h2 {
+    color: var(--tm-color-danger);
+    margin-bottom: var(--tm-spacing-4);
+    font-size: 1.75rem;
+}
+
+.level-complete-content p,
+.game-over-content p {
     color: var(--tm-color-text-secondary);
     font-size: 1.1rem;
     margin-bottom: var(--tm-spacing-6);
@@ -279,24 +356,22 @@
     }
 
     .letter-card {
-        width: 45px;
-        height: 55px;
+        width: 3rem;
+        height: 3.75rem;
         font-size: 1.5rem;
     }
 
-    .answer-section ::deep .tm-input {
-        height: 60px;
-        font-size: 1.5rem;
+    .answer-section {
+        width: 100%;
+    }
+
+    .answer-input {
+        min-height: 3.25rem;
+        font-size: 1.1rem;
     }
 
     .action-buttons {
-        flex-direction: column;
-    }
-
-    .btn-submit,
-    .btn-skip {
-        flex: none;
-        width: 100%;
+        grid-template-columns: 1fr;
     }
 
     .level-complete-content {

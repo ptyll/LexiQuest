@@ -24,8 +24,29 @@
   <data name="Button.Play" xml:space="preserve">
     <value>Začít výzvu</value>
   </data>
+  <data name="Button.Submit" xml:space="preserve">
+    <value>Odeslat odpověď</value>
+  </data>
+  <data name="Play.WordLength" xml:space="preserve">
+    <value>{0} písmen</value>
+  </data>
+  <data name="Play.Answer" xml:space="preserve">
+    <value>Odpověď</value>
+  </data>
+  <data name="Error.EmptyAnswer" xml:space="preserve">
+    <value>Zadejte odpověď.</value>
+  </data>
+  <data name="Error.SubmitFailed" xml:space="preserve">
+    <value>Odpověď se nepodařilo odeslat.</value>
+  </data>
+  <data name="Error.WrongAnswer" xml:space="preserve">
+    <value>Správná odpověď je {0}.</value>
+  </data>
   <data name="Leaderboard.Title" xml:space="preserve">
     <value>Dnešní žebříček</value>
+  </data>
+  <data name="Leaderboard.Empty" xml:space="preserve">
+    <value>Zatím tu není žádný výsledek. Buďte dnes první.</value>
   </data>
   <data name="Result.Time" xml:space="preserve">
     <value>Čas</value>

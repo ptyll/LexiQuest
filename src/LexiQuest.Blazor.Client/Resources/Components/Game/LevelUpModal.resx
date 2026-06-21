@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" msdata:Ordinal="0" />
+              <xsd:attribute name="xml:space" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Title" xml:space="preserve">
+    <value>Nová úroveň!</value>
+  </data>
+  <data name="NewLevel" xml:space="preserve">
+    <value>Dosáhl(a) jsi úrovně {0}.</value>
+  </data>
+  <data name="Unlocks.Title" xml:space="preserve">
+    <value>Odemčeno</value>
+  </data>
+  <data name="Continue" xml:space="preserve">
+    <value>Pokračovat</value>
+  </data>
+  <data name="Unlock.Path.Intermediate.Name" xml:space="preserve">
+    <value>Cesta pro pokročilé</value>
+  </data>
+  <data name="Unlock.Path.Intermediate.Description" xml:space="preserve">
+    <value>Slova s délkou 5 až 7 písmen.</value>
+  </data>
+  <data name="Unlock.Feature.Leagues.Name" xml:space="preserve">
+    <value>Ligy</value>
+  </data>
+  <data name="Unlock.Feature.Leagues.Description" xml:space="preserve">
+    <value>Žebříčky a týdenní soutěže s ostatními hráči.</value>
+  </data>
+  <data name="Unlock.Path.Advanced.Name" xml:space="preserve">
+    <value>Pokročilá cesta</value>
+  </data>
+  <data name="Unlock.Path.Advanced.Description" xml:space="preserve">
+    <value>Náročnější slova s délkou 7 až 10 písmen.</value>
+  </data>
+  <data name="Unlock.Path.Expert.Name" xml:space="preserve">
+    <value>Expertní cesta</value>
+  </data>
+  <data name="Unlock.Path.Expert.Description" xml:space="preserve">
+    <value>Nejtěžší slova s délkou 10 a více písmen.</value>
+  </data>
+  <data name="Unlock.Feature.Multiplayer.Name" xml:space="preserve">
+    <value>Multiplayer</value>
+  </data>
+  <data name="Unlock.Feature.Multiplayer.Description" xml:space="preserve">
+    <value>Souboje s ostatními hráči v reálném čase.</value>
+  </data>
+</root>

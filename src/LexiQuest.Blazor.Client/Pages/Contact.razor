@@ -1,4 +1,5 @@
 @page "/contact"
+@layout LandingLayout
 @inject IStringLocalizer<Contact> L
 @inject ToastService ToastService
 
@@ -11,7 +12,7 @@
         <TmCard Variant="CardVariant.Elevated" Class="p-6">
             <p class="text-gray-600 dark:text-gray-300 mb-6">@L["Contact_Description"]</p>
 
-            <EditForm Model="@_model" OnValidSubmit="HandleSubmit" FormName="contactForm">
+            <EditForm Model="@_model" OnValidSubmit="HandleSubmit" FormName="contactForm" novalidate>
                 <DataAnnotationsValidator />
 
                 <div class="space-y-4">

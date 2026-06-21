@@ -4,11 +4,11 @@
 
 @if (IsVisible)
 {
-    <div class="modal-overlay" @onclick="Close">
-        <div class="modal-content" @onclick:stopPropagation>
+    <div class="modal-overlay" data-testid="path-level-detail" @onclick="Close">
+        <div class="modal-content" role="dialog" aria-modal="true" @onclick:stopPropagation>
             <div class="modal-header">
                 <h3>@L["Title"] - @Level?.LevelNumber</h3>
-                <button class="btn-close" @onclick="Close">×</button>
+                <button type="button" class="btn-close" data-testid="path-level-detail-close" @onclick="Close">×</button>
             </div>
             
             <div class="modal-body">
@@ -17,7 +17,7 @@
                     <div class="level-info">
                         <div class="info-row">
                             <span class="info-label">@L["Label.Status"]:</span>
-                            <span class="info-value @GetStatusClass()">@Level.Status</span>
+                            <span class="info-value @GetStatusClass()" data-testid="path-level-detail-status">@GetStatusLabel()</span>
                         </div>
                         
                         @if (Level.IsBoss)
@@ -26,17 +26,43 @@
                         }
 
                         <div class="level-preview">
-                            <p>@L["Preview.Text"]</p>
+                            <p>@string.Format(L["Preview.Text"], Level.WordLengthMin, Level.WordLengthMax)</p>
+                        </div>
+
+                        <div class="level-stats" aria-label="@L["Section.Info"]">
+                            <div class="level-stat" data-testid="path-level-detail-word-count">
+                                <span class="stat-label">@L["Label.WordCount"]</span>
+                                <span class="stat-value">@string.Format(L["Value.Words"], Level.WordCount)</span>
+                            </div>
+                            <div class="level-stat" data-testid="path-level-detail-time">
+                                <span class="stat-label">@L["Label.TimePerWord"]</span>
+                                <span class="stat-value">@string.Format(L["Value.Seconds"], Level.TimePerWordSeconds)</span>
+                            </div>
+                            <div class="level-stat" data-testid="path-level-detail-hints">
+                                <span class="stat-label">@L["Label.Hints"]</span>
+                                <span class="stat-value">@string.Format(L["Value.Hints"], Level.HintCount)</span>
+                            </div>
+                            <div class="level-stat" data-testid="path-level-detail-lives">
+                                <span class="stat-label">@L["Label.Lives"]</span>
+                                <span class="stat-value">@string.Format(L["Value.Lives"], Level.Lives)</span>
+                            </div>
+                        </div>
+
+                        <div class="level-rewards" aria-label="@L["Section.Rewards"]">
+                            <span class="rewards-label">@L["Section.Rewards"]</span>
+                            <span class="reward-pill" data-testid="path-level-detail-reward">
+                                @string.Format(L["Value.XpReward"], Level.XpReward)
+                            </span>
                         </div>
                     </div>
                 }
             </div>
             
             <div class="modal-footer">
-                <button class="btn btn-secondary" @onclick="Close">@L["Button.Close"]</button>
+                <button type="button" class="btn btn-secondary" @onclick="Close">@L["Button.Close"]</button>
                 @if (Level?.Status != "Locked")
                 {
-                    <button class="btn btn-primary" @onclick="StartLevel">
+                    <button type="button" class="btn btn-primary" data-testid="path-level-start" @onclick="StartLevel">
                         @L["Button.Start"]
                     </button>
                 }
@@ -70,6 +96,23 @@
         };
     }
 
+    private string GetStatusLabel()
+    {
+        var key = Level?.Status switch
+        {
+            "Completed" => "Status.Completed",
+            "Perfect" => "Status.Perfect",
+            "Current" => "Status.Current",
+            "Locked" => "Status.Locked",
+            _ => "Status.Unknown"
+        };
+
+        var localized = L[key];
+        return localized is null || localized.ResourceNotFound
+            ? Level?.Status ?? string.Empty
+            : localized.Value;
+    }
+
     private async Task Close()
     {
         await OnClose.InvokeAsync();
@@ -79,7 +122,7 @@
     {
         if (Level != null)
         {
-            NavigationManager.NavigateTo($"/game?pathId={PathId}&levelId={Level.Id}");
+            NavigationManager.NavigateTo($"/game?pathId={PathId}&levelNumber={Level.LevelNumber}");
         }
     }
 }

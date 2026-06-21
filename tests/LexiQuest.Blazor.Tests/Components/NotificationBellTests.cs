@@ -39,6 +39,7 @@ public class NotificationBellTests : BunitContext
 
         Services.AddSingleton(_localizer);
         Services.AddSingleton(_notificationService);
+        Services.AddSingleton<NotificationRefreshService>();
         Services.AddSingleton<NavigationManager>(new TestNavigationManager());
         TempoTestHelper.RegisterTempoServices(Services);
     }
@@ -56,6 +57,24 @@ public class NotificationBellTests : BunitContext
         var badge = cut.Find(".unread-badge");
         badge.Should().NotBeNull();
         badge.TextContent.Should().Contain("5");
+    }
+
+    [Fact]
+    public void NotificationBell_FirstZeroCount_RefreshesAfterRender()
+    {
+        // Arrange
+        _notificationService.GetUnreadCountAsync()
+            .Returns(Task.FromResult(0), Task.FromResult(1));
+
+        // Act
+        var cut = Render<NotificationBell>();
+
+        // Assert
+        cut.WaitForAssertion(() =>
+        {
+            var badge = cut.Find(".unread-badge");
+            badge.TextContent.Should().Contain("1");
+        }, TimeSpan.FromSeconds(2));
     }
 
     [Fact]

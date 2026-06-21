@@ -1,0 +1,197 @@
+.daily-challenge-page {
+    display: grid;
+    gap: var(--tm-space-5, 1.25rem);
+}
+
+.loading-state {
+    display: grid;
+    gap: var(--tm-space-4, 1rem);
+}
+
+.challenge-header,
+.challenge-actions,
+.daily-play-panel,
+.leaderboard-section,
+.completed-state {
+    min-width: 0;
+}
+
+.header-content,
+.completed-content,
+.daily-play-content {
+    display: grid;
+    gap: var(--tm-space-3, 0.75rem);
+}
+
+.header-content h1,
+.leaderboard-section h2,
+.completed-content h2 {
+    margin: 0;
+}
+
+.modifier-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--tm-space-2, 0.5rem);
+    width: fit-content;
+    padding: var(--tm-space-1, 0.25rem) var(--tm-space-2, 0.5rem);
+    border: 1px solid var(--tm-border-color, #d1d5db);
+    border-radius: var(--tm-radius-md, 0.375rem);
+    background: #eef2ff;
+    color: #3730a3;
+    font-weight: var(--tm-font-weight-semibold, 600);
+}
+
+.modifier-desc {
+    margin: 0;
+    color: var(--tm-text-secondary, #6b7280);
+}
+
+.xp-multiplier {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--tm-space-2, 0.5rem);
+    color: #166534;
+    font-weight: var(--tm-font-weight-semibold, 600);
+}
+
+.challenge-actions {
+    display: flex;
+}
+
+.daily-challenge-page button.tm-btn--primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.75rem;
+    width: fit-content;
+    padding: 0 var(--tm-space-4, 1rem);
+    border: 1px solid #2563eb;
+    border-radius: var(--tm-radius-md, 0.375rem);
+    background: #2563eb;
+    color: #fff;
+    font: inherit;
+    font-weight: var(--tm-font-weight-semibold, 600);
+    cursor: pointer;
+}
+
+.daily-challenge-page button.tm-btn--primary:hover:not(:disabled),
+.daily-challenge-page button.tm-btn--primary:focus-visible {
+    background: #1d4ed8;
+    border-color: #1d4ed8;
+}
+
+.daily-challenge-page button.tm-btn--primary:disabled {
+    opacity: 0.65;
+    cursor: wait;
+}
+
+.daily-play-content {
+    max-width: 38rem;
+}
+
+.daily-play-content button.tm-btn--primary {
+    width: 100%;
+}
+
+.scrambled-word {
+    width: fit-content;
+    padding: var(--tm-space-3, 0.75rem) var(--tm-space-4, 1rem);
+    border: 1px solid #bfdbfe;
+    border-radius: var(--tm-radius-md, 0.375rem);
+    background: #eff6ff;
+    font-size: var(--tm-font-size-2xl, 1.5rem);
+    font-weight: var(--tm-font-weight-bold, 700);
+    letter-spacing: 0;
+}
+
+.word-length {
+    color: var(--tm-text-secondary, #6b7280);
+}
+
+.answer-field {
+    display: grid;
+    gap: var(--tm-space-1, 0.25rem);
+}
+
+.answer-field input {
+    min-height: 2.75rem;
+    padding: 0 var(--tm-space-3, 0.75rem);
+    border: 1px solid var(--tm-border-color, #d1d5db);
+    border-radius: var(--tm-radius-md, 0.375rem);
+    font: inherit;
+}
+
+.submit-error {
+    color: #991b1b;
+    font-weight: var(--tm-font-weight-semibold, 600);
+}
+
+.result-stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--tm-space-3, 0.75rem);
+}
+
+.stat {
+    display: grid;
+    gap: var(--tm-space-1, 0.25rem);
+    padding: var(--tm-space-3, 0.75rem);
+    border: 1px solid var(--tm-border-color, #e5e7eb);
+    border-radius: var(--tm-radius-md, 0.375rem);
+}
+
+.stat-label {
+    color: var(--tm-text-secondary, #6b7280);
+    font-size: var(--tm-font-size-sm, 0.875rem);
+}
+
+.stat-value {
+    font-size: var(--tm-font-size-xl, 1.25rem);
+    font-weight: var(--tm-font-weight-bold, 700);
+}
+
+.leaderboard {
+    display: grid;
+    gap: var(--tm-space-2, 0.5rem);
+}
+
+.leaderboard-empty {
+    padding: var(--tm-space-3, 0.75rem);
+    border: 1px dashed var(--tm-border-color, #d1d5db);
+    border-radius: var(--tm-radius-md, 0.375rem);
+    color: var(--tm-text-secondary, #6b7280);
+    background: var(--tm-bg-muted, #f9fafb);
+}
+
+.leaderboard-row {
+    display: grid;
+    grid-template-columns: 4rem 1fr 7rem 6rem;
+    align-items: center;
+    gap: var(--tm-space-3, 0.75rem);
+    min-height: 3rem;
+    padding: var(--tm-space-2, 0.5rem) var(--tm-space-3, 0.75rem);
+    border: 1px solid var(--tm-border-color, #e5e7eb);
+    border-radius: var(--tm-radius-md, 0.375rem);
+    background: var(--tm-bg-surface, #fff);
+}
+
+.leaderboard-row.is-current-user {
+    border-color: #3b82f6;
+    background: #eff6ff;
+    box-shadow: inset 4px 0 0 #3b82f6;
+}
+
+.rank,
+.time,
+.xp {
+    color: var(--tm-text-secondary, #6b7280);
+    font-weight: var(--tm-font-weight-semibold, 600);
+}
+
+@media (max-width: 700px) {
+    .result-stats,
+    .leaderboard-row {
+        grid-template-columns: 1fr;
+    }
+}

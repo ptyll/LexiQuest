@@ -15,6 +15,7 @@ public class NotificationServiceTests
 {
     private readonly INotificationRepository _notificationRepository;
     private readonly INotificationPreferenceRepository _preferenceRepository;
+    private readonly IUserRepository _userRepository;
     private readonly IPushService _pushService;
     private readonly IEmailService _emailService;
     private readonly IUnitOfWork _unitOfWork;
@@ -24,12 +25,14 @@ public class NotificationServiceTests
     {
         _notificationRepository = Substitute.For<INotificationRepository>();
         _preferenceRepository = Substitute.For<INotificationPreferenceRepository>();
+        _userRepository = Substitute.For<IUserRepository>();
         _pushService = Substitute.For<IPushService>();
         _emailService = Substitute.For<IEmailService>();
         _unitOfWork = Substitute.For<IUnitOfWork>();
         _sut = new NotificationService(
             _notificationRepository,
             _preferenceRepository,
+            _userRepository,
             _pushService,
             _emailService,
             _unitOfWork);
@@ -135,6 +138,37 @@ public class NotificationServiceTests
         // Assert
         await _emailService.DidNotReceive().SendNotificationEmailAsync(
             Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task NotificationService_Send_EmailEnabled_SendsEmailToUserEmail()
+    {
+        // Arrange
+        var user = User.Create("notify-target@example.com", "notifytarget");
+        var request = new SendNotificationRequest(
+            user.Id,
+            NotificationType.StreakWarning,
+            "Streak Warning",
+            "Your streak is at risk!",
+            NotificationSeverity.Warning);
+
+        var preference = NotificationPreference.CreateDefault(user.Id);
+        _preferenceRepository.GetByUserIdAsync(user.Id, Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult<NotificationPreference?>(preference));
+        _notificationRepository.GetRecentCountByTypeAsync(user.Id, NotificationType.StreakWarning, Arg.Any<TimeSpan>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(0));
+        _userRepository.GetByIdAsync(user.Id, Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult<User?>(user));
+
+        // Act
+        await _sut.SendAsync(request);
+
+        // Assert
+        await _emailService.Received(1).SendNotificationEmailAsync(
+            user.Email,
+            request.Title,
+            request.Message,
+            Arg.Any<CancellationToken>());
     }
 
     [Fact]

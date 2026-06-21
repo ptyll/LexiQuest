@@ -1,14 +1,14 @@
 @using Tempo.Blazor.Components.Avatars
 @using Microsoft.Extensions.Localization
 
-<div class="match-found-view">
+<div class="match-found-view" data-testid="quick-match-found">
     <h1 class="match-found-title">@Localizer["Matchmaking_MatchFound_Title"]</h1>
     
     <div class="players-showcase">
         <div class="player-card">
             <TmAvatar Name="@Username" Src="@UserAvatar" Size="AvatarSize.Xxl" Color="AvatarColor.Blue" />
             <span class="player-name">@Username</span>
-            <span class="player-level">Level @UserLevel</span>
+            <span class="player-level">@string.Format(Localizer["Matchmaking_Player_Level"], UserLevel)</span>
         </div>
         
         <div class="vs-container">
@@ -18,11 +18,11 @@
         <div class="player-card">
             <TmAvatar Name="@OpponentUsername" Src="@OpponentAvatar" Size="AvatarSize.Xxl" Color="AvatarColor.Red" />
             <span class="player-name">@OpponentUsername</span>
-            <span class="player-level">Level @OpponentLevel</span>
+            <span class="player-level">@string.Format(Localizer["Matchmaking_Player_Level"], OpponentLevel)</span>
         </div>
     </div>
     
-    <div class="countdown-container">
+    <div class="countdown-container" data-testid="quick-match-countdown">
         <p class="countdown-text">@string.Format(Localizer["Matchmaking_Countdown"], CountdownSeconds)</p>
         <div class="countdown-number @GetPulseClass()">@CountdownSeconds</div>
     </div>

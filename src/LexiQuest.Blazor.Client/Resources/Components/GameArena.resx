@@ -32,6 +32,9 @@
   <data name="Timer.Label" xml:space="preserve">
     <value>Čas</value>
   </data>
+  <data name="GameArena.Aria" xml:space="preserve">
+    <value>Herní plocha</value>
+  </data>
   <data name="Timer.Format" xml:space="preserve">
     <value>{0:D2}:{1:D2}</value>
   </data>
@@ -100,5 +103,11 @@
   </data>
   <data name="LevelComplete.XP" xml:space="preserve">
     <value>Získal jsi {0} XP</value>
+  </data>
+  <data name="GameOver.Title" xml:space="preserve">
+    <value>Konec hry</value>
+  </data>
+  <data name="GameOver.Description" xml:space="preserve">
+    <value>Došly ti životy. Zkus další hru, až se životy obnoví.</value>
   </data>
 </root>

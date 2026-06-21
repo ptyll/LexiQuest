@@ -37,7 +37,7 @@ public class LeagueServiceTests
         var weekStart = GetWeekStart();
         var weekEnd = weekStart.AddDays(7);
         
-        _leagueRepository.GetActiveLeagueForTierAsync(LeagueTier.Bronze, Arg.Any<CancellationToken>())
+        _leagueRepository.GetActiveLeagueForTierAndWeekAsync(LeagueTier.Bronze, weekStart, Arg.Any<CancellationToken>())
             .Returns((League?)null);
 
         League? createdLeague = null;
@@ -54,6 +54,52 @@ public class LeagueServiceTests
     }
 
     [Fact]
+    public async Task LeagueService_AssignUser_ToRequestedTier_PlacesInRequestedTier()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var weekStart = GetWeekStart();
+        var weekEnd = weekStart.AddDays(7);
+
+        _leagueRepository.GetActiveLeagueForTierAndWeekAsync(LeagueTier.Silver, weekStart, Arg.Any<CancellationToken>())
+            .Returns((League?)null);
+
+        League? createdLeague = null;
+        _leagueRepository.When(x => x.AddAsync(Arg.Any<League>(), Arg.Any<CancellationToken>()))
+            .Do(ci => createdLeague = ci.Arg<League>());
+
+        // Act
+        await _sut.AssignUserToLeagueAsync(userId, LeagueTier.Silver, weekStart, weekEnd);
+
+        // Assert
+        createdLeague.Should().NotBeNull();
+        createdLeague!.Tier.Should().Be(LeagueTier.Silver);
+        createdLeague.Participants.Should().ContainSingle(p => p.UserId == userId);
+    }
+
+    [Fact]
+    public async Task LeagueService_AssignUser_ExistingBronzeLeague_AddsOnlyNewParticipant()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var weekStart = GetWeekStart();
+        var weekEnd = weekStart.AddDays(7);
+        var existingLeague = League.Create(LeagueTier.Bronze, weekStart, weekEnd);
+        existingLeague.AddParticipant(Guid.NewGuid());
+
+        _leagueRepository.GetActiveLeagueForTierAndWeekAsync(LeagueTier.Bronze, weekStart, Arg.Any<CancellationToken>())
+            .Returns(existingLeague);
+
+        // Act
+        await _sut.AssignUserToLeagueAsync(userId, weekStart, weekEnd);
+
+        // Assert
+        await _leagueRepository.Received(1).AddParticipantAsync(existingLeague.Id, userId, Arg.Any<CancellationToken>());
+        await _leagueRepository.DidNotReceive().AddAsync(Arg.Any<League>(), Arg.Any<CancellationToken>());
+        await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
     public async Task LeagueService_AssignUser_Bronze_Max30Participants()
     {
         // Arrange
@@ -67,7 +113,7 @@ public class LeagueServiceTests
             existingLeague.AddParticipant(Guid.NewGuid());
         }
 
-        _leagueRepository.GetActiveLeagueForTierAsync(LeagueTier.Bronze, Arg.Any<CancellationToken>())
+        _leagueRepository.GetActiveLeagueForTierAndWeekAsync(LeagueTier.Bronze, weekStart, Arg.Any<CancellationToken>())
             .Returns(existingLeague);
 
         League? newLeague = null;
@@ -166,6 +212,35 @@ public class LeagueServiceTests
         result[0].UserId.Should().Be(user2); // 500 XP
         result[1].UserId.Should().Be(user1); // 300 XP
         result[2].UserId.Should().Be(user3); // 100 XP
+    }
+
+    [Fact]
+    public async Task LeagueService_GetLeagueHistory_ReturnsPastLeagueResult()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var weekStart = GetWeekStart().AddDays(-7);
+        var league = League.Create(LeagueTier.Bronze, weekStart, weekStart.AddDays(7));
+        league.AddParticipant(userId);
+        var participant = league.Participants.Single();
+        participant.AddXP(1200);
+        league.UpdateRanks();
+        participant.MarkAsPromoted();
+        league.Deactivate();
+
+        _leagueRepository.GetLeagueHistoryForUserAsync(userId, Arg.Any<CancellationToken>())
+            .Returns(new List<League> { league });
+
+        // Act
+        var result = await _sut.GetLeagueHistoryAsync(userId);
+
+        // Assert
+        result.Should().ContainSingle();
+        result[0].Tier.Should().Be(LeagueTier.Bronze);
+        result[0].FinalRank.Should().Be(1);
+        result[0].WeeklyXP.Should().Be(1200);
+        result[0].ChangeStatus.Should().Be(LeagueChangeStatus.Promoted);
+        result[0].XPEarned.Should().Be(50);
     }
 
     [Fact]
