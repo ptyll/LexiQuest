@@ -820,8 +820,8 @@
 - **Ocekavani:** Screenshot odpovida realnemu viewportu, ve kterem je tooltip posuzovan.
 - **Skutecnost:** Full-page kompozice s posunutym sticky layoutem zhorsovala UX review a vypadala jako prekryv UI.
 - **Pravdepodobna pricina:** Playwright full-page screenshot skladal dlouhou stranku se sticky prvky po scrollu ke kartam.
-- **Oprava:** `TakeCheckpointScreenshotAsync` dostal volby `fullPage` a `scrollToTop`; AI tooltip checkpoint uklada viewport screenshot bez nuceneho scrollu nahoru.
-- **Overeni:** AI E2E znovu prosly 7/7 a novy tooltip screenshot ukazuje karty i tooltip bez sticky artefaktu.
+- **Oprava:** `TakeCheckpointScreenshotAsync` dostal volby `fullPage` a `scrollToTop`; AI tooltip checkpoint pred otevrenim tooltipu zarovna challenge grid do viewportu a uklada viewport screenshot bez nuceneho scrollu nahoru.
+- **Overeni:** AI E2E znovu prosly 7/7 a novy tooltip screenshot ukazuje cely blok karet i tooltip bez sticky artefaktu.
 - **Poznamky:** Defaultni chovani screenshot helperu zustava full-page pro stavajici checkpointy.
 
 ### E2E-BUG-0180: Karta Paměťová hra pouzivala nepodporovanou ikonu

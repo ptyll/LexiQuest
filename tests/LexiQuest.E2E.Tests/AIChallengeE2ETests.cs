@@ -109,6 +109,14 @@ public class AIChallengeE2ETests : E2ETestBase
             await Expect(page.GetByTestId(Selectors.AIChallenge.ChallengeCard).Filter(new() { HasText = expectedType })).ToHaveCountAsync(0);
             await Expect(page.GetByTestId(Selectors.AIChallenge.PreviewWord).First).ToBeVisibleAsync(new() { Timeout = 30_000 });
 
+            await page.GetByTestId(Selectors.AIChallenge.ChallengeGrid).EvaluateAsync(
+                """
+                element => new Promise(resolve => {
+                    const rect = element.getBoundingClientRect();
+                    window.scrollBy({ top: rect.top - 120, left: 0, behavior: 'instant' });
+                    requestAnimationFrame(() => requestAnimationFrame(resolve));
+                })
+                """);
             await page.GetByTestId(Selectors.AIChallenge.PreviewReasonToggle).First.ClickAsync();
             await Expect(page.GetByTestId(Selectors.AIChallenge.PreviewReasonTooltip).First).ToBeVisibleAsync();
             await Expect(page.GetByTestId(Selectors.AIChallenge.PreviewReasonTooltip).First).ToContainTextAsync("Proč toto slovo");
