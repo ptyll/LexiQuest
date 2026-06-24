@@ -6,11 +6,11 @@ namespace LexiQuest.Blazor.Services;
 
 public class BossService : IBossService
 {
-    private readonly HttpClient _httpClient;
+    private readonly IAuthenticatedApiClient _apiClient;
 
-    public BossService(IHttpClientFactory httpClientFactory)
+    public BossService(IAuthenticatedApiClient apiClient)
     {
-        _httpClient = httpClientFactory.CreateClient("ApiClient");
+        _apiClient = apiClient;
     }
 
     public async Task<BossSessionDto> StartBossGameAsync(
@@ -18,7 +18,7 @@ public class BossService : IBossService
         DifficultyLevel difficulty,
         CancellationToken cancellationToken = default)
     {
-        using var response = await _httpClient.PostAsJsonAsync(
+        using var response = await _apiClient.PostAsJsonAsync(
             "api/v1/boss/start",
             new BossStartRequest(bossType, difficulty),
             cancellationToken);
@@ -30,7 +30,7 @@ public class BossService : IBossService
 
     public async Task<BossSessionDto?> GetBossStateAsync(Guid sessionId, CancellationToken cancellationToken = default)
     {
-        using var response = await _httpClient.GetAsync($"api/v1/boss/{sessionId}", cancellationToken);
+        using var response = await _apiClient.GetAsync($"api/v1/boss/{sessionId}", cancellationToken);
         if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
         {
             return null;
@@ -45,7 +45,7 @@ public class BossService : IBossService
         string answer,
         CancellationToken cancellationToken = default)
     {
-        using var response = await _httpClient.PostAsJsonAsync(
+        using var response = await _apiClient.PostAsJsonAsync(
             $"api/v1/boss/{sessionId}/answer",
             new BossAnswerRequest
             {
@@ -63,7 +63,7 @@ public class BossService : IBossService
         Guid sessionId,
         CancellationToken cancellationToken = default)
     {
-        using var response = await _httpClient.GetAsync($"api/v1/boss/{sessionId}/twist-reveal", cancellationToken);
+        using var response = await _apiClient.GetAsync($"api/v1/boss/{sessionId}/twist-reveal", cancellationToken);
         if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
         {
             return null;

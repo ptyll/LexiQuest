@@ -55,6 +55,44 @@
 
 ## Aktivni nalezy
 
+### E2E-BUG-0227: Přihlášené Blazor stránky volají chráněné endpointy bez JWT tokenu
+
+- **Stav:** Opraveno
+- **Severity:** P0
+- **Oblast:** Auth / Profil / Nastavení / Cesty / Achievementy / Game / Client DI
+- **Nalezeno v testu:** Ruční proklik lokální aplikace, potvrzeno logy Web/API; regresně kryto `AuthenticatedApiClientTests`.
+- **Screenshot/trace:** Ruční screenshoty z `/paths`, `/profile`, `/settings`; Web log ukazoval `GET /api/v1/users/me`, `/api/v1/paths`, `/api/v1/achievements`, `/api/v1/game/daily` s odpovědí `401`.
+- **Prostredi:** Lokální Web/API instance, SQL Server dev container, desktop browser.
+- **Reprodukce:**
+  1. Spustit API a FE.
+  2. Registrovat uživatele, odhlásit se a znovu přihlásit.
+  3. Otevřít `/profile`, `/settings`, `/paths`, `/achievements` nebo denní výzvu.
+- **Ocekavani:** Všechny přihlášené stránky posílají `Authorization: Bearer ...` a načtou data.
+- **Skutecnost:** Část služeb používala `ApiClient` s delegating handlerem závislým na `IAuthService`; v Blazor Server/Auto režimu se handler vytvořil mimo správný UI scope a požadavky odešly bez tokenu.
+- **Pravdepodobna pricina:** `IHttpClientFactory` pooluje handler pipeline v samostatném DI scope, takže handler neměl spolehlivý přístup ke scoped `IAuthService` daného Blazor circuitu.
+- **Oprava:** Přidán `IAuthenticatedApiClient`/`AuthenticatedApiClient`, který přidává bearer token přímo ve scoped službě, při `401` jednou refreshne token a request zopakuje. Přepojeny služby `UserService`, `PathService`, `AchievementService`, `DailyChallengeService`, `LeagueService`, `BossService`, `ShopService`, `TeamService`, `DictionaryService`, `MatchHistoryClient`; `ErrorLoggingService` převeden na `PublicApiClient`.
+- **Overeni:** `dotnet test tests/LexiQuest.Blazor.Tests/LexiQuest.Blazor.Tests.csproj --filter FullyQualifiedName~AuthenticatedApiClientTests` prošel 2/2. `dotnet build LexiQuest.slnx` prošel. API token probe ověřil `GET /users/me`, `/paths`, `/achievements`, `/game/daily` s HTTP 200. Cílený E2E subset pro profil/nastavení/cesty/hru byl spuštěn, ale po několika minutách bez výsledku ukončen kvůli visícímu běhu.
+- **Poznamky:** Pro plné označení `Overeno` je vhodné znovu spustit cílené E2E po vyřešení timeoutu evidovaného v `E2E-BUG-0224`.
+
+### E2E-BUG-0226: Čerstvá dev databáze neobsahuje základní slovník a katalogová data
+
+- **Stav:** Overeno
+- **Severity:** P0
+- **Oblast:** Game / Paths / Achievements / Shop / Daily challenge / Infra
+- **Nalezeno v testu:** Ruční proklik lokální aplikace, potvrzeno SQL dotazem a API logem.
+- **Screenshot/trace:** Ruční screenshot `Hru se nepodařilo spustit.` na `/game`; prázdné `/paths`; SQL dotaz ukázal `Words = 0`, `LearningPaths = 0`, `Achievements = 0`, `ShopItems = 0`.
+- **Prostredi:** Lokální API/FE po restartu PC, SQL Server dev container `lexiquest-dev-mssql`.
+- **Reprodukce:**
+  1. Vytvořit čistou dev DB migracemi.
+  2. Spustit API a přihlášeného uživatele.
+  3. Kliknout na trénink nebo na čas, případně otevřít cesty/achievementy/shop.
+- **Ocekavani:** Dev API po startu obsahuje slova, učební cesty, achievementy, shop položky, denní výzvu a aktivní ligy.
+- **Skutecnost:** E2E fixture si data seedovala sama, ale běžný Development start API seed nepoužíval; hlavní hra neměla z čeho vybrat slovo a katalogové stránky byly prázdné.
+- **Pravdepodobna pricina:** Seed logika byla jen v `E2ETestDataSeeder`, ne ve sdílené infrastruktuře/API startupu.
+- **Oprava:** Přidán sdílený `DatabaseSeeder` v infrastruktuře, E2E seeder ho používá také. API v `Development` a `E2E` při startu aplikuje migrace a idempotentně seeduje základní data.
+- **Overeni:** `dotnet test tests/LexiQuest.Infrastructure.Tests/LexiQuest.Infrastructure.Tests.csproj --filter FullyQualifiedName~DatabaseSeederTests` prošel 2/2. Po restartu API měla dev DB `Words=105`, `LearningPaths=4`, `PathLevels=115`, `Achievements=13`, `ShopItems=6`, `DailyChallenges=1`, `Leagues=5`. API `POST /api/v1/game/start` s bearer tokenem vrátilo HTTP 201.
+- **Poznamky:** Seed je omezen na Development/E2E startup; Production startup zůstává bez automatických migrací.
+
 ### E2E-BUG-0225: Povinna pole v auth formularich zobrazuji dve hvezdicky
 
 - **Stav:** Overeno

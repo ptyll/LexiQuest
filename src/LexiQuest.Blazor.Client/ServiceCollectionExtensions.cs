@@ -22,6 +22,7 @@ public static class ServiceCollectionExtensions
 
         // Auth Services
         services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<IAuthenticatedApiClient, AuthenticatedApiClient>();
         services.AddScoped<IUserService, UserService>();
 
         // Game Services

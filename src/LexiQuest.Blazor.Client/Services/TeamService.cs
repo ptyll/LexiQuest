@@ -6,18 +6,18 @@ namespace LexiQuest.Blazor.Services;
 
 public class TeamService : ITeamService
 {
-    private readonly HttpClient _httpClient;
+    private readonly IAuthenticatedApiClient _apiClient;
 
-    public TeamService(IHttpClientFactory httpClientFactory)
+    public TeamService(IAuthenticatedApiClient apiClient)
     {
-        _httpClient = httpClientFactory.CreateClient("ApiClient");
+        _apiClient = apiClient;
     }
 
     public async Task<TeamDto?> GetMyTeamAsync()
     {
         try
         {
-            var response = await _httpClient.GetAsync("api/v1/teams/my");
+            var response = await _apiClient.GetAsync("api/v1/teams/my");
             if (response.StatusCode == HttpStatusCode.NoContent)
             {
                 return null;
@@ -36,7 +36,7 @@ public class TeamService : ITeamService
     {
         try
         {
-            return await _httpClient.GetFromJsonAsync<TeamDto>($"api/v1/teams/{id}");
+            return await _apiClient.GetFromJsonAsync<TeamDto>($"api/v1/teams/{id}");
         }
         catch (HttpRequestException)
         {
@@ -48,7 +48,7 @@ public class TeamService : ITeamService
     {
         try
         {
-            var result = await _httpClient.GetFromJsonAsync<List<TeamMemberDto>>($"api/v1/teams/{teamId}/members");
+            var result = await _apiClient.GetFromJsonAsync<List<TeamMemberDto>>($"api/v1/teams/{teamId}/members");
             return result ?? [];
         }
         catch (HttpRequestException)
@@ -65,7 +65,7 @@ public class TeamService : ITeamService
 
     public async Task<CreateTeamClientResult> CreateTeamWithResultAsync(CreateTeamRequest request)
     {
-        var response = await _httpClient.PostAsJsonAsync("api/v1/teams", request);
+        var response = await _apiClient.PostAsJsonAsync("api/v1/teams", request);
         if (response.IsSuccessStatusCode)
         {
             var team = await response.Content.ReadFromJsonAsync<TeamDto>();
@@ -98,25 +98,25 @@ public class TeamService : ITeamService
 
     public async Task<bool> LeaveTeamAsync(Guid teamId)
     {
-        var response = await _httpClient.PostAsync($"api/v1/teams/{teamId}/leave", null);
+        var response = await _apiClient.PostAsync($"api/v1/teams/{teamId}/leave");
         return response.IsSuccessStatusCode;
     }
 
     public async Task<bool> DisbandTeamAsync(Guid teamId)
     {
-        var response = await _httpClient.DeleteAsync($"api/v1/teams/{teamId}");
+        var response = await _apiClient.DeleteAsync($"api/v1/teams/{teamId}");
         return response.IsSuccessStatusCode;
     }
 
     public async Task<bool> InviteMemberAsync(Guid teamId, InviteMemberRequest request)
     {
-        var response = await _httpClient.PostAsJsonAsync($"api/v1/teams/{teamId}/invite", request);
+        var response = await _apiClient.PostAsJsonAsync($"api/v1/teams/{teamId}/invite", request);
         return response.IsSuccessStatusCode;
     }
 
     public async Task<InviteMemberClientResult> InviteMemberByUsernameAsync(Guid teamId, string username)
     {
-        var response = await _httpClient.PostAsJsonAsync(
+        var response = await _apiClient.PostAsJsonAsync(
             $"api/v1/teams/{teamId}/invite-by-username",
             new InviteMemberByUsernameRequest(username));
 
@@ -156,31 +156,31 @@ public class TeamService : ITeamService
 
     public async Task<bool> KickMemberAsync(Guid teamId, Guid userId)
     {
-        var response = await _httpClient.PostAsync($"api/v1/teams/{teamId}/kick/{userId}", null);
+        var response = await _apiClient.PostAsync($"api/v1/teams/{teamId}/kick/{userId}");
         return response.IsSuccessStatusCode;
     }
 
     public async Task<bool> TransferLeadershipAsync(Guid teamId, Guid newLeaderId)
     {
-        var response = await _httpClient.PostAsJsonAsync($"api/v1/teams/{teamId}/transfer-leadership", newLeaderId);
+        var response = await _apiClient.PostAsJsonAsync($"api/v1/teams/{teamId}/transfer-leadership", newLeaderId);
         return response.IsSuccessStatusCode;
     }
 
     public async Task<bool> RequestJoinAsync(Guid teamId, CreateJoinRequest request)
     {
-        var response = await _httpClient.PostAsJsonAsync($"api/v1/teams/{teamId}/join-request", request);
+        var response = await _apiClient.PostAsJsonAsync($"api/v1/teams/{teamId}/join-request", request);
         return response.IsSuccessStatusCode;
     }
 
     public async Task<bool> ApproveJoinRequestAsync(Guid requestId)
     {
-        var response = await _httpClient.PostAsync($"api/v1/teams/join-requests/{requestId}/approve", null);
+        var response = await _apiClient.PostAsync($"api/v1/teams/join-requests/{requestId}/approve");
         return response.IsSuccessStatusCode;
     }
 
     public async Task<bool> RejectJoinRequestAsync(Guid requestId)
     {
-        var response = await _httpClient.PostAsync($"api/v1/teams/join-requests/{requestId}/reject", null);
+        var response = await _apiClient.PostAsync($"api/v1/teams/join-requests/{requestId}/reject");
         return response.IsSuccessStatusCode;
     }
 
@@ -188,7 +188,7 @@ public class TeamService : ITeamService
     {
         try
         {
-            var result = await _httpClient.GetFromJsonAsync<List<TeamInviteDto>>("api/v1/teams/invites/my");
+            var result = await _apiClient.GetFromJsonAsync<List<TeamInviteDto>>("api/v1/teams/invites/my");
             return result ?? [];
         }
         catch (HttpRequestException)
@@ -201,7 +201,7 @@ public class TeamService : ITeamService
     {
         try
         {
-            var result = await _httpClient.GetFromJsonAsync<List<TeamJoinRequestDto>>($"api/v1/teams/{teamId}/join-requests");
+            var result = await _apiClient.GetFromJsonAsync<List<TeamJoinRequestDto>>($"api/v1/teams/{teamId}/join-requests");
             return result ?? [];
         }
         catch (HttpRequestException)
@@ -214,7 +214,7 @@ public class TeamService : ITeamService
     {
         try
         {
-            var result = await _httpClient.GetFromJsonAsync<List<TeamRankingDto>>("api/v1/teams/ranking");
+            var result = await _apiClient.GetFromJsonAsync<List<TeamRankingDto>>("api/v1/teams/ranking");
             return result ?? [];
         }
         catch (HttpRequestException)
@@ -227,7 +227,7 @@ public class TeamService : ITeamService
     {
         try
         {
-            var result = await _httpClient.GetFromJsonAsync<bool>("api/v1/teams/can-create");
+            var result = await _apiClient.GetFromJsonAsync<bool>("api/v1/teams/can-create");
             return result;
         }
         catch (HttpRequestException)

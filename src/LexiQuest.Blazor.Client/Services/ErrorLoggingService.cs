@@ -18,7 +18,7 @@ public class ErrorLoggingService : IErrorLoggingService
         ILogger<ErrorLoggingService> logger,
         NavigationManager navigationManager)
     {
-        _httpClient = httpClientFactory.CreateClient("ApiClient");
+        _httpClient = httpClientFactory.CreateClient("PublicApiClient");
         _logger = logger;
         _navigationManager = navigationManager;
     }

@@ -8,11 +8,11 @@ namespace LexiQuest.Blazor.Services;
 /// </summary>
 public class MatchHistoryClient : IMatchHistoryClient
 {
-    private readonly HttpClient _httpClient;
+    private readonly IAuthenticatedApiClient _apiClient;
 
-    public MatchHistoryClient(IHttpClientFactory httpClientFactory)
+    public MatchHistoryClient(IAuthenticatedApiClient apiClient)
     {
-        _httpClient = httpClientFactory.CreateClient("ApiClient");
+        _apiClient = apiClient;
     }
 
     public async Task<MatchHistoryResponseDto> GetHistoryAsync(
@@ -22,7 +22,7 @@ public class MatchHistoryClient : IMatchHistoryClient
         CancellationToken cancellationToken = default)
     {
         var url = $"api/v1/multiplayer/history?filter={filter}&pageNumber={pageNumber}&pageSize={pageSize}";
-        var response = await _httpClient.GetAsync(url, cancellationToken);
+        var response = await _apiClient.GetAsync(url, cancellationToken);
         response.EnsureSuccessStatusCode();
         
         var result = await response.Content.ReadFromJsonAsync<MatchHistoryResponseDto>(cancellationToken);
@@ -35,7 +35,7 @@ public class MatchHistoryClient : IMatchHistoryClient
 
     public async Task<MultiplayerStatsDto> GetStatsAsync(CancellationToken cancellationToken = default)
     {
-        var response = await _httpClient.GetAsync("api/v1/multiplayer/stats", cancellationToken);
+        var response = await _apiClient.GetAsync("api/v1/multiplayer/stats", cancellationToken);
         response.EnsureSuccessStatusCode();
         
         var result = await response.Content.ReadFromJsonAsync<MultiplayerStatsDto>(cancellationToken);
@@ -52,7 +52,7 @@ public class MatchHistoryClient : IMatchHistoryClient
 
     public async Task<MatchResultDto?> GetMatchResultAsync(Guid matchId, CancellationToken cancellationToken = default)
     {
-        var response = await _httpClient.GetAsync($"api/v1/multiplayer/matches/{matchId}/result", cancellationToken);
+        var response = await _apiClient.GetAsync($"api/v1/multiplayer/matches/{matchId}/result", cancellationToken);
         if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
         {
             return null;

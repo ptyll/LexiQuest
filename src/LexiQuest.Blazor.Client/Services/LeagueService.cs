@@ -5,18 +5,18 @@ namespace LexiQuest.Blazor.Services;
 
 public class LeagueService : ILeagueService
 {
-    private readonly HttpClient _httpClient;
+    private readonly IAuthenticatedApiClient _apiClient;
 
-    public LeagueService(IHttpClientFactory httpClientFactory)
+    public LeagueService(IAuthenticatedApiClient apiClient)
     {
-        _httpClient = httpClientFactory.CreateClient("ApiClient");
+        _apiClient = apiClient;
     }
 
     public async Task<LeagueInfoDto?> GetCurrentLeagueAsync()
     {
         try
         {
-            return await _httpClient.GetFromJsonAsync<LeagueInfoDto>("api/v1/leagues/current");
+            return await _apiClient.GetFromJsonAsync<LeagueInfoDto>("api/v1/leagues/current");
         }
         catch (HttpRequestException)
         {
@@ -28,7 +28,7 @@ public class LeagueService : ILeagueService
     {
         try
         {
-            var result = await _httpClient.GetFromJsonAsync<List<LeagueParticipantDto>>("api/v1/leagues/leaderboard");
+            var result = await _apiClient.GetFromJsonAsync<List<LeagueParticipantDto>>("api/v1/leagues/leaderboard");
             return result ?? new List<LeagueParticipantDto>();
         }
         catch (HttpRequestException)
@@ -41,7 +41,7 @@ public class LeagueService : ILeagueService
     {
         try
         {
-            var result = await _httpClient.GetFromJsonAsync<List<LeagueHistoryDto>>("api/v1/leagues/history");
+            var result = await _apiClient.GetFromJsonAsync<List<LeagueHistoryDto>>("api/v1/leagues/history");
             return result ?? new List<LeagueHistoryDto>();
         }
         catch (HttpRequestException)
@@ -54,7 +54,7 @@ public class LeagueService : ILeagueService
     {
         try
         {
-            var result = await _httpClient.GetFromJsonAsync<List<LeagueRewardsDto>>("api/v1/leagues/rewards");
+            var result = await _apiClient.GetFromJsonAsync<List<LeagueRewardsDto>>("api/v1/leagues/rewards");
             return result ?? new List<LeagueRewardsDto>();
         }
         catch (HttpRequestException)

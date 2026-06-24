@@ -7,18 +7,18 @@ public class DictionaryService : IDictionaryService
 {
     private const string BasePath = "api/v1/dictionaries";
 
-    private readonly HttpClient _httpClient;
+    private readonly IAuthenticatedApiClient _apiClient;
 
-    public DictionaryService(IHttpClientFactory httpClientFactory)
+    public DictionaryService(IAuthenticatedApiClient apiClient)
     {
-        _httpClient = httpClientFactory.CreateClient("ApiClient");
+        _apiClient = apiClient;
     }
 
     public async Task<List<DictionaryDto>> GetMyDictionariesAsync()
     {
         try
         {
-            var response = await _httpClient.GetAsync($"{BasePath}/my");
+            var response = await _apiClient.GetAsync($"{BasePath}/my");
             if (response.IsSuccessStatusCode)
             {
                 return await response.Content.ReadFromJsonAsync<List<DictionaryDto>>() ?? new List<DictionaryDto>();
@@ -35,7 +35,7 @@ public class DictionaryService : IDictionaryService
     {
         try
         {
-            var response = await _httpClient.GetAsync($"{BasePath}/public");
+            var response = await _apiClient.GetAsync($"{BasePath}/public");
             if (response.IsSuccessStatusCode)
             {
                 return await response.Content.ReadFromJsonAsync<List<DictionaryDto>>() ?? new List<DictionaryDto>();
@@ -52,7 +52,7 @@ public class DictionaryService : IDictionaryService
     {
         try
         {
-            var response = await _httpClient.GetAsync($"{BasePath}/{id}");
+            var response = await _apiClient.GetAsync($"{BasePath}/{id}");
             if (response.IsSuccessStatusCode)
             {
                 return await response.Content.ReadFromJsonAsync<DictionaryDto>();
@@ -67,7 +67,7 @@ public class DictionaryService : IDictionaryService
 
     public async Task<DictionaryDto> CreateDictionaryAsync(CreateDictionaryRequest request)
     {
-        var response = await _httpClient.PostAsJsonAsync(BasePath, request);
+        var response = await _apiClient.PostAsJsonAsync(BasePath, request);
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadFromJsonAsync<DictionaryDto>() 
             ?? throw new InvalidOperationException("Failed to create dictionary");
@@ -77,7 +77,7 @@ public class DictionaryService : IDictionaryService
     {
         try
         {
-            var response = await _httpClient.DeleteAsync($"{BasePath}/{id}");
+            var response = await _apiClient.DeleteAsync($"{BasePath}/{id}");
             return response.IsSuccessStatusCode;
         }
         catch
@@ -88,7 +88,7 @@ public class DictionaryService : IDictionaryService
 
     public async Task<DictionaryWordDto> AddWordAsync(Guid dictionaryId, AddWordRequest request)
     {
-        var response = await _httpClient.PostAsJsonAsync($"{BasePath}/{dictionaryId}/words", request);
+        var response = await _apiClient.PostAsJsonAsync($"{BasePath}/{dictionaryId}/words", request);
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadFromJsonAsync<DictionaryWordDto>()
             ?? throw new InvalidOperationException("Failed to add word");
@@ -96,7 +96,7 @@ public class DictionaryService : IDictionaryService
 
     public async Task<ImportResultDto> ImportCsvAsync(Guid dictionaryId, string csvContent)
     {
-        var response = await _httpClient.PostAsJsonAsync(
+        var response = await _apiClient.PostAsJsonAsync(
             $"{BasePath}/{dictionaryId}/import-csv", 
             new { Content = csvContent });
         response.EnsureSuccessStatusCode();
@@ -106,7 +106,7 @@ public class DictionaryService : IDictionaryService
 
     public async Task<ImportResultDto> ImportTxtAsync(Guid dictionaryId, string txtContent)
     {
-        var response = await _httpClient.PostAsJsonAsync(
+        var response = await _apiClient.PostAsJsonAsync(
             $"{BasePath}/{dictionaryId}/import-txt", 
             new { Content = txtContent });
         response.EnsureSuccessStatusCode();
@@ -116,7 +116,7 @@ public class DictionaryService : IDictionaryService
 
     public async Task<ImportResultDto> ImportJsonAsync(Guid dictionaryId, string jsonContent)
     {
-        var response = await _httpClient.PostAsJsonAsync(
+        var response = await _apiClient.PostAsJsonAsync(
             $"{BasePath}/{dictionaryId}/import-json",
             new { Content = jsonContent });
         response.EnsureSuccessStatusCode();

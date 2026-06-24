@@ -5,18 +5,18 @@ namespace LexiQuest.Blazor.Services;
 
 public class AchievementService : IAchievementService
 {
-    private readonly HttpClient _httpClient;
+    private readonly IAuthenticatedApiClient _apiClient;
 
-    public AchievementService(IHttpClientFactory httpClientFactory)
+    public AchievementService(IAuthenticatedApiClient apiClient)
     {
-        _httpClient = httpClientFactory.CreateClient("ApiClient");
+        _apiClient = apiClient;
     }
 
     public async Task<List<AchievementDto>> GetAchievementsAsync()
     {
         try
         {
-            var result = await _httpClient.GetFromJsonAsync<List<AchievementDto>>("api/v1/achievements");
+            var result = await _apiClient.GetFromJsonAsync<List<AchievementDto>>("api/v1/achievements");
             return result ?? new List<AchievementDto>();
         }
         catch (HttpRequestException)

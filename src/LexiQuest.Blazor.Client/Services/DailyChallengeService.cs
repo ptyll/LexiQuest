@@ -5,18 +5,18 @@ namespace LexiQuest.Blazor.Services;
 
 public class DailyChallengeService : IDailyChallengeService
 {
-    private readonly HttpClient _httpClient;
+    private readonly IAuthenticatedApiClient _apiClient;
 
-    public DailyChallengeService(IHttpClientFactory httpClientFactory)
+    public DailyChallengeService(IAuthenticatedApiClient apiClient)
     {
-        _httpClient = httpClientFactory.CreateClient("ApiClient");
+        _apiClient = apiClient;
     }
 
     public async Task<DailyChallengeDto?> GetTodayAsync()
     {
         try
         {
-            return await _httpClient.GetFromJsonAsync<DailyChallengeDto>("api/v1/game/daily");
+            return await _apiClient.GetFromJsonAsync<DailyChallengeDto>("api/v1/game/daily");
         }
         catch (HttpRequestException)
         {
@@ -28,7 +28,7 @@ public class DailyChallengeService : IDailyChallengeService
     {
         try
         {
-            var result = await _httpClient.GetFromJsonAsync<List<DailyLeaderboardEntryDto>>("api/v1/game/daily/leaderboard");
+            var result = await _apiClient.GetFromJsonAsync<List<DailyLeaderboardEntryDto>>("api/v1/game/daily/leaderboard");
             return result ?? new List<DailyLeaderboardEntryDto>();
         }
         catch (HttpRequestException)
@@ -41,7 +41,7 @@ public class DailyChallengeService : IDailyChallengeService
     {
         try
         {
-            return await _httpClient.GetFromJsonAsync<bool>("api/v1/game/daily/completed");
+            return await _apiClient.GetFromJsonAsync<bool>("api/v1/game/daily/completed");
         }
         catch (HttpRequestException)
         {
@@ -53,7 +53,7 @@ public class DailyChallengeService : IDailyChallengeService
     {
         try
         {
-            var response = await _httpClient.PostAsJsonAsync(
+            var response = await _apiClient.PostAsJsonAsync(
                 "api/v1/game/daily/submit",
                 new DailyChallengeSubmitRequest(answer, (int)Math.Max(0, timeTaken.TotalMilliseconds)));
 

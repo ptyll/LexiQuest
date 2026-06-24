@@ -7,12 +7,12 @@ namespace LexiQuest.Blazor.Services;
 
 public class UserService : IUserService
 {
-    private readonly HttpClient _httpClient;
+    private readonly IAuthenticatedApiClient _apiClient;
     private readonly IStringLocalizer<UserService> _localizer;
 
-    public UserService(IHttpClientFactory httpClientFactory, IStringLocalizer<UserService> localizer)
+    public UserService(IAuthenticatedApiClient apiClient, IStringLocalizer<UserService> localizer)
     {
-        _httpClient = httpClientFactory.CreateClient("ApiClient");
+        _apiClient = apiClient;
         _localizer = localizer;
     }
 
@@ -20,7 +20,7 @@ public class UserService : IUserService
     {
         try
         {
-            var response = await _httpClient.GetAsync("api/v1/users/me", cancellationToken);
+            var response = await _apiClient.GetAsync("api/v1/users/me", cancellationToken);
             
             if (response.StatusCode == HttpStatusCode.Unauthorized)
             {
@@ -44,7 +44,7 @@ public class UserService : IUserService
     {
         try
         {
-            var response = await _httpClient.PutAsJsonAsync("api/v1/users/me", request, cancellationToken);
+            var response = await _apiClient.PutAsJsonAsync("api/v1/users/me", request, cancellationToken);
             return response.IsSuccessStatusCode;
         }
         catch
@@ -57,7 +57,7 @@ public class UserService : IUserService
     {
         try
         {
-            var response = await _httpClient.PutAsJsonAsync("api/v1/users/me/password", request, cancellationToken);
+            var response = await _apiClient.PutAsJsonAsync("api/v1/users/me/password", request, cancellationToken);
             return response.IsSuccessStatusCode;
         }
         catch
@@ -70,7 +70,7 @@ public class UserService : IUserService
     {
         try
         {
-            var response = await _httpClient.PutAsJsonAsync("api/v1/users/me/preferences", preferences, cancellationToken);
+            var response = await _apiClient.PutAsJsonAsync("api/v1/users/me/preferences", preferences, cancellationToken);
             return response.IsSuccessStatusCode;
         }
         catch
@@ -83,7 +83,7 @@ public class UserService : IUserService
     {
         try
         {
-            var response = await _httpClient.PutAsJsonAsync("api/v1/users/me/privacy", privacy, cancellationToken);
+            var response = await _apiClient.PutAsJsonAsync("api/v1/users/me/privacy", privacy, cancellationToken);
             return response.IsSuccessStatusCode;
         }
         catch
@@ -96,7 +96,7 @@ public class UserService : IUserService
     {
         try
         {
-            var response = await _httpClient.GetAsync($"api/v1/users/check-username?username={Uri.EscapeDataString(username)}", cancellationToken);
+            var response = await _apiClient.GetAsync($"api/v1/users/check-username?username={Uri.EscapeDataString(username)}", cancellationToken);
             
             if (!response.IsSuccessStatusCode)
             {
@@ -116,7 +116,7 @@ public class UserService : IUserService
     {
         try
         {
-            var response = await _httpClient.PostAsync("api/v1/users/me/deactivate", null, cancellationToken);
+            var response = await _apiClient.PostAsync("api/v1/users/me/deactivate", cancellationToken);
             return response.IsSuccessStatusCode;
         }
         catch
@@ -129,7 +129,7 @@ public class UserService : IUserService
     {
         try
         {
-            var response = await _httpClient.DeleteAsync("api/v1/users/me", cancellationToken);
+            var response = await _apiClient.DeleteAsync("api/v1/users/me", cancellationToken);
             return response.IsSuccessStatusCode;
         }
         catch

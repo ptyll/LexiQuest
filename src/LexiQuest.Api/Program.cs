@@ -39,7 +39,7 @@ namespace LexiQuest.Api;
 
 public class Program
 {
-    public static void Main(string[] args)
+    public static async Task Main(string[] args)
     {
         Log.Logger = new LoggerConfiguration()
             .WriteTo.Console()
@@ -52,6 +52,8 @@ public class Program
             ConfigureServices(builder.Services, builder.Configuration, builder.Environment);
 
             var app = builder.Build();
+
+            await EnsureDevelopmentDatabaseAsync(app, app.Environment);
             
             ConfigureMiddleware(app, app.Environment);
 
@@ -67,6 +69,20 @@ public class Program
         {
             Log.CloseAndFlush();
         }
+    }
+
+    private static async Task EnsureDevelopmentDatabaseAsync(WebApplication app, IWebHostEnvironment environment)
+    {
+        if (!environment.IsDevelopment() && !environment.IsEnvironment("E2E"))
+        {
+            return;
+        }
+
+        await using var scope = app.Services.CreateAsyncScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<LexiQuestDbContext>();
+
+        await dbContext.Database.MigrateAsync();
+        await DatabaseSeeder.SeedAsync(dbContext);
     }
 
     public static void ConfigureServices(IServiceCollection services, IConfiguration configuration, IWebHostEnvironment environment)

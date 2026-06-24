@@ -6,22 +6,22 @@ namespace LexiQuest.Blazor.Services;
 
 public class PathService : IPathService
 {
-    private readonly HttpClient _httpClient;
+    private readonly IAuthenticatedApiClient _apiClient;
 
-    public PathService(IHttpClientFactory httpClientFactory)
+    public PathService(IAuthenticatedApiClient apiClient)
     {
-        _httpClient = httpClientFactory.CreateClient("ApiClient");
+        _apiClient = apiClient;
     }
 
     public async Task<List<LearningPathDto>> GetPathsAsync()
     {
-        return await _httpClient.GetFromJsonAsync<List<LearningPathDto>>("api/v1/paths")
+        return await _apiClient.GetFromJsonAsync<List<LearningPathDto>>("api/v1/paths")
             ?? [];
     }
 
     public async Task<PathProgressDto?> GetPathProgressAsync(Guid pathId)
     {
-        var response = await _httpClient.GetAsync($"api/v1/paths/{pathId}/progress");
+        var response = await _apiClient.GetAsync($"api/v1/paths/{pathId}/progress");
         if (response.StatusCode == HttpStatusCode.NotFound)
         {
             return null;

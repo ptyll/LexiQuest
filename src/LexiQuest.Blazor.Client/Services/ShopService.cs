@@ -5,11 +5,11 @@ namespace LexiQuest.Blazor.Services;
 
 public class ShopService : IShopService
 {
-    private readonly HttpClient _httpClient;
+    private readonly IAuthenticatedApiClient _apiClient;
 
-    public ShopService(IHttpClientFactory httpClientFactory)
+    public ShopService(IAuthenticatedApiClient apiClient)
     {
-        _httpClient = httpClientFactory.CreateClient("ApiClient");
+        _apiClient = apiClient;
     }
 
     public async Task<IEnumerable<ShopItemDto>> GetShopItemsAsync(string? category = null)
@@ -18,12 +18,12 @@ public class ShopService : IShopService
             ? "api/v1/shop/items"
             : $"api/v1/shop/items?category={Uri.EscapeDataString(category)}";
 
-        return await _httpClient.GetFromJsonAsync<List<ShopItemDto>>(url) ?? [];
+        return await _apiClient.GetFromJsonAsync<List<ShopItemDto>>(url) ?? [];
     }
 
     public async Task<IEnumerable<UserInventoryItemDto>> GetUserInventoryAsync()
     {
-        var inventory = await _httpClient.GetFromJsonAsync<List<InventoryItemDto>>("api/v1/shop/inventory") ?? [];
+        var inventory = await _apiClient.GetFromJsonAsync<List<InventoryItemDto>>("api/v1/shop/inventory") ?? [];
         return inventory.Select(item => new UserInventoryItemDto(
             item.Id,
             Guid.Empty,
@@ -37,13 +37,13 @@ public class ShopService : IShopService
 
     public async Task<int> GetUserCoinsAsync()
     {
-        var balance = await _httpClient.GetFromJsonAsync<CoinBalanceDto>("api/v1/shop/coins");
+        var balance = await _apiClient.GetFromJsonAsync<CoinBalanceDto>("api/v1/shop/coins");
         return balance?.Balance ?? 0;
     }
 
     public async Task<PurchaseResultDto> PurchaseItemAsync(Guid itemId)
     {
-        using var response = await _httpClient.PostAsJsonAsync("api/v1/shop/purchase", new PurchaseRequest(itemId));
+        using var response = await _apiClient.PostAsJsonAsync("api/v1/shop/purchase", new PurchaseRequest(itemId));
         var result = await response.Content.ReadFromJsonAsync<LexiQuest.Shared.DTOs.Shop.PurchaseResult>();
 
         if (response.IsSuccessStatusCode && result != null)
@@ -54,7 +54,7 @@ public class ShopService : IShopService
 
     public async Task<EquipResultDto> EquipItemAsync(Guid inventoryItemId)
     {
-        using var response = await _httpClient.PostAsJsonAsync("api/v1/shop/equip", new EquipItemRequest(inventoryItemId));
+        using var response = await _apiClient.PostAsJsonAsync("api/v1/shop/equip", new EquipItemRequest(inventoryItemId));
         var result = await response.Content.ReadFromJsonAsync<EquipItemResult>();
 
         if (response.IsSuccessStatusCode && result != null)
