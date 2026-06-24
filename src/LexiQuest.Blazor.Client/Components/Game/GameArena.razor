@@ -58,6 +58,12 @@
                autocomplete="off"
                autofocus />
 
+        <LetterTileInput ScrambledWord="@ScrambledWord"
+                         Value="@CurrentAnswer"
+                         ValueChanged="HandleTileAnswerChanged"
+                         Disabled="@(IsSubmitting || IsGameOver)"
+                         RootTestId="game-letter-input" />
+
         <div class="action-buttons">
             <div data-testid="game-submit">
                 <TmButton Variant="ButtonVariant.Primary"
@@ -218,12 +224,21 @@
         CurrentAnswer = e.Value?.ToString() ?? "";
     }
 
-    private void HandleKeyDown(KeyboardEventArgs e)
+    private async Task HandleKeyDown(KeyboardEventArgs e)
     {
         if (e.Key == "Enter" && CanSubmit && !IsSubmitting)
         {
-            _ = SubmitAnswer();
+            await SubmitAnswer();
         }
+        else if (e.Key == "Escape" && !IsSubmitting && !IsGameOver)
+        {
+            CurrentAnswer = "";
+        }
+    }
+
+    private void HandleTileAnswerChanged(string answer)
+    {
+        CurrentAnswer = answer;
     }
 
     private async Task ContinueToNext()

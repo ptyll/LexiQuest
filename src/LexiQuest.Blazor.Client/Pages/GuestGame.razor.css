@@ -233,10 +233,16 @@
 }
 
 .answer-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.keyboard-answer-row {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
     gap: 0.75rem;
-    margin-bottom: 1rem;
 }
 
 .answer-input {
@@ -299,18 +305,39 @@
         font-size: 1.6rem;
     }
 
-    .game-header,
-    .answer-section {
-        grid-template-columns: 1fr;
-    }
-
     .game-header {
         align-items: flex-start;
         flex-direction: column;
     }
 
+    .keyboard-answer-row {
+        grid-template-columns: 1fr;
+    }
+
     .scrambled-word {
         font-size: 2rem;
         letter-spacing: 0.16em;
+    }
+}
+
+@media (pointer: coarse), (max-width: 768px) {
+    .keyboard-answer-row {
+        display: block;
+    }
+
+    .answer-input {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        min-height: 1px;
+        padding: 0;
+        border: 0;
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .keyboard-answer-row .guest-button {
+        width: 100%;
+        min-height: 3rem;
     }
 }

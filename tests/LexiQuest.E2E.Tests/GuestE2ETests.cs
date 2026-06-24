@@ -95,6 +95,65 @@ public class GuestE2ETests : E2ETestBase
     }
 
     [Fact]
+    public async Task GuestPlay_DesktopEnterKey_SubmitsAnswer()
+    {
+        await RunScenarioAsync("guest", "desktop-enter-submit", async page =>
+        {
+            await Fixture.GoToAndWaitForAppReadyAsync(page, "/play");
+
+            await page.GetByTestId(Selectors.Guest.StartButton).ClickAsync();
+            await Expect(page.GetByTestId(Selectors.Guest.Arena)).ToBeVisibleAsync();
+
+            await page.GetByTestId(Selectors.Guest.AnswerInput).FillAsync("neexistujiciodpoved");
+            await page.GetByTestId(Selectors.Guest.AnswerInput).PressAsync("Enter");
+
+            var feedback = page.GetByTestId(Selectors.Guest.Feedback);
+            await Expect(feedback).ToBeVisibleAsync(new() { Timeout = 5_000 });
+            await Expect(feedback).ToContainTextAsync("Špatně");
+        });
+    }
+
+    [Fact]
+    public async Task GuestPlay_MobileLetterTiles_BuildAnswerAndStoreScreenshot()
+    {
+        await RunScenarioAsync("guest", "mobile-letter-tiles", async page =>
+        {
+            await Fixture.GoToAndWaitForAppReadyAsync(page, "/play");
+
+            await page.GetByTestId(Selectors.Guest.StartButton).ClickAsync();
+            await Expect(page.GetByTestId(Selectors.Guest.Arena)).ToBeVisibleAsync();
+            await Expect(page.GetByTestId(Selectors.Guest.LetterInput)).ToBeVisibleAsync();
+
+            var scrambled = await page.GetByTestId(Selectors.Guest.ScrambledWord).TextContentAsync();
+            scrambled.Should().NotBeNullOrWhiteSpace();
+            var answer = await Fixture.GetBeginnerOriginalForScrambledWordAsync(scrambled!);
+
+            foreach (var letter in answer)
+            {
+                await ClickEnabledGuestLetterTileAsync(page, letter);
+            }
+
+            var slots = await page.GetByTestId(Selectors.Guest.LetterSlot).AllTextContentsAsync();
+            string.Concat(slots).Should().Be(answer);
+            await Expect(page.GetByTestId(Selectors.Guest.Submit)).ToBeEnabledAsync();
+
+            await Fixture.TakeCheckpointScreenshotAsync(
+                page,
+                area: "guest",
+                scenario: "mobile-letter-tiles",
+                state: "answer-ready",
+                viewport: "375x812",
+                theme: "light",
+                persona: "guestBrowserProfile",
+                fullPage: false);
+
+            await page.GetByTestId(Selectors.Guest.Submit).ClickAsync();
+            await Expect(page.GetByTestId(Selectors.Guest.Feedback)).ToBeVisibleAsync(new() { Timeout = 5_000 });
+            await Expect(page.GetByTestId(Selectors.Guest.Feedback)).ToContainTextAsync("Správně");
+        }, width: 375, height: 812);
+    }
+
+    [Fact]
     public async Task GuestConversion_RegisterFromCta_TransfersProgressToDashboard()
     {
         await RunScenarioAsync("guest", "conversion-transfers-progress", async page =>
@@ -301,6 +360,27 @@ public class GuestE2ETests : E2ETestBase
                 theme: "light",
                 persona: "guestBrowserProfile");
         });
+    }
+
+    private static async Task ClickEnabledGuestLetterTileAsync(IPage page, char letter)
+    {
+        var tiles = page.GetByTestId(Selectors.Guest.LetterTile);
+        var count = await tiles.CountAsync();
+
+        for (var index = 0; index < count; index++)
+        {
+            var tile = tiles.Nth(index);
+            var text = (await tile.InnerTextAsync()).Trim();
+            if (!string.Equals(text, letter.ToString(), StringComparison.OrdinalIgnoreCase) || !await tile.IsEnabledAsync())
+            {
+                continue;
+            }
+
+            await tile.ClickAsync();
+            return;
+        }
+
+        throw new InvalidOperationException($"Enabled guest letter tile '{letter}' was not found.");
     }
 
     private static async Task AssertLocatorIntersectsViewportAsync(IPage page, ILocator locator)

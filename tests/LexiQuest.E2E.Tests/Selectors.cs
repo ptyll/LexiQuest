@@ -610,6 +610,12 @@ internal static class Selectors
         public const string RemainingGames = "remaining-games";
         public const string ScrambledWord = "guest-scrambled-word";
         public const string AnswerInput = "answer-input";
+        public const string LetterInput = "guest-letter-input";
+        public const string LetterTile = "guest-letter-input-tile";
+        public const string LetterSlot = "guest-letter-input-slot";
+        public const string LetterBackspace = "guest-letter-input-backspace";
+        public const string LetterClear = "guest-letter-input-clear";
+        public const string LetterShuffle = "guest-letter-input-shuffle";
         public const string Submit = "btn-submit";
         public const string Feedback = "answer-feedback";
         public const string CtaModal = "guest-cta-modal";

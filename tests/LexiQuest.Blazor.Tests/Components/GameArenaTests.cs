@@ -2,6 +2,7 @@ using Bunit;
 using FluentAssertions;
 using LexiQuest.Blazor.Components.Game;
 using LexiQuest.Shared.DTOs.Game;
+using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
 using LexiQuest.Blazor.Tests.Helpers;
@@ -13,16 +14,20 @@ public class GameArenaTests : BunitContext
 {
     private readonly IStringLocalizer<GameArena> _localizer;
     private readonly IStringLocalizer<LivesIndicator> _livesLocalizer;
+    private readonly IStringLocalizer<LetterTileInput> _letterTileLocalizer;
 
     public GameArenaTests()
     {
         _localizer = Substitute.For<IStringLocalizer<GameArena>>();
         _livesLocalizer = Substitute.For<IStringLocalizer<LivesIndicator>>();
+        _letterTileLocalizer = Substitute.For<IStringLocalizer<LetterTileInput>>();
         SetupLocalizer();
         SetupLivesLocalizer();
+        SetupLetterTileLocalizer();
 
         Services.AddSingleton(_localizer);
         Services.AddSingleton(_livesLocalizer);
+        Services.AddSingleton(_letterTileLocalizer);
         TempoTestHelper.RegisterTempoServices(Services);
     }
 
@@ -54,6 +59,11 @@ public class GameArenaTests : BunitContext
         _livesLocalizer["Regeneration"].Returns(new LocalizedString("Regeneration", "Next life in: {0}"));
         _livesLocalizer["NoLives"].Returns(new LocalizedString("NoLives", "No lives"));
         _livesLocalizer["LowWarning"].Returns(new LocalizedString("LowWarning", "Last life"));
+    }
+
+    private void SetupLetterTileLocalizer()
+    {
+        _letterTileLocalizer[Arg.Any<string>()].Returns(x => new LocalizedString(x.Arg<string>(), x.Arg<string>()));
     }
 
     [Fact]
@@ -325,6 +335,68 @@ public class GameArenaTests : BunitContext
     }
 
     [Fact]
+    public async Task GameArena_EnterKey_SubmitsCurrentAnswer()
+    {
+        // Arrange
+        string? submittedAnswer = null;
+        var cut = Render<GameArena>(parameters => parameters
+            .Add(p => p.OnSubmitAnswer, answer =>
+            {
+                submittedAnswer = answer;
+                return Task.CompletedTask;
+            }));
+        var input = cut.Find(".answer-input");
+        input.Input("JABLKO");
+
+        // Act
+        input.KeyDown(new KeyboardEventArgs { Key = "Enter" });
+        await Task.Delay(50);
+
+        // Assert
+        submittedAnswer.Should().Be("JABLKO");
+    }
+
+    [Fact]
+    public void GameArena_LetterTiles_BuildAnswerAndEnableSubmit()
+    {
+        // Arrange
+        var cut = Render<GameArena>(parameters => parameters
+            .Add(p => p.ScrambledWord, "PES"));
+
+        // Act
+        ClickTile(cut, "P");
+        ClickTile(cut, "E");
+        ClickTile(cut, "S");
+
+        // Assert
+        cut.Find(".answer-input").GetAttribute("value").Should().Be("PES");
+        cut.Find(".btn-submit").HasAttribute("disabled").Should().BeFalse();
+        cut.FindAll("[data-testid='game-letter-input-tile'][disabled]").Should().HaveCount(3);
+    }
+
+    [Fact]
+    public void GameArena_LetterTileBackspaceAndClear_UpdateAnswer()
+    {
+        // Arrange
+        var cut = Render<GameArena>(parameters => parameters
+            .Add(p => p.ScrambledWord, "PES"));
+        ClickTile(cut, "P");
+        ClickTile(cut, "E");
+
+        // Act
+        cut.Find("[data-testid='game-letter-input-backspace']").Click();
+
+        // Assert
+        cut.Find(".answer-input").GetAttribute("value").Should().Be("P");
+
+        // Act
+        cut.Find("[data-testid='game-letter-input-clear']").Click();
+
+        // Assert
+        cut.Find(".answer-input").GetAttribute("value").Should().BeNullOrEmpty();
+    }
+
+    [Fact]
     public void GameArena_EmptyScrambledWord_HidesLetters()
     {
         // Act
@@ -398,5 +470,12 @@ public class GameArenaTests : BunitContext
         // Assert - button should be enabled (whitespace is trimmed in validation)
         var button = cut.Find(".btn-submit");
         button.HasAttribute("disabled").Should().BeFalse();
+    }
+
+    private static void ClickTile(IRenderedComponent<GameArena> cut, string letter)
+    {
+        cut.FindAll("[data-testid='game-letter-input-tile']")
+            .First(tile => tile.TextContent.Trim() == letter)
+            .Click();
     }
 }

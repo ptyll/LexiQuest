@@ -156,7 +156,7 @@
     display: flex;
     flex-direction: column;
     gap: var(--tm-spacing-4);
-    width: min(100%, 460px);
+    width: min(100%, 520px);
     align-self: center;
     margin-top: var(--tm-spacing-6);
 }
@@ -380,5 +380,18 @@
 
     .level-complete-icon {
         font-size: 3rem;
+    }
+}
+
+@media (pointer: coarse), (max-width: 768px) {
+    .answer-input {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        min-height: 1px;
+        padding: 0;
+        border: 0;
+        opacity: 0;
+        pointer-events: none;
     }
 }

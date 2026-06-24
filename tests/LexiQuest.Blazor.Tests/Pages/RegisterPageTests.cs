@@ -25,6 +25,7 @@ public class RegisterPageTests : BunitContext
         _validatorLocalizer = Substitute.For<IStringLocalizer<RegisterModelValidator>>();
 
         SetupLocalizer();
+        JSInterop.Setup<string?>("localStorage.getItem", "guest_progress").SetResult(null);
 
         Services.AddSingleton(_authService);
         Services.AddSingleton(_localizer);
@@ -77,6 +78,16 @@ public class RegisterPageTests : BunitContext
         cut.Find("input[type='email']").Should().NotBeNull();
         cut.Find("input[type='text']").Should().NotBeNull(); // Username
         cut.FindAll("input[type='password']").Count.Should().Be(2); // Password + Confirm
+    }
+
+    [Fact]
+    public void RegisterPage_RequiredLabels_DoNotRenderDuplicateAsterisksInMarkup()
+    {
+        // Act
+        var cut = Render<Register>();
+
+        // Assert
+        RequiredLabelTestAssertions.AssertNoDuplicateRequiredAsterisks(cut);
     }
 
     [Fact]

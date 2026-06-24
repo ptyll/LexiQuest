@@ -68,6 +68,16 @@ public class LoginPageTests : BunitContext
     }
 
     [Fact]
+    public void LoginPage_RequiredLabels_DoNotRenderDuplicateAsterisksInMarkup()
+    {
+        // Act
+        var cut = Render<Login>();
+
+        // Assert
+        RequiredLabelTestAssertions.AssertNoDuplicateRequiredAsterisks(cut);
+    }
+
+    [Fact]
     public void LoginPage_Renders_RememberMeCheckbox()
     {
         // Act

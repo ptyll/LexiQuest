@@ -55,6 +55,44 @@
 
 ## Aktivni nalezy
 
+### E2E-BUG-0225: Povinna pole v auth formularich zobrazuji dve hvezdicky
+
+- **Stav:** Overeno
+- **Severity:** P3
+- **Oblast:** Auth / Contact / UX / Visual
+- **Nalezeno v testu:** `AuthE2ETests.RequiredFieldLabels_PublicForms_RenderExactlyOneVisualAsterisk`
+- **Screenshot/trace:** Rucni screenshot z registrace zachytil labely `Email * *`, `Uzivatelske jmeno * *`, `Heslo * *`.
+- **Prostredi:** Lokalni Web/API instance, desktop browser, registracni formular.
+- **Reprodukce:**
+  1. Otevrit `/register`.
+  2. Zkontrolovat labely povinnych poli.
+  3. Stejnou kontrolu provest pro `/login` a `/contact`.
+- **Ocekavani:** Kazde povinne pole ma prave jednu cervenou hvezdicku.
+- **Skutecnost:** Auth formulare mohly vykreslit required marker duplicitne, pripadne po prilis hrubem CSS override marker zmizel uplne.
+- **Pravdepodobna pricina:** `TmValidatedField` renderuje prazdny `span.tm-input-label-required` a Tempo CSS pridava hvezdicku pres `::after`; pri starsim/stalem DOM tvaru muze byt marker take textovy.
+- **Oprava:** Doplněn globalni CSS override v `src/LexiQuest.Web/wwwroot/css/app.css`, ktery pro prazdny `span.tm-input-label-required` ponecha jednu CSS hvezdicku a pro neprazdny marker vypne pseudo-element, aby nevznikly dve hvezdicky. Doplněny bUnit testy pro Register/Login/Contact a E2E vizualni audit computed stylu.
+- **Overeni:** `dotnet test tests/LexiQuest.Blazor.Tests/LexiQuest.Blazor.Tests.csproj --filter "FullyQualifiedName~RegisterPageTests|FullyQualifiedName~LoginPageTests|FullyQualifiedName~ContactPageTests"` probehl uspesne 16/16. `dotnet test tests/LexiQuest.E2E.Tests/LexiQuest.E2E.Tests.csproj --filter "FullyQualifiedName~AuthE2ETests.RequiredFieldLabels_PublicForms_RenderExactlyOneVisualAsterisk"` probehl uspesne 1/1.
+- **Poznamky:** Kontakt pouziva `TmFormField`; E2E overuje, ze i ten porad zobrazuje prave jednu hvezdicku.
+
+### E2E-BUG-0224: Cileny Playwright run timeoutuje pri startu testovaciho API nebo Web hostu
+
+- **Stav:** Reprodukovana
+- **Severity:** P2
+- **Oblast:** E2E / Infra / Test stabilita
+- **Nalezeno v testu:** `GuestE2ETests.GuestPlay_DesktopEnterKey_SubmitsAnswer`, `GuestE2ETests.GuestPlay_MobileLetterTiles_BuildAnswerAndStoreScreenshot`
+- **Screenshot/trace:** Testy se nedostaly do browser faze, trace ani screenshot nevznikly.
+- **Prostredi:** Lokální E2E runner, SQL Server Testcontainer, smtp4dev Testcontainer, `dotnet test tests/LexiQuest.E2E.Tests/LexiQuest.E2E.Tests.csproj`
+- **Reprodukce:**
+  1. Spustit cílený E2E subset pro nové guest input scénáře.
+  2. Runner startuje `LexiQuest.Api` a `LexiQuest.Web` přes `dotnet run --no-launch-profile`.
+  3. Health check hostu nedoběhne v limitu.
+- **Ocekavani:** API i Web host nastartují v E2E fixture a test pokračuje do Playwright browser kroků.
+- **Skutecnost:** První běh timeoutoval na `LexiQuest.Api` health checku, druhý běh po explicitním buildu timeoutoval na `LexiQuest.Web` health checku; v obou případech se test nedostal k UX asercím.
+- **Pravdepodobna pricina:** E2E `AppProcessRunner` spouští hosty přes `dotnet run`, které může čekat na build/lock a health timeout neposkytne dost diagnostiky. Pravděpodobná oprava je předbuild host projektů a spouštění test hostů přes `--no-build`, případně přidat API/Web jako build dependencies E2E projektu.
+- **Oprava:** Zatím neopraveno.
+- **Overeni:** bUnit coverage pro nové UX prošla 32/32; běžící dev API/Web instance byla ručně restartována a health/CORS kontroly prošly. Playwright E2E subset zůstává blokovaný tímto infra problémem.
+- **Poznamky:** Produktový kód se zkompiloval a bUnit testy ověřily Enter i dlaždice; tento nález řeší spolehlivost E2E runneru, ne samotný herní input.
+
 ### E2E-BUG-0223: Seed slovnik obsahoval ceska slova bez diakritiky a jedno neplatne sportovni slovo
 
 - **Stav:** Overeno

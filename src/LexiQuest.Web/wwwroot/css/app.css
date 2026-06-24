@@ -5,6 +5,18 @@
     font-family: var(--tm-font-sans, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif);
 }
 
+.tm-input-label > .tm-input-label-required {
+    color: var(--tm-color-danger);
+}
+
+.tm-input-label > .tm-input-label-required::after {
+    content: ' *';
+}
+
+.tm-input-label > .tm-input-label-required:not(:empty)::after {
+    content: none;
+}
+
 .tm-topbar-actions {
     margin-left: auto;
 }

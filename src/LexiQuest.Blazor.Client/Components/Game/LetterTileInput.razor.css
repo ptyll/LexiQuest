@@ -1,0 +1,153 @@
+.letter-tile-input {
+    display: grid;
+    gap: 0.75rem;
+    width: 100%;
+}
+
+.answer-slots {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: 3rem;
+}
+
+.answer-slot {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border: 2px solid var(--tm-color-border, #cbd5e1);
+    border-radius: 0.5rem;
+    background: var(--tm-color-surface, #ffffff);
+    color: var(--tm-color-text-primary, #0f172a);
+    font-size: 1.35rem;
+    font-weight: 800;
+    line-height: 1;
+    text-transform: lowercase;
+}
+
+.answer-slot.filled {
+    border-color: var(--tm-color-primary, #2563eb);
+    background: var(--tm-color-primary-subtle, #eff6ff);
+}
+
+.letter-controls {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.letter-control-button,
+.letter-tile {
+    border: 1px solid var(--tm-color-border, #cbd5e1);
+    background: var(--tm-color-surface, #ffffff);
+    color: var(--tm-color-text-primary, #0f172a);
+    cursor: pointer;
+    transition: background-color 120ms ease, border-color 120ms ease, box-shadow 120ms ease, transform 120ms ease;
+}
+
+.letter-control-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.75rem;
+    height: 2.5rem;
+    border-radius: 0.5rem;
+}
+
+.letter-control-button:hover:not(:disabled),
+.letter-tile:hover:not(:disabled) {
+    border-color: var(--tm-color-primary, #2563eb);
+    background: var(--tm-color-primary-subtle, #eff6ff);
+    box-shadow: 0 6px 14px rgba(37, 99, 235, 0.14);
+}
+
+.letter-control-button:active:not(:disabled),
+.letter-tile:active:not(:disabled) {
+    transform: translateY(1px);
+}
+
+.letter-control-button:disabled,
+.letter-tile:disabled {
+    cursor: not-allowed;
+    opacity: 0.42;
+    box-shadow: none;
+}
+
+.letter-control-icon {
+    width: 1.1rem;
+    height: 1.1rem;
+}
+
+.letter-tiles {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.625rem;
+}
+
+.letter-tile {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 3.125rem;
+    height: 3.125rem;
+    padding: 0 0.75rem;
+    border-radius: 0.625rem;
+    font: inherit;
+    font-size: 1.3rem;
+    font-weight: 900;
+    line-height: 1;
+    text-transform: lowercase;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+}
+
+.letter-tile.is-used {
+    transform: scale(0.96);
+}
+
+@media (pointer: coarse), (max-width: 768px) {
+    .letter-tile-input {
+        gap: 0.875rem;
+    }
+
+    .answer-slots {
+        gap: 0.625rem;
+        min-height: 3.375rem;
+    }
+
+    .answer-slot {
+        width: 3.125rem;
+        height: 3.125rem;
+        font-size: 1.45rem;
+    }
+
+    .letter-control-button {
+        width: 3.125rem;
+        height: 2.875rem;
+    }
+
+    .letter-tiles {
+        gap: 0.75rem;
+    }
+
+    .letter-tile {
+        min-width: 3.5rem;
+        height: 3.5rem;
+        font-size: 1.45rem;
+    }
+}
+
+@media (max-width: 380px) {
+    .answer-slot {
+        width: 2.75rem;
+        height: 2.75rem;
+    }
+
+    .letter-tile {
+        min-width: 3.125rem;
+        height: 3.25rem;
+    }
+}

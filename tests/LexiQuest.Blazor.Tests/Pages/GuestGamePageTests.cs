@@ -1,10 +1,12 @@
 using Bunit;
 using FluentAssertions;
+using LexiQuest.Blazor.Components.Game;
 using LexiQuest.Blazor.Components.Guest;
 using LexiQuest.Blazor.Pages;
 using LexiQuest.Blazor.Services;
 using LexiQuest.Shared.DTOs.Game;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
 using NSubstitute;
@@ -20,11 +22,13 @@ public class GuestGamePageTests : BunitContext
 {
     private readonly IGuestGameService _guestGameService;
     private readonly IStringLocalizer<GuestGame> _localizer;
+    private readonly IStringLocalizer<LetterTileInput> _letterTileLocalizer;
 
     public GuestGamePageTests()
     {
         _guestGameService = Substitute.For<IGuestGameService>();
         _localizer = Substitute.For<IStringLocalizer<GuestGame>>();
+        _letterTileLocalizer = Substitute.For<IStringLocalizer<LetterTileInput>>();
 
         // Setup localizer
         _localizer[Arg.Any<string>()].Returns(x => new LocalizedString(x.Arg<string>(), x.Arg<string>()));
@@ -45,6 +49,7 @@ public class GuestGamePageTests : BunitContext
         _localizer["Submit"].Returns(new LocalizedString("Submit", "Odeslat"));
         _localizer["Correct"].Returns(new LocalizedString("Correct", "Správně!"));
         _localizer["Wrong"].Returns(new LocalizedString("Wrong", "Špatně"));
+        _letterTileLocalizer[Arg.Any<string>()].Returns(x => new LocalizedString(x.Arg<string>(), x.Arg<string>()));
 
         var ctaLocalizer = Substitute.For<IStringLocalizer<GuestCTAModal>>();
         ctaLocalizer["Title"].Returns(new LocalizedString("Title", "Skvělé!"));
@@ -76,6 +81,7 @@ public class GuestGamePageTests : BunitContext
 
         Services.AddSingleton(_guestGameService);
         Services.AddSingleton(_localizer);
+        Services.AddSingleton(_letterTileLocalizer);
         Services.AddSingleton(ctaLocalizer);
         Services.AddSingleton(convertLocalizer);
         Services.AddSingleton(limitLocalizer);
@@ -216,6 +222,102 @@ public class GuestGamePageTests : BunitContext
     }
 
     [Fact]
+    public async Task GuestGamePage_EnterKey_SubmitsAnswer()
+    {
+        // Arrange
+        var sessionId = Guid.NewGuid();
+        var wordId = Guid.NewGuid();
+        var startResponse = new GuestStartResponse(
+            SessionId: sessionId,
+            ScrambledWords: new List<GuestScrambledWordDto>
+            {
+                new(wordId, "sep", 3)
+            },
+            RemainingGames: 4,
+            Message: "Hra začala"
+        );
+
+        var answerResponse = new GuestAnswerResponse(
+            IsCorrect: false,
+            XpEarned: 0,
+            CorrectAnswer: "pes",
+            UserAnswer: null,
+            TotalSessionXp: 0,
+            WordsSolved: 0,
+            WordsRemaining: 4,
+            IsGameComplete: false
+        );
+
+        _guestGameService.StartGameAsync().Returns(startResponse);
+        _guestGameService.SubmitAnswerAsync(sessionId, wordId, "pes").Returns(answerResponse);
+
+        var cut = Render<GuestGame>();
+        cut.Find("[data-testid='btn-start-guest']").Click();
+        await Task.Delay(100);
+        cut.Render();
+
+        // Act
+        var input = cut.Find("[data-testid='answer-input']");
+        input.Input("pes");
+        input.KeyDown(new KeyboardEventArgs { Key = "Enter" });
+        await Task.Delay(100);
+        cut.Render();
+
+        // Assert
+        await _guestGameService.Received(1).SubmitAnswerAsync(sessionId, wordId, "pes");
+        cut.Find("[data-testid='answer-feedback']").Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task GuestGamePage_LetterTiles_BuildAnswerAndSubmit()
+    {
+        // Arrange
+        var sessionId = Guid.NewGuid();
+        var wordId = Guid.NewGuid();
+        var startResponse = new GuestStartResponse(
+            SessionId: sessionId,
+            ScrambledWords: new List<GuestScrambledWordDto>
+            {
+                new(wordId, "sep", 3)
+            },
+            RemainingGames: 4,
+            Message: "Hra začala"
+        );
+
+        var answerResponse = new GuestAnswerResponse(
+            IsCorrect: true,
+            XpEarned: 10,
+            CorrectAnswer: "pes",
+            UserAnswer: null,
+            TotalSessionXp: 10,
+            WordsSolved: 1,
+            WordsRemaining: 4,
+            IsGameComplete: false
+        );
+
+        _guestGameService.StartGameAsync().Returns(startResponse);
+        _guestGameService.SubmitAnswerAsync(sessionId, wordId, "pes").Returns(answerResponse);
+
+        var cut = Render<GuestGame>();
+        cut.Find("[data-testid='btn-start-guest']").Click();
+        await Task.Delay(100);
+        cut.Render();
+
+        // Act
+        ClickGuestTile(cut, "p");
+        ClickGuestTile(cut, "e");
+        ClickGuestTile(cut, "s");
+        cut.Find("[data-testid='answer-input']").GetAttribute("value").Should().Be("pes");
+        cut.Find("[data-testid='btn-submit']").Click();
+        await Task.Delay(100);
+        cut.Render();
+
+        // Assert
+        await _guestGameService.Received(1).SubmitAnswerAsync(sessionId, wordId, "pes");
+        cut.Find("[data-testid='guest-cta-modal']").Should().NotBeNull();
+    }
+
+    [Fact]
     public async Task GuestGamePage_GameComplete_ShowsConvertModal()
     {
         // Arrange
@@ -300,5 +402,12 @@ public class GuestGamePageTests : BunitContext
         // Assert
         var remainingText = cut.Find("[data-testid='remaining-games']").TextContent;
         remainingText.Should().Contain("3");
+    }
+
+    private static void ClickGuestTile(IRenderedComponent<GuestGame> cut, string letter)
+    {
+        cut.FindAll("[data-testid='guest-letter-input-tile']")
+            .First(tile => tile.TextContent.Trim() == letter)
+            .Click();
     }
 }

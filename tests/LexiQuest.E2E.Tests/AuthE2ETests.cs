@@ -1,5 +1,6 @@
 using FluentAssertions;
 using Microsoft.Playwright;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using static Microsoft.Playwright.Assertions;
 
@@ -11,6 +12,11 @@ namespace LexiQuest.E2E.Tests;
 [Collection(E2ECollection.Name)]
 public class AuthE2ETests : E2ETestBase
 {
+    private static readonly JsonSerializerOptions RequiredLabelAuditJsonOptions = new()
+    {
+        PropertyNameCaseInsensitive = true
+    };
+
     public AuthE2ETests(E2EEnvironmentFixture fixture) : base(fixture)
     {
     }
@@ -431,5 +437,86 @@ public class AuthE2ETests : E2ETestBase
                 theme: "light",
                 persona: "anonymous");
         });
+    }
+
+    [Fact]
+    public async Task RequiredFieldLabels_PublicForms_RenderExactlyOneVisualAsterisk()
+    {
+        await RunScenarioAsync("auth", "required-field-labels-single-asterisk", async page =>
+        {
+            var pages = new[]
+            {
+                new RequiredLabelPage("/register", 4),
+                new RequiredLabelPage("/login", 2),
+                new RequiredLabelPage("/contact", 3)
+            };
+
+            foreach (var target in pages)
+            {
+                await Fixture.GoToAndWaitForAppReadyAsync(page, target.Path);
+
+                var auditsJson = await page.Locator("label, .tm-form-label-required, .tm-form-field-label")
+                    .EvaluateAllAsync<string>(
+                        """
+                        labels => JSON.stringify(labels
+                            .filter(label =>
+                                label.classList.contains('tm-form-label-required')
+                                || label.querySelector('.tm-input-label-required')
+                                || label.querySelector('.tm-form-field-required'))
+                            .map(label => {
+                                const text = (label.textContent || '').replace(/\s+/g, ' ').trim();
+                                const afterContent = window.getComputedStyle(label, '::after').content || '';
+                                const markerCssAsteriskCount = Array.from(label.querySelectorAll('.tm-input-label-required, .tm-form-field-required'))
+                                    .reduce((count, marker) => {
+                                        const markerAfterContent = window.getComputedStyle(marker, '::after').content || '';
+                                        return count + (markerAfterContent.includes('*') ? 1 : 0);
+                                    }, 0);
+                                const textAsteriskCount = (text.match(/\*/g) || []).length;
+                                const cssAsteriskCount = afterContent.includes('*') ? 1 : 0;
+
+                                return {
+                                    text,
+                                    className: label.className || '',
+                                    afterContent,
+                                    textAsteriskCount,
+                                    cssAsteriskCount,
+                                    markerCssAsteriskCount,
+                                    visualAsteriskCount: textAsteriskCount + cssAsteriskCount + markerCssAsteriskCount
+                                };
+                            }))
+                        """);
+                var audits = JsonSerializer.Deserialize<List<RequiredLabelAudit>>(
+                    auditsJson,
+                    RequiredLabelAuditJsonOptions) ?? [];
+
+                audits.Should().HaveCount(target.ExpectedRequiredLabels, $"{target.Path} has a known number of required fields");
+
+                foreach (var audit in audits)
+                {
+                    audit.VisualAsteriskCount.Should().Be(
+                        1,
+                        $"{target.Path} label '{audit.Text}' must show exactly one required asterisk, but text has {audit.TextAsteriskCount}, label CSS ::after is {audit.AfterContent}, and marker CSS count is {audit.MarkerCssAsteriskCount}");
+                }
+            }
+        }, resetDatabase: false);
+    }
+
+    private sealed record RequiredLabelPage(string Path, int ExpectedRequiredLabels);
+
+    private sealed class RequiredLabelAudit
+    {
+        public string Text { get; set; } = string.Empty;
+
+        public string ClassName { get; set; } = string.Empty;
+
+        public string AfterContent { get; set; } = string.Empty;
+
+        public int TextAsteriskCount { get; set; }
+
+        public int CssAsteriskCount { get; set; }
+
+        public int MarkerCssAsteriskCount { get; set; }
+
+        public int VisualAsteriskCount { get; set; }
     }
 }

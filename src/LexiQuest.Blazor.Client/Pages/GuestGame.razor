@@ -2,6 +2,7 @@
 @page "/play/{SessionId:guid}"
 @layout LandingLayout
 @using System.Text.Json
+@using LexiQuest.Blazor.Components.Game
 @using LexiQuest.Blazor.Services
 @using LexiQuest.Shared.DTOs.Game
 @using Microsoft.Extensions.Localization
@@ -79,22 +80,33 @@
                 </div>
 
                 <div class="answer-section">
-                    <input type="text"
-                        value="@_currentAnswer"
-                        @oninput="HandleAnswerInput"
-                        placeholder="@L["EnterAnswer"]"
-                        disabled="@_showingFeedback"
-                        class="answer-input tm-input"
-                        aria-label="@L["EnterAnswer"]"
-                        autocomplete="off"
-                        data-testid="answer-input" />
-                    <button class="guest-button guest-button-primary"
-                        @onclick="SubmitAnswer"
-                        type="button"
-                        disabled="@(string.IsNullOrWhiteSpace(_currentAnswer) || _showingFeedback)"
-                        data-testid="btn-submit">
-                        @L["Submit"]
-                    </button>
+                    <LetterTileInput ScrambledWord="@(_currentWord?.Scrambled ?? string.Empty)"
+                                     Value="@_currentAnswer"
+                                     ValueChanged="HandleTileAnswerChanged"
+                                     Disabled="@_showingFeedback"
+                                     MaxLength="@(_currentWord?.Length ?? _currentWord?.Scrambled.Length ?? 0)"
+                                     RootTestId="guest-letter-input" />
+
+                    <div class="keyboard-answer-row">
+                        <input type="text"
+                            value="@_currentAnswer"
+                            @oninput="HandleAnswerInput"
+                            @onkeydown="HandleAnswerKeyDown"
+                            placeholder="@L["EnterAnswer"]"
+                            disabled="@_showingFeedback"
+                            class="answer-input tm-input"
+                            aria-label="@L["EnterAnswer"]"
+                            autocomplete="off"
+                            autofocus
+                            data-testid="answer-input" />
+                        <button class="guest-button guest-button-primary"
+                            @onclick="SubmitAnswer"
+                            type="button"
+                            disabled="@(string.IsNullOrWhiteSpace(_currentAnswer) || _showingFeedback)"
+                            data-testid="btn-submit">
+                            @L["Submit"]
+                        </button>
+                    </div>
                 </div>
 
                 @if (_showingFeedback)
@@ -186,6 +198,23 @@
     private void HandleAnswerInput(ChangeEventArgs e)
     {
         _currentAnswer = e.Value?.ToString() ?? "";
+    }
+
+    private async Task HandleAnswerKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await SubmitAnswer();
+        }
+        else if (e.Key == "Escape" && !_showingFeedback)
+        {
+            _currentAnswer = "";
+        }
+    }
+
+    private void HandleTileAnswerChanged(string answer)
+    {
+        _currentAnswer = answer;
     }
 
     private async Task SubmitAnswer()

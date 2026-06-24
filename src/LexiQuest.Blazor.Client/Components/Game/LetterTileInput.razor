@@ -1,0 +1,184 @@
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<LetterTileInput> L
+
+@if (Letters.Length > 0)
+{
+    var usedTileIndexes = GetUsedTileIndexes();
+
+    <div class="letter-tile-input" data-testid="@RootTestId" role="group" aria-label="@L["Group.Aria"]">
+        <div class="answer-slots" data-testid="@($"{RootTestId}-slots")" role="group" aria-label="@L["Slots.Aria"]">
+            @for (var slotIndex = 0; slotIndex < SlotCount; slotIndex++)
+            {
+                var hasLetter = slotIndex < Answer.Length;
+                var letter = hasLetter ? Answer[slotIndex].ToString() : string.Empty;
+                var ariaLabel = hasLetter
+                    ? string.Format(L["Slot.Filled"], slotIndex + 1, letter)
+                    : string.Format(L["Slot.Empty"], slotIndex + 1);
+
+                <span class="answer-slot @(hasLetter ? "filled" : string.Empty)"
+                      data-testid="@($"{RootTestId}-slot")"
+                      aria-label="@ariaLabel">
+                    @letter
+                </span>
+            }
+        </div>
+
+        <div class="letter-controls">
+            <button type="button"
+                    class="letter-control-button"
+                    data-testid="@($"{RootTestId}-backspace")"
+                    aria-label="@L["Backspace.Aria"]"
+                    title="@L["Backspace.Aria"]"
+                    disabled="@(Disabled || Answer.Length == 0)"
+                    @onclick="RemoveLastLetter">
+                <TmIcon Name="@IconNames.ArrowLeft" Class="letter-control-icon" />
+            </button>
+
+            <button type="button"
+                    class="letter-control-button"
+                    data-testid="@($"{RootTestId}-clear")"
+                    aria-label="@L["Clear.Aria"]"
+                    title="@L["Clear.Aria"]"
+                    disabled="@(Disabled || Answer.Length == 0)"
+                    @onclick="ClearAnswer">
+                <TmIcon Name="@IconNames.X" Class="letter-control-icon" />
+            </button>
+
+            <button type="button"
+                    class="letter-control-button"
+                    data-testid="@($"{RootTestId}-shuffle")"
+                    aria-label="@L["Shuffle.Aria"]"
+                    title="@L["Shuffle.Aria"]"
+                    disabled="@(Disabled || Letters.Length < 2)"
+                    @onclick="ShuffleLetters">
+                <TmIcon Name="@IconNames.Refresh" Class="letter-control-icon" />
+            </button>
+        </div>
+
+        <div class="letter-tiles" data-testid="@($"{RootTestId}-tiles")">
+            @foreach (var tileIndex in _tileOrder)
+            {
+                if (tileIndex < 0 || tileIndex >= Letters.Length)
+                {
+                    continue;
+                }
+
+                var letter = Letters[tileIndex].ToString();
+                var isUsed = usedTileIndexes.Contains(tileIndex);
+
+                <button type="button"
+                        class="letter-tile @(isUsed ? "is-used" : string.Empty)"
+                        data-testid="@($"{RootTestId}-tile")"
+                        aria-label="@string.Format(L["Tile.Aria"], letter)"
+                        disabled="@(Disabled || isUsed || Answer.Length >= MaxAnswerLength)"
+                        @onclick="() => AddLetter(tileIndex)">
+                    @letter
+                </button>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public string ScrambledWord { get; set; } = string.Empty;
+    [Parameter] public string Value { get; set; } = string.Empty;
+    [Parameter] public EventCallback<string> ValueChanged { get; set; }
+    [Parameter] public bool Disabled { get; set; }
+    [Parameter] public int? MaxLength { get; set; }
+    [Parameter] public string RootTestId { get; set; } = "letter-input";
+
+    private readonly List<int> _tileOrder = new();
+    private string _lastScrambledWord = string.Empty;
+
+    private char[] Letters => (ScrambledWord ?? string.Empty).ToCharArray();
+    private string Answer => Value ?? string.Empty;
+    private int MaxAnswerLength => Math.Max(0, MaxLength ?? Letters.Length);
+    private int SlotCount => Math.Max(MaxAnswerLength, Answer.Length);
+
+    protected override void OnParametersSet()
+    {
+        var scrambled = ScrambledWord ?? string.Empty;
+        if (string.Equals(_lastScrambledWord, scrambled, StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        _lastScrambledWord = scrambled;
+        _tileOrder.Clear();
+        _tileOrder.AddRange(Enumerable.Range(0, Letters.Length));
+    }
+
+    private async Task AddLetter(int tileIndex)
+    {
+        if (Disabled || tileIndex < 0 || tileIndex >= Letters.Length || Answer.Length >= MaxAnswerLength)
+        {
+            return;
+        }
+
+        if (GetUsedTileIndexes().Contains(tileIndex))
+        {
+            return;
+        }
+
+        await ValueChanged.InvokeAsync(Answer + Letters[tileIndex]);
+    }
+
+    private async Task RemoveLastLetter()
+    {
+        if (Disabled || Answer.Length == 0)
+        {
+            return;
+        }
+
+        await ValueChanged.InvokeAsync(Answer[..^1]);
+    }
+
+    private async Task ClearAnswer()
+    {
+        if (Disabled || Answer.Length == 0)
+        {
+            return;
+        }
+
+        await ValueChanged.InvokeAsync(string.Empty);
+    }
+
+    private void ShuffleLetters()
+    {
+        if (Disabled || _tileOrder.Count < 2)
+        {
+            return;
+        }
+
+        for (var i = _tileOrder.Count - 1; i > 0; i--)
+        {
+            var j = Random.Shared.Next(i + 1);
+            (_tileOrder[i], _tileOrder[j]) = (_tileOrder[j], _tileOrder[i]);
+        }
+    }
+
+    private HashSet<int> GetUsedTileIndexes()
+    {
+        var used = new HashSet<int>();
+        for (var answerIndex = 0; answerIndex < Answer.Length; answerIndex++)
+        {
+            for (var tileIndex = 0; tileIndex < Letters.Length; tileIndex++)
+            {
+                if (used.Contains(tileIndex) || !LettersMatch(Letters[tileIndex], Answer[answerIndex]))
+                {
+                    continue;
+                }
+
+                used.Add(tileIndex);
+                break;
+            }
+        }
+
+        return used;
+    }
+
+    private static bool LettersMatch(char left, char right)
+    {
+        return string.Equals(left.ToString(), right.ToString(), StringComparison.OrdinalIgnoreCase);
+    }
+}
