@@ -260,81 +260,81 @@ public static class SeedData
         // Food
         words.Add(Word.Create("dort", DifficultyLevel.Beginner, WordCategory.Food));
         words.Add(Word.Create("maso", DifficultyLevel.Beginner, WordCategory.Food));
-        words.Add(Word.Create("syr", DifficultyLevel.Beginner, WordCategory.Food));
-        words.Add(Word.Create("rize", DifficultyLevel.Beginner, WordCategory.Food));
+        words.Add(Word.Create("sýr", DifficultyLevel.Beginner, WordCategory.Food));
+        words.Add(Word.Create("rýže", DifficultyLevel.Beginner, WordCategory.Food));
         words.Add(Word.Create("med", DifficultyLevel.Beginner, WordCategory.Food));
         words.Add(Word.Create("jablko", DifficultyLevel.Beginner, WordCategory.Food));
-        words.Add(Word.Create("hruska", DifficultyLevel.Beginner, WordCategory.Food));
+        words.Add(Word.Create("hruška", DifficultyLevel.Beginner, WordCategory.Food));
         words.Add(Word.Create("chleb", DifficultyLevel.Beginner, WordCategory.Food));
-        words.Add(Word.Create("mleko", DifficultyLevel.Beginner, WordCategory.Food));
+        words.Add(Word.Create("mléko", DifficultyLevel.Beginner, WordCategory.Food));
         words.Add(Word.Create("vejce", DifficultyLevel.Beginner, WordCategory.Food));
 
         // Colors
-        words.Add(Word.Create("bila", DifficultyLevel.Beginner, WordCategory.Colors));
-        words.Add(Word.Create("modra", DifficultyLevel.Beginner, WordCategory.Colors));
-        words.Add(Word.Create("zluta", DifficultyLevel.Beginner, WordCategory.Colors));
-        words.Add(Word.Create("ruda", DifficultyLevel.Beginner, WordCategory.Colors));
-        words.Add(Word.Create("seda", DifficultyLevel.Beginner, WordCategory.Colors));
+        words.Add(Word.Create("bílá", DifficultyLevel.Beginner, WordCategory.Colors));
+        words.Add(Word.Create("modrá", DifficultyLevel.Beginner, WordCategory.Colors));
+        words.Add(Word.Create("žlutá", DifficultyLevel.Beginner, WordCategory.Colors));
+        words.Add(Word.Create("rudá", DifficultyLevel.Beginner, WordCategory.Colors));
+        words.Add(Word.Create("šedá", DifficultyLevel.Beginner, WordCategory.Colors));
 
         // Nature
         words.Add(Word.Create("les", DifficultyLevel.Beginner, WordCategory.Nature));
         words.Add(Word.Create("hora", DifficultyLevel.Beginner, WordCategory.Nature));
-        words.Add(Word.Create("reka", DifficultyLevel.Beginner, WordCategory.Nature));
-        words.Add(Word.Create("more", DifficultyLevel.Beginner, WordCategory.Nature));
+        words.Add(Word.Create("řeka", DifficultyLevel.Beginner, WordCategory.Nature));
+        words.Add(Word.Create("moře", DifficultyLevel.Beginner, WordCategory.Nature));
         words.Add(Word.Create("pole", DifficultyLevel.Beginner, WordCategory.Nature));
         words.Add(Word.Create("louka", DifficultyLevel.Beginner, WordCategory.Nature));
         words.Add(Word.Create("strom", DifficultyLevel.Beginner, WordCategory.Nature));
-        words.Add(Word.Create("kvet", DifficultyLevel.Beginner, WordCategory.Nature));
-        words.Add(Word.Create("trava", DifficultyLevel.Beginner, WordCategory.Nature));
+        words.Add(Word.Create("květ", DifficultyLevel.Beginner, WordCategory.Nature));
+        words.Add(Word.Create("tráva", DifficultyLevel.Beginner, WordCategory.Nature));
         words.Add(Word.Create("mrak", DifficultyLevel.Beginner, WordCategory.Nature));
 
         // Household
-        words.Add(Word.Create("dum", DifficultyLevel.Beginner, WordCategory.Household));
-        words.Add(Word.Create("stul", DifficultyLevel.Beginner, WordCategory.Household));
-        words.Add(Word.Create("zidle", DifficultyLevel.Beginner, WordCategory.Household));
+        words.Add(Word.Create("dům", DifficultyLevel.Beginner, WordCategory.Household));
+        words.Add(Word.Create("stůl", DifficultyLevel.Beginner, WordCategory.Household));
+        words.Add(Word.Create("židle", DifficultyLevel.Beginner, WordCategory.Household));
         words.Add(Word.Create("okno", DifficultyLevel.Beginner, WordCategory.Household));
-        words.Add(Word.Create("dvere", DifficultyLevel.Beginner, WordCategory.Household));
+        words.Add(Word.Create("dveře", DifficultyLevel.Beginner, WordCategory.Household));
         words.Add(Word.Create("lampa", DifficultyLevel.Beginner, WordCategory.Household));
         words.Add(Word.Create("postel", DifficultyLevel.Beginner, WordCategory.Household));
 
         // Technology
         words.Add(Word.Create("myš", DifficultyLevel.Beginner, WordCategory.Technology));
         words.Add(Word.Create("disk", DifficultyLevel.Beginner, WordCategory.Technology));
-        words.Add(Word.Create("sit", DifficultyLevel.Beginner, WordCategory.Technology));
+        words.Add(Word.Create("síť", DifficultyLevel.Beginner, WordCategory.Technology));
         words.Add(Word.Create("data", DifficultyLevel.Beginner, WordCategory.Technology));
-        words.Add(Word.Create("kod", DifficultyLevel.Beginner, WordCategory.Technology));
+        words.Add(Word.Create("kód", DifficultyLevel.Beginner, WordCategory.Technology));
 
         // Sports
-        words.Add(Word.Create("mic", DifficultyLevel.Beginner, WordCategory.Sports));
-        words.Add(Word.Create("gol", DifficultyLevel.Beginner, WordCategory.Sports));
-        words.Add(Word.Create("beh", DifficultyLevel.Beginner, WordCategory.Sports));
+        words.Add(Word.Create("míč", DifficultyLevel.Beginner, WordCategory.Sports));
+        words.Add(Word.Create("gól", DifficultyLevel.Beginner, WordCategory.Sports));
+        words.Add(Word.Create("běh", DifficultyLevel.Beginner, WordCategory.Sports));
         words.Add(Word.Create("skok", DifficultyLevel.Beginner, WordCategory.Sports));
-        words.Add(Word.Create("plav", DifficultyLevel.Beginner, WordCategory.Sports));
+        words.Add(Word.Create("jóga", DifficultyLevel.Beginner, WordCategory.Sports));
 
         // Intermediate (5-7 písmen): 30+ slov
-        words.Add(Word.Create("motyl", DifficultyLevel.Intermediate, WordCategory.Animals));
+        words.Add(Word.Create("motýl", DifficultyLevel.Intermediate, WordCategory.Animals));
         words.Add(Word.Create("zajíc", DifficultyLevel.Intermediate, WordCategory.Animals));
-        words.Add(Word.Create("medved", DifficultyLevel.Intermediate, WordCategory.Animals));
+        words.Add(Word.Create("medvěd", DifficultyLevel.Intermediate, WordCategory.Animals));
         words.Add(Word.Create("kocour", DifficultyLevel.Intermediate, WordCategory.Animals));
-        words.Add(Word.Create("delfin", DifficultyLevel.Intermediate, WordCategory.Animals));
+        words.Add(Word.Create("delfín", DifficultyLevel.Intermediate, WordCategory.Animals));
 
         words.Add(Word.Create("brambor", DifficultyLevel.Intermediate, WordCategory.Food));
-        words.Add(Word.Create("rajce", DifficultyLevel.Intermediate, WordCategory.Food));
+        words.Add(Word.Create("rajče", DifficultyLevel.Intermediate, WordCategory.Food));
         words.Add(Word.Create("mrkev", DifficultyLevel.Intermediate, WordCategory.Food));
         words.Add(Word.Create("cibule", DifficultyLevel.Intermediate, WordCategory.Food));
-        words.Add(Word.Create("cesnek", DifficultyLevel.Intermediate, WordCategory.Food));
+        words.Add(Word.Create("česnek", DifficultyLevel.Intermediate, WordCategory.Food));
 
-        words.Add(Word.Create("fialova", DifficultyLevel.Intermediate, WordCategory.Colors));
-        words.Add(Word.Create("oranzova", DifficultyLevel.Intermediate, WordCategory.Colors));
-        words.Add(Word.Create("zelena", DifficultyLevel.Intermediate, WordCategory.Colors));
+        words.Add(Word.Create("fialová", DifficultyLevel.Intermediate, WordCategory.Colors));
+        words.Add(Word.Create("oranžová", DifficultyLevel.Intermediate, WordCategory.Colors));
+        words.Add(Word.Create("zelená", DifficultyLevel.Intermediate, WordCategory.Colors));
 
         words.Add(Word.Create("jeskyně", DifficultyLevel.Intermediate, WordCategory.Nature));
         words.Add(Word.Create("vodopad", DifficultyLevel.Intermediate, WordCategory.Nature));
         words.Add(Word.Create("ostrov", DifficultyLevel.Intermediate, WordCategory.Nature));
-        words.Add(Word.Create("udoli", DifficultyLevel.Intermediate, WordCategory.Nature));
-        words.Add(Word.Create("vulkan", DifficultyLevel.Intermediate, WordCategory.Nature));
+        words.Add(Word.Create("údolí", DifficultyLevel.Intermediate, WordCategory.Nature));
+        words.Add(Word.Create("vulkán", DifficultyLevel.Intermediate, WordCategory.Nature));
 
-        words.Add(Word.Create("klavir", DifficultyLevel.Intermediate, WordCategory.Music));
+        words.Add(Word.Create("klavír", DifficultyLevel.Intermediate, WordCategory.Music));
         words.Add(Word.Create("kytara", DifficultyLevel.Intermediate, WordCategory.Music));
         words.Add(Word.Create("housle", DifficultyLevel.Intermediate, WordCategory.Music));
         words.Add(Word.Create("buben", DifficultyLevel.Intermediate, WordCategory.Music));
@@ -349,25 +349,25 @@ public static class SeedData
         words.Add(Word.Create("tenis", DifficultyLevel.Intermediate, WordCategory.Sports));
         words.Add(Word.Create("hokej", DifficultyLevel.Intermediate, WordCategory.Sports));
 
-        words.Add(Word.Create("kuchyn", DifficultyLevel.Intermediate, WordCategory.Household));
+        words.Add(Word.Create("kuchyň", DifficultyLevel.Intermediate, WordCategory.Household));
         words.Add(Word.Create("zahrada", DifficultyLevel.Intermediate, WordCategory.Household));
         words.Add(Word.Create("koberec", DifficultyLevel.Intermediate, WordCategory.Household));
 
         // Advanced (7-10 písmen): 15+ slov
         words.Add(Word.Create("krokodyl", DifficultyLevel.Advanced, WordCategory.Animals));
-        words.Add(Word.Create("nosorozec", DifficultyLevel.Advanced, WordCategory.Animals));
+        words.Add(Word.Create("nosorožec", DifficultyLevel.Advanced, WordCategory.Animals));
         words.Add(Word.Create("chameleon", DifficultyLevel.Advanced, WordCategory.Animals));
 
         words.Add(Word.Create("broskev", DifficultyLevel.Advanced, WordCategory.Food));
         words.Add(Word.Create("mandarinka", DifficultyLevel.Advanced, WordCategory.Food));
-        words.Add(Word.Create("pomeranc", DifficultyLevel.Advanced, WordCategory.Food));
+        words.Add(Word.Create("pomeranč", DifficultyLevel.Advanced, WordCategory.Food));
 
         words.Add(Word.Create("sopka", DifficultyLevel.Advanced, WordCategory.Nature));
         words.Add(Word.Create("kontinent", DifficultyLevel.Advanced, WordCategory.Nature));
-        words.Add(Word.Create("atmosfera", DifficultyLevel.Advanced, WordCategory.Nature));
+        words.Add(Word.Create("atmosféra", DifficultyLevel.Advanced, WordCategory.Nature));
 
         words.Add(Word.Create("algoritmus", DifficultyLevel.Advanced, WordCategory.Technology));
-        words.Add(Word.Create("databaze", DifficultyLevel.Advanced, WordCategory.Technology));
+        words.Add(Word.Create("databáze", DifficultyLevel.Advanced, WordCategory.Technology));
         words.Add(Word.Create("procesor", DifficultyLevel.Advanced, WordCategory.Technology));
 
         words.Add(Word.Create("badminton", DifficultyLevel.Advanced, WordCategory.Sports));
@@ -375,7 +375,7 @@ public static class SeedData
         words.Add(Word.Create("basketbal", DifficultyLevel.Advanced, WordCategory.Sports));
 
         // Expert (10+ písmen): 5+ slov
-        words.Add(Word.Create("programovani", DifficultyLevel.Expert, WordCategory.Technology));
+        words.Add(Word.Create("programování", DifficultyLevel.Expert, WordCategory.Technology));
         words.Add(Word.Create("architektura", DifficultyLevel.Expert, WordCategory.Technology));
         words.Add(Word.Create("infrastruktura", DifficultyLevel.Expert, WordCategory.Technology));
         words.Add(Word.Create("komunikace", DifficultyLevel.Expert, WordCategory.Science));

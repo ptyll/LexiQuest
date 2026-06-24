@@ -55,6 +55,25 @@
 
 ## Aktivni nalezy
 
+### E2E-BUG-0223: Seed slovnik obsahoval ceska slova bez diakritiky a jedno neplatne sportovni slovo
+
+- **Stav:** Overeno
+- **Severity:** P2
+- **Oblast:** Game / Guest / Seed data / UX
+- **Nalezeno v testu:** Manualni UX review uzivatelskeho screenshotu; doplnen test `SeedDataTests.WordSeedData_UsesCorrectCzechWords`
+- **Screenshot/trace:** Uzivatelsky screenshot guest hry se scramblem slova `mic`
+- **Prostredi:** Dev SQL Server Docker databaze `LexiQuestDev`, API `E2E`, frontend `http://127.0.0.1:5300`
+- **Reprodukce:**
+  1. Spustit guest hru s dev seed slovnikem.
+  2. Narazit na kolo se slovem `mic`.
+  3. Odpoved projde, i kdyz spravne ceske slovo ma byt `míč`.
+- **Ocekavani:** Seed slovnik pouziva platna ceska slova vcetne diakritiky, napr. `míč`, `sýr`, `tráva`.
+- **Skutecnost:** Seed data i aktualni dev DB obsahovaly vice ASCII variant slov bez diakritiky (`mic`, `syr`, `trava`, `programovani`, ...) a neplatne sportovni slovo `plav`.
+- **Pravdepodobna pricina:** Puvodni seed slovnik byl vyplnen casti slov bez ceske diakritiky a chybel regresni test nad kvalitou slov.
+- **Oprava:** Opraveno 40 seed slov v `SeedData.GetWords()`, `plav` nahrazeno slovem `jóga`, aktualizovana bezici dev DB a doplnen regresni test zakazujici zname chybne tvary.
+- **Overeni:** `dotnet test tests/LexiQuest.Infrastructure.Tests/LexiQuest.Infrastructure.Tests.csproj --filter SeedDataTests --no-restore --verbosity minimal` prosel 4/4. SQL kontrola nad `LexiQuestDev` vratila `RemainingKnownBadWords = 0`. API `/health/live` a `/health/ready` vratily 200, frontend root vratil 200.
+- **Poznamky:** API bylo po oprave restartovano, aby se vycistily pripadne rozehrane guest session v pameti.
+
 ### E2E-BUG-0222: Landing guest CTA test cekal na prilis krehky URL pattern
 
 - **Stav:** Overeno
