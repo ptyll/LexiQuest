@@ -22,6 +22,7 @@ public class GameSessionService : IGameSessionService
     private readonly ILevelCalculator _levelCalculator;
     private readonly IAchievementService? _achievementService;
     private readonly IAIChallengeService? _aiChallengeService;
+    private readonly IPremiumFeatureService? _premiumFeatureService;
     private readonly Random _rng = new();
 
     // Default game settings
@@ -35,7 +36,8 @@ public class GameSessionService : IGameSessionService
         IXpCalculator xpCalculator,
         ILevelCalculator? levelCalculator = null,
         IAchievementService? achievementService = null,
-        IAIChallengeService? aiChallengeService = null)
+        IAIChallengeService? aiChallengeService = null,
+        IPremiumFeatureService? premiumFeatureService = null)
     {
         _context = context;
         _wordRepository = wordRepository;
@@ -43,6 +45,7 @@ public class GameSessionService : IGameSessionService
         _levelCalculator = levelCalculator ?? new LevelCalculator();
         _achievementService = achievementService;
         _aiChallengeService = aiChallengeService;
+        _premiumFeatureService = premiumFeatureService;
     }
 
     /// <inheritdoc />
@@ -405,7 +408,47 @@ public class GameSessionService : IGameSessionService
                 }
             }
             
-            bool isGameOver = session.LivesRemaining <= 0;
+            bool isGameOver = session.IsGameOver;
+            if (isGameOver)
+            {
+                await _context.SaveChangesAsync(cancellationToken);
+
+                return new GameRoundResult(
+                    IsCorrect: false,
+                    CorrectAnswer: currentRound.CorrectAnswer,
+                    XPEarned: 0,
+                    SpeedBonus: 0,
+                    ComboCount: 0,
+                    IsLevelComplete: false,
+                    LivesRemaining: session.LivesRemaining,
+                    NextScrambledWord: null,
+                    NextRoundNumber: null,
+                    IsGameOver: true,
+                    NextLifeRegenAt: nextLifeRegenAt
+                );
+            }
+
+            if (session.CurrentRound >= session.TotalRounds)
+            {
+                await CompleteSessionAsync(session, user, cancellationToken);
+                await _context.SaveChangesAsync(cancellationToken);
+
+                return new GameRoundResult(
+                    IsCorrect: false,
+                    CorrectAnswer: currentRound.CorrectAnswer,
+                    XPEarned: 0,
+                    SpeedBonus: 0,
+                    ComboCount: 0,
+                    IsLevelComplete: true,
+                    LivesRemaining: session.LivesRemaining,
+                    NextScrambledWord: null,
+                    NextRoundNumber: null,
+                    IsGameOver: false,
+                    NextLifeRegenAt: nextLifeRegenAt
+                );
+            }
+
+            var nextRoundResult = await GenerateNextRoundAsync(session, cancellationToken);
             await _context.SaveChangesAsync(cancellationToken);
 
             return new GameRoundResult(
@@ -413,12 +456,12 @@ public class GameSessionService : IGameSessionService
                 CorrectAnswer: currentRound.CorrectAnswer,
                 XPEarned: 0,
                 SpeedBonus: 0,
-                ComboCount: 0, // Reset combo
+                ComboCount: 0,
                 IsLevelComplete: false,
                 LivesRemaining: session.LivesRemaining,
-                NextScrambledWord: null,
-                NextRoundNumber: null,
-                IsGameOver: isGameOver,
+                NextScrambledWord: nextRoundResult.ScrambledWord,
+                NextRoundNumber: nextRoundResult.RoundNumber,
+                IsGameOver: false,
                 NextLifeRegenAt: nextLifeRegenAt
             );
         }
@@ -825,7 +868,7 @@ public class GameSessionService : IGameSessionService
             return;
         }
 
-        if (user.Premium.IsActive(now))
+        if (await HasPremiumAccessAsync(user, now))
         {
             if (protection == null)
             {
@@ -842,6 +885,16 @@ public class GameSessionService : IGameSessionService
         }
 
         user.Streak.RecordActivity(now);
+    }
+
+    private async Task<bool> HasPremiumAccessAsync(User user, DateTime now)
+    {
+        if (_premiumFeatureService is not null)
+        {
+            return await _premiumFeatureService.IsPremiumAsync(user.Id);
+        }
+
+        return user.Premium.IsActive(now);
     }
 
     private static bool WouldBreakStreak(Streak streak, DateTime now)

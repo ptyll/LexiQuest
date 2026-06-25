@@ -27,6 +27,7 @@ public class ScrambledWordInfo
     public string Scrambled { get; set; } = null!;
     public string Original { get; set; } = null!;
     public int Length { get; set; }
+    public bool IsAttempted { get; set; }
     public bool IsSolved { get; set; }
     public int? XpEarned { get; set; }
 }
@@ -69,6 +70,7 @@ internal class GuestSession
 
     public int TotalXp => Words.Where(w => w.IsSolved).Sum(w => w.XpEarned ?? 0);
     public int WordsSolved => Words.Count(w => w.IsSolved);
+    public int WordsRemaining => Words.Count(w => !w.IsAttempted);
 }
 
 /// <summary>
@@ -123,6 +125,7 @@ public class GuestSessionService : IGuestSessionService
                 Original = word.Original,
                 Scrambled = word.Scramble(_random),
                 Length = word.Length,
+                IsAttempted = false,
                 IsSolved = false
             });
         }
@@ -162,8 +165,14 @@ public class GuestSessionService : IGuestSessionService
         var isCorrect = normalizedAnswer == normalizedOriginal;
 
         int xpEarned = 0;
+        var isFirstAttempt = !word.IsAttempted;
 
-        if (isCorrect && !word.IsSolved)
+        if (isFirstAttempt)
+        {
+            word.IsAttempted = true;
+        }
+
+        if (isFirstAttempt && isCorrect)
         {
             // Calculate XP
             xpEarned = CalculateXp(word.Length);
@@ -179,7 +188,7 @@ public class GuestSessionService : IGuestSessionService
             UserAnswer = answer,
             TotalSessionXp = session.TotalXp,
             WordsSolved = session.WordsSolved,
-            WordsRemaining = session.Words.Count - session.WordsSolved
+            WordsRemaining = session.WordsRemaining
         };
     }
 

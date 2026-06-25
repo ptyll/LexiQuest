@@ -83,4 +83,10 @@
   <data name="GameOver.Description" xml:space="preserve">
     <value>Došly ti životy. Zkus další hru, až se životy obnoví.</value>
   </data>
+  <data name="TimeUp.Title" xml:space="preserve">
+    <value>Čas vypršel</value>
+  </data>
+  <data name="TimeUp.Description" xml:space="preserve">
+    <value>Trénink jsme ukončili. Zkus to znovu, až budeš připravený.</value>
+  </data>
 </root>

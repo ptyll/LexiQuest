@@ -1,7 +1,10 @@
 @page "/profile"
+@using LexiQuest.Blazor.Services
+@using LexiQuest.Shared.DTOs.Shop
 @using LexiQuest.Shared.DTOs.Users
 @inject IStringLocalizer<Profile> L
 @inject IUserService UserService
+@inject IShopService ShopService
 
 <PageTitle>@L["Profile_PageTitle"]</PageTitle>
 
@@ -30,7 +33,9 @@
                 <div data-testid="profile-summary-card">
                     <TmCard Variant="CardVariant.Elevated">
                         <div class="profile-card-content profile-summary">
-                            <TmAvatar Src="@_profile.AvatarUrl" Alt="@_profile.Username" Size="AvatarSize.Lg" />
+                            <div class="@GetAvatarFrameClass()" data-testid="profile-avatar-frame">
+                                <TmAvatar Src="@_profile.AvatarUrl" Alt="@_profile.Username" Size="AvatarSize.Lg" />
+                            </div>
                             <div class="profile-summary-copy">
                                 <h2>@_profile.Username</h2>
                                 <p class="profile-email">@_profile.Email</p>
@@ -43,6 +48,33 @@
                                         <TmBadge Variant="BadgeVariant.Success">
                                             @L["Profile_PremiumBadge"] - @GetPremiumPlanLabel(_profile.PremiumPlan)
                                         </TmBadge>
+                                    </div>
+                                }
+                                @if (HasEquippedCosmetics)
+                                {
+                                    <div class="profile-equipped-cosmetics" data-testid="profile-equipped-cosmetics">
+                                        <span class="profile-equipped-label">@L["Profile_EquippedItems"]</span>
+                                        @if (EquippedFrame != null)
+                                        {
+                                            <span class="profile-equipped-pill" data-testid="profile-equipped-frame">
+                                                <TmIcon Name="square" />
+                                                @_equippedFrame!.ShopItemName
+                                            </span>
+                                        }
+                                        @if (EquippedTheme != null)
+                                        {
+                                            <span class="profile-equipped-pill" data-testid="profile-equipped-theme">
+                                                <TmIcon Name="palette" />
+                                                @_equippedTheme!.ShopItemName
+                                            </span>
+                                        }
+                                        @if (EquippedBoost != null)
+                                        {
+                                            <span class="profile-equipped-pill" data-testid="profile-equipped-boost">
+                                                <TmIcon Name="zap" />
+                                                @_equippedBoost!.ShopItemName
+                                            </span>
+                                        }
                                     </div>
                                 }
                             </div>
@@ -114,9 +146,13 @@
                         <div class="profile-card-content">
                             <div class="profile-achievements-heading">
                                 <h2 class="profile-card-title">@L["Profile_AchievementsTitle"]</h2>
-                                <TmBadge Variant="BadgeVariant.Info">
-                                    @L["Profile_AchievementsCount"]
-                                </TmBadge>
+                                <a class="profile-achievements-link"
+                                   href="/achievements"
+                                   data-testid="profile-achievements-link"
+                                   aria-label="@L["Profile_AchievementsLink"]">
+                                    <TmIcon Name="@IconNames.Trophy" />
+                                    <span>@L["Profile_AchievementsLink"]</span>
+                                </a>
                             </div>
                             <p class="profile-achievements-description">@L["Profile_AchievementsDescription"]</p>
                         </div>
@@ -130,6 +166,15 @@
 @code {
     private bool _isLoading = true;
     private UserProfileDto? _profile;
+    private List<UserInventoryItemDto> _equippedItems = [];
+    private UserInventoryItemDto? _equippedFrame;
+    private UserInventoryItemDto? _equippedTheme;
+    private UserInventoryItemDto? _equippedBoost;
+
+    private UserInventoryItemDto? EquippedFrame => _equippedFrame;
+    private UserInventoryItemDto? EquippedTheme => _equippedTheme;
+    private UserInventoryItemDto? EquippedBoost => _equippedBoost;
+    private bool HasEquippedCosmetics => EquippedFrame != null || EquippedTheme != null || EquippedBoost != null;
 
     protected override async Task OnInitializedAsync()
     {
@@ -141,12 +186,31 @@
         _isLoading = true;
         try
         {
+            await LoadEquippedItemsAsync();
             _profile = await UserService.GetProfileAsync();
         }
         finally
         {
             _isLoading = false;
         }
+    }
+
+    private async Task LoadEquippedItemsAsync()
+    {
+        try
+        {
+            _equippedItems = (await ShopService.GetUserInventoryAsync())
+                .Where(item => item.IsEquipped)
+                .ToList();
+        }
+        catch
+        {
+            _equippedItems = [];
+        }
+
+        _equippedFrame = GetEquippedItem("Frame");
+        _equippedTheme = GetEquippedItem("Theme");
+        _equippedBoost = GetEquippedItem("Boost");
     }
 
     private string GetPremiumPlanLabel(string? plan)
@@ -158,5 +222,37 @@
             "Lifetime" => L["Profile_PremiumPlanLifetime"].Value,
             _ => plan ?? L["Profile_PremiumPlanUnknown"].Value
         };
+    }
+
+    private UserInventoryItemDto? GetEquippedItem(string category)
+    {
+        return _equippedItems.FirstOrDefault(item =>
+            item.ShopItemCategory.Equals(category, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private string GetAvatarFrameClass()
+    {
+        var classes = "profile-avatar-frame";
+        if (EquippedFrame != null)
+        {
+            classes += $" profile-avatar-frame--{GetFrameVariant(EquippedFrame.ShopItemName)}";
+        }
+
+        return classes;
+    }
+
+    private static string GetFrameVariant(string frameName)
+    {
+        if (frameName.Contains("Stříbr", StringComparison.OrdinalIgnoreCase))
+        {
+            return "silver";
+        }
+
+        if (frameName.Contains("Dřev", StringComparison.OrdinalIgnoreCase))
+        {
+            return "wood";
+        }
+
+        return "default";
     }
 }

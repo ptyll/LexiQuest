@@ -92,7 +92,7 @@
                    value="@_currentAnswer"
                    @oninput="HandleAnswerInput"
                    placeholder="@L["Game_Input_Placeholder"]"
-                   disabled="@_isSubmitting"
+                   disabled="@(_isSubmitting || _playerFinished)"
                    autofocus
                    aria-label="@L["Game_Input_Placeholder"]"
                    autocomplete="off"
@@ -148,6 +148,7 @@
     private string? _opponentAvatar;
     private bool _isSubmitting = false;
     private bool _showFeedback = false;
+    private bool _playerFinished = false;
     private string _feedbackClass = "";
     private string _feedbackMessage = "";
     private int _lastXPEarned = 0;
@@ -171,6 +172,7 @@
             // Setup event handlers
             MatchHubClient.OnPlayerProgress += OnPlayerProgress;
             MatchHubClient.OnRoundStarted += OnRoundStarted;
+            MatchHubClient.OnPlayerFinished += OnPlayerFinished;
             MatchHubClient.OnOpponentProgress += OnOpponentProgress;
             MatchHubClient.OnMatchEnded += OnMatchEnded;
             MatchHubClient.OnOpponentDisconnected += OnOpponentDisconnected;
@@ -219,6 +221,7 @@
         _currentRound = round.RoundNumber;
         _currentAnswer = "";
         _isSubmitting = false;
+        _playerFinished = false;
         _showFeedback = false;
         if (!_receivedFirstRound)
         {
@@ -231,6 +234,18 @@
             _timeRemaining = round.TimeLimit;
         }
 
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void OnPlayerFinished(object? sender, EventArgs e)
+    {
+        _scrambledWord = "";
+        _currentAnswer = "";
+        _isSubmitting = false;
+        _playerFinished = true;
+        _feedbackMessage = L["Game_Waiting_Opponent"];
+        _feedbackClass = "warning";
+        _showFeedback = true;
         InvokeAsync(StateHasChanged);
     }
 
@@ -381,7 +396,7 @@
     private string GetOpponentFlashClass() => _opponentShouldFlash ? "player-card opponent flash-success" : "player-card opponent";
     private string GetShakeClass() => _shouldShake ? "shake" : "";
 
-    private bool CanSubmit => !string.IsNullOrWhiteSpace(_currentAnswer) && !_isSubmitting;
+    private bool CanSubmit => !string.IsNullOrWhiteSpace(_currentAnswer) && !_isSubmitting && !_playerFinished;
 
     public ValueTask DisposeAsync()
     {
@@ -389,6 +404,7 @@
         
         MatchHubClient.OnPlayerProgress -= OnPlayerProgress;
         MatchHubClient.OnRoundStarted -= OnRoundStarted;
+        MatchHubClient.OnPlayerFinished -= OnPlayerFinished;
         MatchHubClient.OnOpponentProgress -= OnOpponentProgress;
         MatchHubClient.OnMatchEnded -= OnMatchEnded;
         MatchHubClient.OnOpponentDisconnected -= OnOpponentDisconnected;

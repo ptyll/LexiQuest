@@ -51,6 +51,8 @@ public class GameArenaTests : BunitContext
         _localizer["LevelComplete.XP"].Returns(new LocalizedString("LevelComplete.XP", "Total XP earned: {0}"));
         _localizer["GameOver.Title"].Returns(new LocalizedString("GameOver.Title", "Game over"));
         _localizer["GameOver.Description"].Returns(new LocalizedString("GameOver.Description", "No lives remaining."));
+        _localizer["TimeUp.Title"].Returns(new LocalizedString("TimeUp.Title", "Time is up"));
+        _localizer["TimeUp.Description"].Returns(new LocalizedString("TimeUp.Description", "Training ended."));
     }
 
     private void SetupLivesLocalizer()
@@ -93,6 +95,31 @@ public class GameArenaTests : BunitContext
         var input = cut.Find(".answer-input");
         input.Should().NotBeNull();
         input.GetAttribute("placeholder").Should().Be("Enter your answer");
+    }
+
+    [Fact]
+    public void GameArena_RendersAnswerWorkbench()
+    {
+        // Act
+        var cut = Render<GameArena>(parameters => parameters
+            .Add(p => p.ScrambledWord, "PES"));
+
+        // Assert
+        cut.Find(".answer-workbench").Should().NotBeNull();
+        cut.Find(".answer-workbench .letter-tile-input").Should().NotBeNull();
+        cut.Find(".answer-workbench .answer-input").Should().NotBeNull();
+    }
+
+    [Fact]
+    public void GameArena_LetterTileInput_RendersComposerAndTileBank()
+    {
+        // Act
+        var cut = Render<GameArena>(parameters => parameters
+            .Add(p => p.ScrambledWord, "PES"));
+
+        // Assert
+        cut.Find(".answer-composer").Should().NotBeNull();
+        cut.Find(".tile-bank").Should().NotBeNull();
     }
 
     [Fact]
@@ -239,6 +266,34 @@ public class GameArenaTests : BunitContext
     }
 
     [Fact]
+    public async Task GameArena_ShowResult_WithNextRound_DisablesControlsDuringFeedback()
+    {
+        // Arrange
+        var cut = Render<GameArena>();
+        cut.Find(".answer-input").Input("WRONG");
+
+        var result = new GameRoundResult(
+            IsCorrect: false,
+            CorrectAnswer: "JABLKO",
+            XPEarned: 0,
+            SpeedBonus: 0,
+            ComboCount: 0,
+            IsLevelComplete: false,
+            LivesRemaining: 4,
+            NextScrambledWord: "BANÁN",
+            NextRoundNumber: 2,
+            IsGameOver: false);
+
+        // Act
+        await cut.Instance.ShowResult(result, 0);
+
+        // Assert
+        cut.Find(".answer-input").HasAttribute("disabled").Should().BeTrue();
+        cut.Find(".btn-submit").HasAttribute("disabled").Should().BeTrue();
+        cut.Find(".btn-skip").HasAttribute("disabled").Should().BeTrue();
+    }
+
+    [Fact]
     public async Task GameArena_LevelComplete_ShowsOverlay()
     {
         // Arrange
@@ -286,6 +341,24 @@ public class GameArenaTests : BunitContext
         // Assert
         cut.Find("[data-testid='game-over']").TextContent.Should().Contain("Game over");
         cut.Find(".answer-input").HasAttribute("disabled").Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task GameArena_ShowTimeExpired_ShowsOverlayAndDisablesControls()
+    {
+        // Arrange
+        var cut = Render<GameArena>(parameters => parameters
+            .Add(p => p.ScrambledWord, "PES"));
+        cut.Find(".answer-input").Input("PES");
+
+        // Act
+        await cut.Instance.ShowTimeExpired();
+
+        // Assert
+        cut.Find("[data-testid='game-time-expired']").TextContent.Should().Contain("Time is up");
+        cut.Find(".answer-input").HasAttribute("disabled").Should().BeTrue();
+        cut.Find(".btn-submit").HasAttribute("disabled").Should().BeTrue();
+        cut.Find(".btn-skip").HasAttribute("disabled").Should().BeTrue();
     }
 
     [Fact]

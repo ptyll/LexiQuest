@@ -14,6 +14,11 @@ public class MultiplayerGameServiceEdgeCaseTests
 {
     private readonly IWordRepository _wordRepository = Substitute.For<IWordRepository>();
     private readonly MultiplayerGameService _sut;
+    private static readonly string[] CorrectAnswers =
+    [
+        "TEST", "WORD", "GAME", "PLAY", "QUIZ", "PUZZLE", "BRAIN", "THINK",
+        "SMART", "CLEVER", "LETTER", "SCRAMBLE", "ANSWER", "GUESS", "SOLVE"
+    ];
 
     public MultiplayerGameServiceEdgeCaseTests()
     {
@@ -314,13 +319,26 @@ public class MultiplayerGameServiceEdgeCaseTests
         var p2 = Guid.NewGuid();
         var matchId = await CreateAndStartMatch(p1, p2, wordCount: 3);
 
-        // Act - complete all 3 rounds
+        // Act - player1 completes all 3 rounds first, then player2 finishes the match
+        MultiplayerAnswerResultDto? player1Result = null;
         for (int i = 0; i < 3; i++)
         {
-            var result = await _sut.SubmitAnswerAsync(matchId, p1, "TEST", 1000);
-            if (i == 2)
-                result.IsMatchComplete.Should().BeTrue();
+            player1Result = await _sut.SubmitAnswerAsync(matchId, p1, CorrectAnswers[i], 1000);
         }
+
+        player1Result.Should().NotBeNull();
+        player1Result!.IsPlayerComplete.Should().BeTrue();
+        player1Result.IsMatchComplete.Should().BeFalse();
+
+        MultiplayerAnswerResultDto? player2Result = null;
+        for (int i = 0; i < 3; i++)
+        {
+            player2Result = await _sut.SubmitAnswerAsync(matchId, p2, CorrectAnswers[i], 1000);
+        }
+
+        player2Result.Should().NotBeNull();
+        player2Result!.IsPlayerComplete.Should().BeTrue();
+        player2Result.IsMatchComplete.Should().BeTrue();
 
         // Assert
         var isActive = await _sut.IsMatchActiveAsync(matchId);

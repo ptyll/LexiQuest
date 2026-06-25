@@ -519,17 +519,18 @@ public class MultiplayerE2ETests : E2ETestBase
         var bobMatch = await AwaitAsync(bobMatchTcs.Task, TimeSpan.FromSeconds(10), "Bob should receive MatchFound");
         aliceMatch.MatchId.Should().Be(bobMatch.MatchId);
 
-        var round1 = await AwaitRoundAsync(aliceRounds.Reader, 1);
-        await AwaitRoundAsync(bobRounds.Reader, 1);
-        await aliceConnection.InvokeAsync("SubmitAnswer", await GetAnswerForRoundAsync(round1), 1000);
+        var aliceRound1 = await AwaitRoundAsync(aliceRounds.Reader, 1);
+        var bobRound1 = await AwaitRoundAsync(bobRounds.Reader, 1);
+        await aliceConnection.InvokeAsync("SubmitAnswer", await GetAnswerForRoundAsync(aliceRound1), 1000);
+        await bobConnection.InvokeAsync("SubmitAnswer", await GetAnswerForRoundAsync(bobRound1), 5000);
 
-        var round2 = await AwaitRoundAsync(bobRounds.Reader, 2);
-        await bobConnection.InvokeAsync("SubmitAnswer", await GetAnswerForRoundAsync(round2), 5000);
-
-        for (var roundNumber = 3; roundNumber <= 15; roundNumber++)
+        for (var roundNumber = 2; roundNumber <= 15; roundNumber++)
         {
             await AwaitRoundAsync(aliceRounds.Reader, roundNumber);
             await aliceConnection.InvokeAsync("SubmitAnswer", "__wrong__", 1);
+
+            await AwaitRoundAsync(bobRounds.Reader, roundNumber);
+            await bobConnection.InvokeAsync("SubmitAnswer", "__wrong__", 1);
         }
 
         var aliceResult = await AwaitAsync(aliceResultTcs.Task, TimeSpan.FromSeconds(10), "Alice should receive speed tiebreak result");
@@ -609,17 +610,18 @@ public class MultiplayerE2ETests : E2ETestBase
         var bobMatch = await AwaitAsync(bobMatchTcs.Task, TimeSpan.FromSeconds(10), "Bob should receive MatchFound");
         aliceMatch.MatchId.Should().Be(bobMatch.MatchId);
 
-        var round1 = await AwaitRoundAsync(aliceRounds.Reader, 1);
-        await AwaitRoundAsync(bobRounds.Reader, 1);
-        await aliceConnection.InvokeAsync("SubmitAnswer", await GetAnswerForRoundAsync(round1), 1000);
+        var aliceRound1 = await AwaitRoundAsync(aliceRounds.Reader, 1);
+        var bobRound1 = await AwaitRoundAsync(bobRounds.Reader, 1);
+        await aliceConnection.InvokeAsync("SubmitAnswer", await GetAnswerForRoundAsync(aliceRound1), 1000);
+        await bobConnection.InvokeAsync("SubmitAnswer", await GetAnswerForRoundAsync(bobRound1), 1000);
 
-        var round2 = await AwaitRoundAsync(bobRounds.Reader, 2);
-        await bobConnection.InvokeAsync("SubmitAnswer", await GetAnswerForRoundAsync(round2), 1000);
-
-        for (var roundNumber = 3; roundNumber <= 15; roundNumber++)
+        for (var roundNumber = 2; roundNumber <= 15; roundNumber++)
         {
             await AwaitRoundAsync(aliceRounds.Reader, roundNumber);
             await aliceConnection.InvokeAsync("SubmitAnswer", "__wrong__", 0);
+
+            await AwaitRoundAsync(bobRounds.Reader, roundNumber);
+            await bobConnection.InvokeAsync("SubmitAnswer", "__wrong__", 0);
         }
 
         var aliceResult = await AwaitAsync(aliceResultTcs.Task, TimeSpan.FromSeconds(10), "Alice should receive draw result");

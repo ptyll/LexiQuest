@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" role="img" aria-labelledby="title desc">
+  <title id="title">Diamond avatar</title>
+  <desc id="desc">A geometric blue diamond avatar badge.</desc>
+  <rect width="160" height="160" rx="30" fill="#eef6ff"/>
+  <circle cx="80" cy="80" r="58" fill="#dbeafe"/>
+  <path d="M46 59h68l13 22-47 45-47-45 13-22z" fill="#2563eb"/>
+  <path d="M46 59l22-23h24l22 23H46z" fill="#60a5fa"/>
+  <path d="M68 36l12 23 12-23H68z" fill="#bfdbfe"/>
+  <path d="M33 81h94l-47 45-47-45z" fill="#1d4ed8"/>
+  <path d="M62 81h36l-18 45-18-45z" fill="#93c5fd" opacity=".9"/>
+  <path d="M40 42l6-13 6 13 13 6-13 6-6 13-6-13-13-6 13-6z" fill="#f59e0b"/>
+  <path d="M116 32l4-9 4 9 9 4-9 4-4 9-4-9-9-4 9-4z" fill="#fbbf24"/>
+</svg>

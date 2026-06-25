@@ -1,80 +1,290 @@
 .path-map {
     width: 100%;
+    overflow-x: hidden;
 }
 
 .path-levels {
     display: flex;
+    flex-direction: column;
+    width: min(100%, 560px);
+    margin: 0 auto;
+    padding: 1rem 0.75rem 2rem;
+}
+
+.path-level-step {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 88px minmax(0, 1fr);
     align-items: center;
-    gap: 0.45rem;
-    overflow-x: auto;
-    padding: 0.5rem 0.25rem;
+    min-height: 82px;
+}
+
+.path-step-center .level-node {
+    grid-column: 2;
+    justify-self: center;
+}
+
+.path-step-left .level-node {
+    grid-column: 1;
+    justify-self: end;
+    margin-right: 1.35rem;
+}
+
+.path-step-right .level-node {
+    grid-column: 3;
+    justify-self: start;
+    margin-left: 1.35rem;
 }
 
 .level-node {
     position: relative;
+    z-index: 1;
     display: inline-flex;
-    flex: 0 0 auto;
     align-items: center;
     justify-content: center;
-    width: 44px;
-    height: 44px;
-    border: 1px solid #cbd5e1;
-    border-radius: 8px;
-    background: #ffffff;
-    color: #334155;
-    font-weight: 800;
+    width: 68px;
+    height: 68px;
+    border: 0;
+    border-radius: 999px;
+    background: #58cc02;
+    color: #ffffff;
+    font-size: 1.25rem;
+    font-weight: 900;
+    line-height: 1;
     cursor: pointer;
+    box-shadow:
+        0 8px 0 #45a600,
+        0 14px 22px rgba(21, 128, 61, 0.22);
+    transition:
+        transform 0.16s ease,
+        box-shadow 0.16s ease,
+        background 0.16s ease;
+}
+
+.level-node:hover:not(:disabled) {
+    transform: translateY(2px);
+    box-shadow:
+        0 6px 0 #45a600,
+        0 10px 18px rgba(21, 128, 61, 0.18);
+}
+
+.level-node:focus-visible {
+    outline: 4px solid rgba(88, 204, 2, 0.22);
+    outline-offset: 5px;
 }
 
 .level-node:disabled {
     cursor: not-allowed;
 }
 
+.level-symbol,
+.level-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.level-icon ::deep svg {
+    width: 30px;
+    height: 30px;
+    stroke-width: 3;
+}
+
 .level-current {
-    border-color: #2563eb;
-    background: #eff6ff;
-    color: #1d4ed8;
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14);
+    animation: current-node-pulse 1.8s ease-in-out infinite;
+}
+
+.level-current::after {
+    content: "";
+    position: absolute;
+    inset: -8px;
+    z-index: -1;
+    border: 3px solid rgba(88, 204, 2, 0.28);
+    border-radius: inherit;
 }
 
 .level-completed {
-    border-color: #16a34a;
-    background: #ecfdf5;
-    color: #15803d;
+    background: #58cc02;
+    color: #ffffff;
 }
 
 .level-perfect {
-    border-color: #f59e0b;
-    background: #fffbeb;
-    color: #92400e;
+    background: #ffc800;
+    color: #713f12;
+    box-shadow:
+        0 8px 0 #e6a700,
+        0 14px 22px rgba(217, 119, 6, 0.2);
+}
+
+.level-perfect:hover:not(:disabled) {
+    box-shadow:
+        0 6px 0 #e6a700,
+        0 10px 18px rgba(217, 119, 6, 0.18);
+}
+
+.level-perfect:focus-visible {
+    outline-color: rgba(245, 158, 11, 0.28);
 }
 
 .level-locked {
-    background: #f8fafc;
+    background: #e5e7eb;
     color: #94a3b8;
+    box-shadow:
+        0 8px 0 #cbd5e1,
+        0 12px 18px rgba(100, 116, 139, 0.14);
 }
 
-.level-boss {
-    border-color: #dc2626;
+.level-boss:not(.level-locked) {
+    background: #ff4b4b;
+    color: #ffffff;
+    box-shadow:
+        0 8px 0 #d93636,
+        0 14px 22px rgba(220, 38, 38, 0.22);
 }
 
-.level-icon {
+.level-boss:not(.level-locked):hover:not(:disabled) {
+    box-shadow:
+        0 6px 0 #d93636,
+        0 10px 18px rgba(220, 38, 38, 0.18);
+}
+
+.level-boss.level-current::after {
+    border-color: rgba(255, 75, 75, 0.3);
+}
+
+.boss-level-number {
     position: absolute;
-    top: -0.55rem;
-    right: -0.35rem;
-    font-size: 0.9rem;
-}
-
-.level-connector {
-    flex: 0 0 24px;
-    height: 2px;
+    right: 0.55rem;
+    bottom: 0.42rem;
+    min-width: 1.15rem;
+    padding: 0.12rem 0.2rem;
     border-radius: 999px;
+    background: rgba(255, 255, 255, 0.92);
+    color: #991b1b;
+    font-size: 0.68rem;
+    font-weight: 900;
 }
 
-.connector-completed {
-    background: #16a34a;
+.level-locked .boss-level-number {
+    color: #64748b;
 }
 
-.connector-locked {
-    background: #cbd5e1;
+.path-segment {
+    position: relative;
+    height: 44px;
+}
+
+.path-segment::before {
+    content: "";
+    position: absolute;
+    top: 18px;
+    height: 8px;
+    border-radius: 999px;
+    background: #d1d5db;
+    transform-origin: center;
+}
+
+.segment-completed::before {
+    background: #58cc02;
+}
+
+.segment-center-to-left::before,
+.segment-left-to-center::before,
+.segment-center-to-right::before,
+.segment-right-to-center::before {
+    width: 148px;
+}
+
+.segment-center-to-left::before {
+    left: calc(50% - 132px);
+    transform: rotate(148deg);
+}
+
+.segment-left-to-center::before {
+    left: calc(50% - 132px);
+    transform: rotate(32deg);
+}
+
+.segment-center-to-right::before {
+    left: calc(50% - 16px);
+    transform: rotate(32deg);
+}
+
+.segment-right-to-center::before {
+    left: calc(50% - 16px);
+    transform: rotate(148deg);
+}
+
+.segment-center-to-center::before {
+    top: -4px;
+    left: calc(50% - 4px);
+    width: 8px;
+    height: 52px;
+}
+
+@keyframes current-node-pulse {
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-3px);
+    }
+}
+
+@media (max-width: 560px) {
+    .path-levels {
+        width: 100%;
+        padding-inline: 0.25rem;
+    }
+
+    .path-level-step {
+        grid-template-columns: minmax(0, 1fr) 76px minmax(0, 1fr);
+        min-height: 76px;
+    }
+
+    .path-step-left .level-node {
+        margin-right: 0.7rem;
+    }
+
+    .path-step-right .level-node {
+        margin-left: 0.7rem;
+    }
+
+    .level-node {
+        width: 60px;
+        height: 60px;
+    }
+
+    .level-icon ::deep svg {
+        width: 26px;
+        height: 26px;
+    }
+
+    .segment-center-to-left::before,
+    .segment-left-to-center::before,
+    .segment-center-to-right::before,
+    .segment-right-to-center::before {
+        width: 112px;
+    }
+
+    .segment-center-to-left::before,
+    .segment-left-to-center::before {
+        left: calc(50% - 98px);
+    }
+
+    .segment-center-to-right::before,
+    .segment-right-to-center::before {
+        left: calc(50% - 14px);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .level-node {
+        transition: none;
+    }
+
+    .level-current {
+        animation: none;
+    }
 }

@@ -14,10 +14,20 @@
 @code {
     [Parameter] public int TotalSeconds { get; set; } = 30;
     [Parameter] public int RemainingSeconds { get; set; } = 30;
+    [Parameter] public EventCallback<int> RemainingSecondsChanged { get; set; }
     [Parameter] public EventCallback OnTimeUp { get; set; }
     [Parameter] public bool IsPaused { get; set; } = false;
 
     private System.Timers.Timer? _timer;
+    private bool _hasRaisedTimeUp;
+
+    protected override void OnParametersSet()
+    {
+        if (RemainingSeconds > 0)
+        {
+            _hasRaisedTimeUp = false;
+        }
+    }
 
     protected override void OnInitialized()
     {
@@ -35,11 +45,14 @@
         {
             if (RemainingSeconds > 0)
             {
-                RemainingSeconds--;
+                var nextRemainingSeconds = Math.Max(0, RemainingSeconds - 1);
+                RemainingSeconds = nextRemainingSeconds;
+                await RemainingSecondsChanged.InvokeAsync(nextRemainingSeconds);
                 StateHasChanged();
 
-                if (RemainingSeconds == 0)
+                if (nextRemainingSeconds == 0 && !_hasRaisedTimeUp)
                 {
+                    _hasRaisedTimeUp = true;
                     await OnTimeUp.InvokeAsync();
                 }
             }
@@ -49,7 +62,7 @@
     private double GetProgressPercentage()
     {
         if (TotalSeconds <= 0) return 0;
-        return (RemainingSeconds / (double)TotalSeconds) * 100;
+        return Math.Clamp((RemainingSeconds / (double)TotalSeconds) * 100, 0, 100);
     }
 
     private string GetTimerClass()

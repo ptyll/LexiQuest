@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" role="img" aria-labelledby="title desc">
+  <title id="title">Small XP boost</title>
+  <desc id="desc">A lightning XP boost token.</desc>
+  <rect width="160" height="160" rx="30" fill="#ecfeff"/>
+  <circle cx="80" cy="80" r="54" fill="#dbeafe"/>
+  <path d="M88 24L47 88h31l-8 48 43-65H81l7-47z" fill="#2563eb"/>
+  <path d="M88 24L47 88h31l-2 12 37-29H81l7-47z" fill="#60a5fa" opacity=".85"/>
+  <text x="80" y="129" text-anchor="middle" font-family="Arial, sans-serif" font-size="22" font-weight="700" fill="#0f172a">XP</text>
+</svg>

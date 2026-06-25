@@ -17,12 +17,23 @@ public class TeamService : ITeamService
     private readonly ITeamRepository _teamRepository;
     private readonly IUserRepository _userRepository;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IPremiumFeatureService? _premiumFeatureService;
 
     public TeamService(ITeamRepository teamRepository, IUserRepository userRepository, IUnitOfWork unitOfWork)
+        : this(teamRepository, userRepository, unitOfWork, null)
+    {
+    }
+
+    public TeamService(
+        ITeamRepository teamRepository,
+        IUserRepository userRepository,
+        IUnitOfWork unitOfWork,
+        IPremiumFeatureService? premiumFeatureService)
     {
         _teamRepository = teamRepository;
         _userRepository = userRepository;
         _unitOfWork = unitOfWork;
+        _premiumFeatureService = premiumFeatureService;
     }
 
     public async Task<TeamDto?> CreateTeamAsync(Guid userId, CreateTeamRequest request, CancellationToken cancellationToken = default)
@@ -33,7 +44,7 @@ public class TeamService : ITeamService
             return null;
         }
 
-        var isPremium = user.Premium != null && user.Premium.IsActive(DateTime.UtcNow);
+        var isPremium = await HasPremiumAccessAsync(userId, user);
         if (!isPremium && user.CoinBalance < TeamCreationCoinCost)
         {
             return null;
@@ -564,7 +575,7 @@ public class TeamService : ITeamService
         }
 
         // Premium users can create teams for free
-        if (user.Premium != null && user.Premium.IsActive(DateTime.UtcNow))
+        if (await HasPremiumAccessAsync(userId, user))
         {
             return true;
         }
@@ -598,6 +609,16 @@ public class TeamService : ITeamService
                 team.Members.Sum(m => m.Wins),
                 0, // MatchesPlayed not tracked yet
                 0)); // WinRatePercentage not tracked yet
+    }
+
+    private async Task<bool> HasPremiumAccessAsync(Guid userId, User user)
+    {
+        if (_premiumFeatureService is not null)
+        {
+            return await _premiumFeatureService.IsPremiumAsync(userId);
+        }
+
+        return user.Premium != null && user.Premium.IsActive(DateTime.UtcNow);
     }
 
     private static void EnsureCanAddMember(Team team, Guid userId)

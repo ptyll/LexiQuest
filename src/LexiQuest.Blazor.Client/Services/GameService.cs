@@ -101,7 +101,6 @@ public class GameService : IGameService
             var result = await response.Content.ReadFromJsonAsync<GameRoundResult>(cancellationToken);
 
             if (result is not null
-                && result.IsCorrect
                 && !result.IsLevelComplete
                 && !result.IsGameOver
                 && result.NextScrambledWord is not null

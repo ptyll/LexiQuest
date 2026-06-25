@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" role="img" aria-labelledby="title desc">
+  <title id="title">Wooden frame</title>
+  <desc id="desc">A wooden profile frame preview.</desc>
+  <rect width="160" height="160" rx="28" fill="#fffbeb"/>
+  <rect x="32" y="32" width="96" height="96" rx="16" fill="#ffffff" stroke="#92400e" stroke-width="12"/>
+  <path d="M42 48h76M42 112h76M48 42v76M112 42v76" stroke="#f59e0b" stroke-width="4" stroke-linecap="round" opacity=".75"/>
+  <circle cx="69" cy="72" r="13" fill="#22c55e"/>
+  <path d="M55 103h50" stroke="#78350f" stroke-width="9" stroke-linecap="round"/>
+</svg>

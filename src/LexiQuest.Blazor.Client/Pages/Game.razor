@@ -57,6 +57,7 @@
         <GameTimer 
             TotalSeconds="CurrentState.TimeLimitSeconds"
             RemainingSeconds="RemainingSeconds"
+            RemainingSecondsChanged="HandleRemainingSecondsChanged"
             OnTimeUp="HandleTimeUp"
             IsPaused="IsPaused" />
 
@@ -131,6 +132,7 @@
     private int RemainingSeconds { get; set; } = 30;
     private bool IsPaused { get; set; } = false;
     private bool IsOfflineMode { get; set; } = false;
+    private bool IsResolvingTimeUp { get; set; }
     private XPGainedEvent? LastXpEvent { get; set; }
     private bool IsLevelUpVisible { get; set; } = false;
     private List<AchievementUnlockDto>? LastUnlockedAchievements { get; set; }
@@ -170,6 +172,8 @@
                 LastUnlockedAchievements = null;
                 IsAchievementUnlockVisible = false;
                 IsLevelUpVisible = false;
+                IsPaused = false;
+                IsResolvingTimeUp = false;
                 if (!IsOfflineMode)
                 {
                     Navigation.NavigateTo($"/game/{result.SessionId}");
@@ -218,6 +222,8 @@
                 IsAchievementUnlockVisible = false;
                 IsLevelUpVisible = false;
                 IsOfflineMode = false;
+                IsPaused = false;
+                IsResolvingTimeUp = false;
                 Navigation.NavigateTo($"/game/{result.SessionId}", replace: true);
             }
             else
@@ -248,6 +254,8 @@
                 CurrentState = result;
                 RemainingSeconds = result.TimeLimitSeconds;
                 IsOfflineMode = false;
+                IsPaused = false;
+                IsResolvingTimeUp = false;
             }
             else
             {
@@ -268,7 +276,12 @@
     {
         if (CurrentState == null) return;
 
-        var timeSpent = (CurrentState.TimeLimitSeconds - RemainingSeconds) * 1000;
+        IsPaused = true;
+        var elapsedSeconds = Math.Clamp(
+            CurrentState.TimeLimitSeconds - RemainingSeconds,
+            0,
+            CurrentState.TimeLimitSeconds);
+        var timeSpent = elapsedSeconds * 1000;
         
         var result = await GameService.SubmitAnswerAsync(
             CurrentState.SessionId, 
@@ -316,6 +329,10 @@
             {
                 // Game completed - handled by GameArena overlay
             }
+            else if (result.IsGameOver)
+            {
+                // Game over - handled by GameArena overlay
+            }
             else if (result.NextScrambledWord != null && result.NextRoundNumber.HasValue)
             {
                 // Move to next round
@@ -328,6 +345,7 @@
                     NextLifeRegenAt = result.NextLifeRegenAt ?? CurrentState.NextLifeRegenAt
                 };
                 RemainingSeconds = CurrentState.TimeLimitSeconds;
+                IsPaused = false;
                 
                 if (GameArenaRef != null)
                 {
@@ -336,6 +354,14 @@
                         result.NextRoundNumber.Value);
                 }
             }
+            else if (!IsLevelUpVisible && !IsAchievementUnlockVisible)
+            {
+                IsPaused = false;
+            }
+        }
+        else
+        {
+            IsPaused = false;
         }
     }
 
@@ -375,10 +401,27 @@
 
     private async Task HandleTimeUp()
     {
-        if (CurrentState == null) return;
-        
-        // Time's up - submit empty answer
-        await HandleSubmitAnswer("");
+        if (CurrentState == null || IsResolvingTimeUp) return;
+
+        IsResolvingTimeUp = true;
+        IsPaused = true;
+        RemainingSeconds = 0;
+        StateHasChanged();
+
+        if (GameArenaRef != null)
+        {
+            await GameArenaRef.ShowTimeExpired();
+        }
+
+        await Task.Delay(1200);
+        await GameService.ForfeitGameAsync(CurrentState.SessionId);
+        Navigation.NavigateTo("/dashboard");
+    }
+
+    private Task HandleRemainingSecondsChanged(int remainingSeconds)
+    {
+        RemainingSeconds = Math.Max(0, remainingSeconds);
+        return Task.CompletedTask;
     }
 
     private void StartNewGame()
@@ -393,6 +436,7 @@
         IsAchievementUnlockVisible = false;
         IsLevelUpVisible = false;
         IsPaused = false;
+        IsResolvingTimeUp = false;
         Navigation.NavigateTo("/game");
     }
 

@@ -23,6 +23,7 @@ public class UserService : IUserService
     private readonly IEmailService _emailService;
     private readonly IGuestProgressTransferService _guestProgressTransferService;
     private readonly ILeagueService _leagueService;
+    private readonly IPremiumFeatureService? _premiumFeatureService;
 
     public UserService(
         IUserRepository userRepository,
@@ -32,7 +33,8 @@ public class UserService : IUserService
         ITokenService tokenService,
         IEmailService emailService,
         IGuestProgressTransferService guestProgressTransferService,
-        ILeagueService leagueService)
+        ILeagueService leagueService,
+        IPremiumFeatureService? premiumFeatureService = null)
     {
         _userRepository = userRepository;
         _unitOfWork = unitOfWork;
@@ -42,6 +44,7 @@ public class UserService : IUserService
         _emailService = emailService;
         _guestProgressTransferService = guestProgressTransferService;
         _leagueService = leagueService;
+        _premiumFeatureService = premiumFeatureService;
     }
 
     public async Task<UserProfileDto?> GetProfileAsync(Guid userId, CancellationToken cancellationToken = default)
@@ -49,7 +52,7 @@ public class UserService : IUserService
         var user = await _userRepository.GetByIdAsync(userId, cancellationToken);
         if (user == null) return null;
 
-        return MapToProfileDto(user);
+        return MapToProfileDto(user, await HasPremiumAccessAsync(user));
     }
 
     public async Task<bool> UpdateProfileAsync(Guid userId, UpdateProfileRequest request, CancellationToken cancellationToken = default)
@@ -241,7 +244,17 @@ public class UserService : IUserService
         }
     }
 
-    private static UserProfileDto MapToProfileDto(User user)
+    private async Task<bool> HasPremiumAccessAsync(User user)
+    {
+        if (_premiumFeatureService is not null)
+        {
+            return await _premiumFeatureService.IsPremiumAsync(user.Id);
+        }
+
+        return user.Premium?.IsActive(DateTime.UtcNow) ?? false;
+    }
+
+    private static UserProfileDto MapToProfileDto(User user, bool isPremium)
     {
         return new UserProfileDto
         {
@@ -250,7 +263,7 @@ public class UserService : IUserService
             Email = user.Email,
             AvatarUrl = user.AvatarUrl,
             CreatedAt = user.CreatedAt,
-            IsPremium = user.Premium?.IsActive(DateTime.UtcNow) ?? false,
+            IsPremium = isPremium,
             PremiumPlan = user.Premium?.Plan,
             PremiumExpiresAt = user.Premium?.ExpiresAt,
             Stats = new UserStatsDto

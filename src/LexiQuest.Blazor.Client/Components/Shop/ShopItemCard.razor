@@ -19,7 +19,57 @@
         
         @* Item image *@
         <div class="item-image-container">
-            <img src="@Item.ImageUrl" alt="@Item.Name" class="item-image" />
+            @if (ShouldRenderGeneratedVisual())
+            {
+                <div class="@GetVisualClass()" data-testid="@GetVisualTestId()" aria-label="@Item.Name" role="img">
+                    <div class="visual-stage">
+                        @switch (Item.Category)
+                        {
+                            case "Avatar":
+                                <div class="avatar-visual">
+                                    <div class="avatar-ring"></div>
+                                    <div class="avatar-head"></div>
+                                    <div class="avatar-body"></div>
+                                    <TmIcon Name="sparkles" Class="visual-spark visual-spark-primary" />
+                                    <TmIcon Name="star" Class="visual-spark visual-spark-secondary" />
+                                </div>
+                                break;
+                            case "Frame":
+                                <div class="frame-visual">
+                                    <div class="frame-preview"></div>
+                                    <div class="frame-corner frame-corner-top"></div>
+                                    <div class="frame-corner frame-corner-bottom"></div>
+                                </div>
+                                break;
+                            case "Theme":
+                                <div class="theme-visual">
+                                    <div class="theme-window">
+                                        <div class="theme-titlebar"></div>
+                                        <div class="theme-row theme-row-wide"></div>
+                                        <div class="theme-row"></div>
+                                    </div>
+                                    <TmIcon Name="moon" Class="theme-moon" />
+                                </div>
+                                break;
+                            case "Boost":
+                                <div class="boost-visual">
+                                    <div class="boost-orbit"></div>
+                                    <TmIcon Name="zap" Class="boost-zap" />
+                                </div>
+                                break;
+                            default:
+                                <div class="default-visual">
+                                    <TmIcon Name="gift" Class="default-gift" />
+                                </div>
+                                break;
+                        }
+                    </div>
+                </div>
+            }
+            else
+            {
+                <img src="@Item.ImageUrl" alt="@Item.Name" class="item-image" />
+            }
             @if (IsOwned)
             {
                 <div class="owned-badge" data-testid="shop-owned-badge">
@@ -82,11 +132,13 @@
             {
                 <div data-testid="shop-buy">
                     <TmButton Variant="ButtonVariant.Primary" 
-                              Icon="@IconNames.Plus"
                               OnClick="OnPurchase"
                               Disabled="!Item.IsAvailable || (Item.IsPremiumOnly && !IsPremium)"
                               Block="true">
-                            @Item.Price 🪙
+                        <span class="buy-button-content">
+                            <span>@L["Button_Buy"]</span>
+                            <span class="buy-price">@Item.Price 🪙</span>
+                        </span>
                     </TmButton>
                 </div>
             }
@@ -146,6 +198,32 @@
             "Rare" => BadgeVariant.Primary,
             _ => BadgeVariant.Default
         };
+    }
+
+    private bool ShouldRenderGeneratedVisual()
+    {
+        if (string.IsNullOrWhiteSpace(Item.ImageUrl))
+        {
+            return true;
+        }
+
+        var imageUrl = Item.ImageUrl.Trim();
+        return imageUrl.Equals("/icon-192.png", StringComparison.OrdinalIgnoreCase)
+            || imageUrl.Equals("icon-192.png", StringComparison.OrdinalIgnoreCase)
+            || imageUrl.Equals("/icon-512.png", StringComparison.OrdinalIgnoreCase)
+            || imageUrl.Equals("icon-512.png", StringComparison.OrdinalIgnoreCase)
+            || imageUrl.Equals("/favicon.png", StringComparison.OrdinalIgnoreCase)
+            || imageUrl.Contains("blazor", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private string GetVisualClass()
+    {
+        return $"item-visual item-visual--{CreateSlug(Item.Category)} item-visual--{CreateSlug(Item.Rarity)}";
+    }
+
+    private string GetVisualTestId()
+    {
+        return $"shop-visual-{CreateSlug(Item.Category)}";
     }
 
     private static string CreateSlug(string value)

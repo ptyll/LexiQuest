@@ -183,6 +183,97 @@ public class GameServiceTests
     }
 
     [Fact]
+    public async Task GameService_SubmitAnswer_TrainingWrongWithNextRound_RefreshesOfflineTrainingSeed()
+    {
+        // Arrange
+        var sessionId = Guid.NewGuid();
+        var startedGame = new ScrambledWordDto(
+            sessionId,
+            1,
+            "LKBOJA",
+            6,
+            DifficultyLevel.Beginner,
+            30,
+            10,
+            int.MaxValue,
+            IsInfiniteLives: true);
+        var seed = new OfflineTrainingSeedResponse(
+            SessionId: sessionId,
+            CurrentRound: 2,
+            TotalRounds: 10,
+            LivesRemaining: int.MaxValue,
+            Difficulty: DifficultyLevel.Beginner,
+            Words:
+            [
+                new OfflineTrainingWordDto(
+                    RoundNumber: 2,
+                    ScrambledWord: "ABNÁN",
+                    CorrectAnswer: "BANÁN",
+                    WordLength: 5,
+                    TimeLimitSeconds: 30)
+            ],
+            MaxLives: int.MaxValue,
+            IsInfiniteLives: true);
+        var wrongResult = new GameRoundResult(
+            IsCorrect: false,
+            CorrectAnswer: "JABLKO",
+            XPEarned: 0,
+            SpeedBonus: 0,
+            ComboCount: 0,
+            IsLevelComplete: false,
+            LivesRemaining: int.MaxValue,
+            NextScrambledWord: "ABNÁN",
+            NextRoundNumber: 2,
+            IsGameOver: false);
+
+        _mockHandler.SetResponder(request =>
+        {
+            var path = request.RequestUri?.PathAndQuery ?? string.Empty;
+            if (request.Method == HttpMethod.Post && path.EndsWith("/api/v1/game/start", StringComparison.Ordinal))
+            {
+                return new HttpResponseMessage(HttpStatusCode.Created)
+                {
+                    Content = JsonContent.Create(startedGame)
+                };
+            }
+
+            if (request.Method == HttpMethod.Post && path.EndsWith($"/api/v1/game/{sessionId}/answer", StringComparison.Ordinal))
+            {
+                return new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = JsonContent.Create(wrongResult)
+                };
+            }
+
+            if (request.Method == HttpMethod.Get && path.EndsWith($"/api/v1/game/{sessionId}/offline-training-seed", StringComparison.Ordinal))
+            {
+                return new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = JsonContent.Create(seed)
+                };
+            }
+
+            return new HttpResponseMessage(HttpStatusCode.NotFound);
+        });
+
+        var jsRuntime = new LocalStorageJsRuntime();
+        var service = new GameService(_httpClientFactory, _logger, jsRuntime);
+
+        // Act
+        await service.StartGameAsync(new StartGameRequest(GameMode.Training, DifficultyLevel.Beginner));
+        var result = await service.SubmitAnswerAsync(sessionId, "WRONG", 5000);
+
+        // Assert
+        result.Should().NotBeNull();
+        result!.IsCorrect.Should().BeFalse();
+        _mockHandler.Requests
+            .Count(request => (request.RequestUri?.PathAndQuery ?? string.Empty)
+                .Contains("offline-training-seed", StringComparison.Ordinal))
+            .Should()
+            .Be(2);
+    }
+
+    [Fact]
     public async Task GameService_SubmitAnswer_WrongAnswer_ReturnsZeroXP()
     {
         // Arrange

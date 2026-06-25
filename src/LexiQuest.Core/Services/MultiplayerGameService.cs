@@ -75,6 +75,8 @@ public class MultiplayerGameService : IMultiplayerGameService
         match.StartedAt = DateTime.UtcNow;
         match.ExpiresAt = match.StartedAt.Value.AddSeconds(match.TimeLimitSeconds);
         match.CurrentRound = 1;
+        match.Player1Progress.CurrentRound = 1;
+        match.Player2Progress.CurrentRound = 1;
 
         var word = match.Words[0];
         return Task.FromResult(CreateRoundDto(match, word, roundNumber: 1));
@@ -96,18 +98,49 @@ public class MultiplayerGameService : IMultiplayerGameService
         return Task.FromResult<MultiplayerRoundDto?>(CreateRoundDto(match, word, match.CurrentRound));
     }
 
-    public Task<(bool IsCorrect, int Score, bool IsMatchComplete)> SubmitAnswerAsync(Guid matchId, Guid playerId, string answer, int timeSpentMs, CancellationToken cancellationToken = default)
+    public Task<MultiplayerRoundDto?> GetCurrentRoundAsync(Guid matchId, Guid playerId, CancellationToken cancellationToken = default)
+    {
+        if (!_cache.TryGetValue(GetMatchKey(matchId), out MultiplayerMatch? match) || match == null)
+        {
+            return Task.FromResult<MultiplayerRoundDto?>(null);
+        }
+
+        if (!match.IsActive || match.StartedAt == null)
+        {
+            return Task.FromResult<MultiplayerRoundDto?>(null);
+        }
+
+        var playerProgress = match.GetOrCreatePlayerProgress(playerId);
+        if (playerProgress.CurrentRound < 1 || playerProgress.CurrentRound > match.TotalRounds)
+        {
+            return Task.FromResult<MultiplayerRoundDto?>(null);
+        }
+
+        var word = match.Words[playerProgress.CurrentRound - 1];
+        return Task.FromResult<MultiplayerRoundDto?>(CreateRoundDto(match, word, playerProgress.CurrentRound));
+    }
+
+    public Task<MultiplayerAnswerResultDto> SubmitAnswerAsync(Guid matchId, Guid playerId, string answer, int timeSpentMs, CancellationToken cancellationToken = default)
     {
         if (!_cache.TryGetValue(GetMatchKey(matchId), out MultiplayerMatch? match) || match == null)
         {
             throw new InvalidOperationException("Match not found");
         }
 
-        var currentWord = match.Words[match.CurrentRound - 1];
+        var playerProgress = match.GetOrCreatePlayerProgress(playerId);
+        if (!match.IsActive || playerProgress.CurrentRound > match.TotalRounds)
+        {
+            var alreadyComplete = playerProgress.CurrentRound > match.TotalRounds;
+            return Task.FromResult(new MultiplayerAnswerResultDto(
+                IsCorrect: false,
+                Score: playerProgress.Score,
+                IsMatchComplete: !match.IsActive,
+                IsPlayerComplete: alreadyComplete));
+        }
+
+        var currentWord = match.Words[playerProgress.CurrentRound - 1];
         var isCorrect = currentWord.Original.Equals(answer, StringComparison.OrdinalIgnoreCase);
 
-        // Track player progress
-        var playerProgress = match.GetOrCreatePlayerProgress(playerId);
         playerProgress.TotalAnswered++;
         playerProgress.TotalTime += TimeSpan.FromMilliseconds(timeSpentMs);
 
@@ -126,18 +159,22 @@ public class MultiplayerGameService : IMultiplayerGameService
             playerProgress.CurrentCombo = 0;
         }
 
-        // Advance to next round
-        match.CurrentRound++;
-        var isMatchComplete = match.CurrentRound > match.TotalRounds || 
-                              match.Player1Progress.CorrectCount >= match.TotalRounds ||
-                              match.Player2Progress.CorrectCount >= match.TotalRounds;
+        playerProgress.CurrentRound++;
+        UpdateSharedRound(match);
+
+        var isPlayerComplete = playerProgress.CurrentRound > match.TotalRounds;
+        var isMatchComplete = AreBothPlayersComplete(match);
 
         if (isMatchComplete)
         {
             match.IsActive = false;
         }
 
-        return Task.FromResult((isCorrect, playerProgress.Score, isMatchComplete));
+        return Task.FromResult(new MultiplayerAnswerResultDto(
+            IsCorrect: isCorrect,
+            Score: playerProgress.Score,
+            IsMatchComplete: isMatchComplete,
+            IsPlayerComplete: isPlayerComplete));
     }
 
     public Task ForfeitAsync(Guid matchId, Guid playerId, CancellationToken cancellationToken = default)
@@ -169,7 +206,7 @@ public class MultiplayerGameService : IMultiplayerGameService
             MatchId: match.Id,
             Player1Id: match.Player1Id,
             Player2Id: match.Player2Id,
-            CurrentRound: match.CurrentRound,
+            CurrentRound: GetSharedRound(match),
             TotalRounds: match.TotalRounds,
             Player1Score: match.Player1Progress?.Score ?? 0,
             Player2Score: match.Player2Progress?.Score ?? 0,
@@ -314,6 +351,21 @@ public class MultiplayerGameService : IMultiplayerGameService
         );
     }
 
+    private static bool AreBothPlayersComplete(MultiplayerMatch match) =>
+        match.Player1Progress.CurrentRound > match.TotalRounds &&
+        match.Player2Progress.CurrentRound > match.TotalRounds;
+
+    private static int GetSharedRound(MultiplayerMatch match)
+    {
+        var sharedRound = Math.Min(match.Player1Progress.CurrentRound, match.Player2Progress.CurrentRound);
+        return Math.Clamp(sharedRound, 1, match.TotalRounds);
+    }
+
+    private static void UpdateSharedRound(MultiplayerMatch match)
+    {
+        match.CurrentRound = GetSharedRound(match);
+    }
+
     private static TimeSpan GetTimeRemaining(MultiplayerMatch match)
     {
         var timeRemaining = match.ExpiresAt - DateTime.UtcNow;
@@ -439,6 +491,7 @@ public class MultiplayerGameService : IMultiplayerGameService
 
     private class PlayerProgress
     {
+        public int CurrentRound { get; set; } = 1;
         public int CorrectCount { get; set; }
         public int TotalAnswered { get; set; }
         public int Score { get; set; }

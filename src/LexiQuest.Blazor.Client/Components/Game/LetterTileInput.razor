@@ -6,56 +6,58 @@
     var usedTileIndexes = GetUsedTileIndexes();
 
     <div class="letter-tile-input" data-testid="@RootTestId" role="group" aria-label="@L["Group.Aria"]">
-        <div class="answer-slots" data-testid="@($"{RootTestId}-slots")" role="group" aria-label="@L["Slots.Aria"]">
-            @for (var slotIndex = 0; slotIndex < SlotCount; slotIndex++)
-            {
-                var hasLetter = slotIndex < Answer.Length;
-                var letter = hasLetter ? Answer[slotIndex].ToString() : string.Empty;
-                var ariaLabel = hasLetter
-                    ? string.Format(L["Slot.Filled"], slotIndex + 1, letter)
-                    : string.Format(L["Slot.Empty"], slotIndex + 1);
+        <div class="answer-composer">
+            <div class="answer-slots" data-testid="@($"{RootTestId}-slots")" role="group" aria-label="@L["Slots.Aria"]">
+                @for (var slotIndex = 0; slotIndex < SlotCount; slotIndex++)
+                {
+                    var hasLetter = slotIndex < Answer.Length;
+                    var letter = hasLetter ? Answer[slotIndex].ToString() : string.Empty;
+                    var ariaLabel = hasLetter
+                        ? string.Format(L["Slot.Filled"], slotIndex + 1, letter)
+                        : string.Format(L["Slot.Empty"], slotIndex + 1);
 
-                <span class="answer-slot @(hasLetter ? "filled" : string.Empty)"
-                      data-testid="@($"{RootTestId}-slot")"
-                      aria-label="@ariaLabel">
-                    @letter
-                </span>
-            }
+                    <span class="answer-slot @(hasLetter ? "filled" : string.Empty)"
+                          data-testid="@($"{RootTestId}-slot")"
+                          aria-label="@ariaLabel">
+                        @letter
+                    </span>
+                }
+            </div>
+
+            <div class="letter-controls">
+                <button type="button"
+                        class="letter-control-button"
+                        data-testid="@($"{RootTestId}-backspace")"
+                        aria-label="@L["Backspace.Aria"]"
+                        title="@L["Backspace.Aria"]"
+                        disabled="@(Disabled || Answer.Length == 0)"
+                        @onclick="RemoveLastLetter">
+                    <TmIcon Name="@IconNames.ArrowLeft" Class="letter-control-icon" />
+                </button>
+
+                <button type="button"
+                        class="letter-control-button"
+                        data-testid="@($"{RootTestId}-clear")"
+                        aria-label="@L["Clear.Aria"]"
+                        title="@L["Clear.Aria"]"
+                        disabled="@(Disabled || Answer.Length == 0)"
+                        @onclick="ClearAnswer">
+                    <TmIcon Name="@IconNames.X" Class="letter-control-icon" />
+                </button>
+
+                <button type="button"
+                        class="letter-control-button"
+                        data-testid="@($"{RootTestId}-shuffle")"
+                        aria-label="@L["Shuffle.Aria"]"
+                        title="@L["Shuffle.Aria"]"
+                        disabled="@(Disabled || Letters.Length < 2)"
+                        @onclick="ShuffleLetters">
+                    <TmIcon Name="@IconNames.Refresh" Class="letter-control-icon" />
+                </button>
+            </div>
         </div>
 
-        <div class="letter-controls">
-            <button type="button"
-                    class="letter-control-button"
-                    data-testid="@($"{RootTestId}-backspace")"
-                    aria-label="@L["Backspace.Aria"]"
-                    title="@L["Backspace.Aria"]"
-                    disabled="@(Disabled || Answer.Length == 0)"
-                    @onclick="RemoveLastLetter">
-                <TmIcon Name="@IconNames.ArrowLeft" Class="letter-control-icon" />
-            </button>
-
-            <button type="button"
-                    class="letter-control-button"
-                    data-testid="@($"{RootTestId}-clear")"
-                    aria-label="@L["Clear.Aria"]"
-                    title="@L["Clear.Aria"]"
-                    disabled="@(Disabled || Answer.Length == 0)"
-                    @onclick="ClearAnswer">
-                <TmIcon Name="@IconNames.X" Class="letter-control-icon" />
-            </button>
-
-            <button type="button"
-                    class="letter-control-button"
-                    data-testid="@($"{RootTestId}-shuffle")"
-                    aria-label="@L["Shuffle.Aria"]"
-                    title="@L["Shuffle.Aria"]"
-                    disabled="@(Disabled || Letters.Length < 2)"
-                    @onclick="ShuffleLetters">
-                <TmIcon Name="@IconNames.Refresh" Class="letter-control-icon" />
-            </button>
-        </div>
-
-        <div class="letter-tiles" data-testid="@($"{RootTestId}-tiles")">
+        <div class="letter-tiles tile-bank" data-testid="@($"{RootTestId}-tiles")">
             @foreach (var tileIndex in _tileOrder)
             {
                 if (tileIndex < 0 || tileIndex >= Letters.Length)

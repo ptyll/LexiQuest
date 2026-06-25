@@ -36,6 +36,11 @@ public interface IMatchHubClient : IAsyncDisposable
     /// Event raised when a new round starts.
     /// </summary>
     event EventHandler<MultiplayerRoundDto>? OnRoundStarted;
+
+    /// <summary>
+    /// Event raised when the current player has completed all words and waits for the opponent.
+    /// </summary>
+    event EventHandler? OnPlayerFinished;
     
     /// <summary>
     /// Event raised when opponent's progress updates.

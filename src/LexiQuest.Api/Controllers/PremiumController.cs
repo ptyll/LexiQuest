@@ -1,9 +1,11 @@
 using LexiQuest.Api.Extensions;
+using LexiQuest.Core.Configuration;
 using LexiQuest.Core.Domain.Enums;
 using LexiQuest.Core.Interfaces.Services;
 using LexiQuest.Shared.DTOs.Premium;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 
 namespace LexiQuest.Api.Controllers;
 
@@ -15,15 +17,18 @@ public class PremiumController : ControllerBase
     private readonly ISubscriptionService _subscriptionService;
     private readonly IPremiumFeatureService _premiumFeatureService;
     private readonly IWebHostEnvironment _environment;
+    private readonly PremiumAccessOptions _premiumAccessOptions;
 
     public PremiumController(
         ISubscriptionService subscriptionService,
         IPremiumFeatureService premiumFeatureService,
-        IWebHostEnvironment environment)
+        IWebHostEnvironment environment,
+        IOptions<PremiumAccessOptions>? premiumAccessOptions = null)
     {
         _subscriptionService = subscriptionService;
         _premiumFeatureService = premiumFeatureService;
         _environment = environment;
+        _premiumAccessOptions = premiumAccessOptions?.Value ?? new PremiumAccessOptions();
     }
 
     [HttpPost("checkout")]
@@ -48,9 +53,19 @@ public class PremiumController : ControllerBase
     {
         var userId = User.GetUserId();
         var subscription = await _subscriptionService.GetSubscriptionAsync(userId, cancellationToken);
+        var hasPremiumAccess = await _premiumFeatureService.IsPremiumAsync(userId);
         
         if (subscription == null)
         {
+            if (hasPremiumAccess)
+            {
+                return Ok(new SubscriptionStatusDto(
+                    IsActive: true,
+                    Plan: Shared.DTOs.Premium.SubscriptionPlan.Lifetime,
+                    ExpiresAt: _premiumAccessOptions.GetSyntheticExpiresAt(DateTime.UtcNow),
+                    Status: Shared.DTOs.Premium.SubscriptionStatus.Active));
+            }
+
             return Ok(new SubscriptionStatusDto(
                 IsActive: false,
                 Plan: null,
@@ -58,11 +73,23 @@ public class PremiumController : ControllerBase
                 Status: Shared.DTOs.Premium.SubscriptionStatus.Expired));
         }
 
+        var isActive = subscription.IsActive || hasPremiumAccess;
+
         return Ok(new SubscriptionStatusDto(
-            IsActive: subscription.IsActive,
-            Plan: subscription.IsActive ? (Shared.DTOs.Premium.SubscriptionPlan)subscription.Plan : null,
-            ExpiresAt: subscription.ExpiresAt,
-            Status: subscription.ExpiresAt <= DateTime.UtcNow && subscription.Status == Core.Domain.Enums.SubscriptionStatus.Active
+            IsActive: isActive,
+            Plan: subscription.IsActive
+                ? (Shared.DTOs.Premium.SubscriptionPlan)subscription.Plan
+                : hasPremiumAccess
+                    ? Shared.DTOs.Premium.SubscriptionPlan.Lifetime
+                    : null,
+            ExpiresAt: subscription.IsActive
+                ? subscription.ExpiresAt
+                : hasPremiumAccess
+                    ? _premiumAccessOptions.GetSyntheticExpiresAt(DateTime.UtcNow)
+                    : subscription.ExpiresAt,
+            Status: hasPremiumAccess
+                ? Shared.DTOs.Premium.SubscriptionStatus.Active
+                : subscription.ExpiresAt <= DateTime.UtcNow && subscription.Status == Core.Domain.Enums.SubscriptionStatus.Active
                 ? Shared.DTOs.Premium.SubscriptionStatus.Expired
                 : (Shared.DTOs.Premium.SubscriptionStatus)subscription.Status));
     }
@@ -111,7 +138,7 @@ public class PremiumController : ControllerBase
     public async Task<ActionResult<IEnumerable<PremiumFeatureDto>>> GetFeatures(CancellationToken cancellationToken)
     {
         var userId = User.GetUserId();
-        var isPremium = await _subscriptionService.IsPremiumAsync(userId, cancellationToken);
+        var isPremium = await _premiumFeatureService.IsPremiumAsync(userId);
         
         var features = new List<PremiumFeatureDto>
         {

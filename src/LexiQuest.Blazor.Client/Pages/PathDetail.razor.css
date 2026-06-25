@@ -24,11 +24,11 @@
 }
 
 .path-map-section {
-    padding: 1rem;
-    border: 1px solid #dbe3ef;
-    border-radius: 8px;
-    background: #ffffff;
-    box-shadow: 0 10px 22px rgba(15, 23, 42, 0.07);
+    min-height: calc(100vh - 220px);
+    padding: 0;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
 }
 
 .btn {

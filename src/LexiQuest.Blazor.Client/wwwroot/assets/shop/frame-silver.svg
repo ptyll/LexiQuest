@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" role="img" aria-labelledby="title desc">
+  <title id="title">Silver frame</title>
+  <desc id="desc">A silver profile frame preview.</desc>
+  <rect width="160" height="160" rx="28" fill="#f8fafc"/>
+  <rect x="34" y="34" width="92" height="92" rx="18" fill="#ffffff" stroke="#64748b" stroke-width="12"/>
+  <path d="M34 53V34h19M107 34h19v19M126 107v19h-19M53 126H34v-19" fill="none" stroke="#2563eb" stroke-width="8" stroke-linecap="round"/>
+  <circle cx="69" cy="72" r="13" fill="#14b8a6"/>
+  <path d="M55 103h50" stroke="#475569" stroke-width="9" stroke-linecap="round"/>
+</svg>

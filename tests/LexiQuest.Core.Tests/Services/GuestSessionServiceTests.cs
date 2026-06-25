@@ -99,6 +99,41 @@ public class GuestSessionServiceTests
     }
 
     [Fact]
+    public void SubmitAnswer_Wrong_CountsWordAsPlayed()
+    {
+        // Arrange
+        var session = _service.StartGame();
+        var firstWord = session.ScrambledWords.First();
+
+        // Act
+        var result = _service.SubmitAnswer(session.SessionId, firstWord.WordId, "špatná odpověď");
+
+        // Assert
+        result.IsCorrect.Should().BeFalse();
+        result.WordsSolved.Should().Be(0);
+        result.WordsRemaining.Should().Be(4);
+    }
+
+    [Fact]
+    public void SubmitAnswer_AllWrongAnswers_CompletesGuestWordQueue()
+    {
+        // Arrange
+        var session = _service.StartGame();
+        GuestAnswerResult? result = null;
+
+        // Act
+        foreach (var word in session.ScrambledWords)
+        {
+            result = _service.SubmitAnswer(session.SessionId, word.WordId, "špatná odpověď");
+        }
+
+        // Assert
+        result.Should().NotBeNull();
+        result!.WordsSolved.Should().Be(0);
+        result.WordsRemaining.Should().Be(0);
+    }
+
+    [Fact]
     public void GetSessionProgress_ReturnsAccumulatedXP()
     {
         // Arrange

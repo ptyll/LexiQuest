@@ -1,10 +1,12 @@
 using FluentAssertions;
+using LexiQuest.Core.Configuration;
 using LexiQuest.Core.Domain.Entities;
 using LexiQuest.Core.Domain.Enums;
 using LexiQuest.Core.Interfaces;
 using LexiQuest.Core.Interfaces.Repositories;
 using LexiQuest.Infrastructure.Services;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using NSubstitute;
 using Xunit;
 
@@ -39,7 +41,8 @@ public class StripeSubscriptionServiceTests
             _subscriptionRepository, 
             _userRepository,
             _unitOfWork, 
-            _logger);
+            _logger,
+            Options.Create(new PremiumAccessOptions { GrantAllFeatures = false }));
     }
 
     [Theory]
@@ -84,6 +87,11 @@ public class StripeSubscriptionServiceTests
         var stripeCustomerId = "cus_123456";
         var startedAt = DateTime.UtcNow;
         var expiresAt = startedAt.AddMonths(1);
+        var user = User.Create("test@test.com", "testuser");
+        user.GetType().GetProperty("Id")?.SetValue(user, userId);
+
+        _userRepository.FindByStripeCustomerIdAsync(stripeCustomerId).Returns(user);
+        _userRepository.GetByIdAsync(userId).Returns(user);
 
         // Act
         await _service.ActivateSubscriptionAsync(
@@ -110,6 +118,7 @@ public class StripeSubscriptionServiceTests
         user.SetStripeCustomerId("cus_123456");
         
         _userRepository.FindByStripeCustomerIdAsync("cus_123456").Returns(user);
+        _userRepository.GetByIdAsync(userId).Returns(user);
 
         // Act
         await _service.HandleCheckoutCompletedAsync("cus_123456", "sub_123456", SubscriptionPlan.Monthly);

@@ -157,6 +157,7 @@
     private bool _isConverting = false;
     private int _feedbackVersion = 0;
     private const string GuestProgressStorageKey = "guest_progress";
+    private bool IsCurrentWordLast => _session == null || _currentWordIndex >= _session.ScrambledWords.Count - 1;
 
     protected override async Task OnInitializedAsync()
     {
@@ -219,9 +220,10 @@
 
     private async Task SubmitAnswer()
     {
-        if (_session == null || _currentWord == null || string.IsNullOrWhiteSpace(_currentAnswer))
+        if (_session == null || _currentWord == null || _showingFeedback || string.IsNullOrWhiteSpace(_currentAnswer))
             return;
 
+        var isCurrentWordLast = IsCurrentWordLast;
         var response = await GuestGameService.SubmitAnswerAsync(
             _session.SessionId,
             _currentWord.WordId,
@@ -235,15 +237,22 @@
         _lastAnswerCorrect = response.IsCorrect;
         _lastCorrectAnswer = response.CorrectAnswer;
         _totalSessionXp = response.TotalSessionXp;
+        _wordsSolved = response.WordsSolved;
 
-        if (response.IsCorrect)
-        {
-            _wordsSolved++;
-        }
+        var isGameComplete = response.IsGameComplete || (isCurrentWordLast && response.WordsRemaining == 0);
 
-        if (response.IsGameComplete)
+        if (isGameComplete)
         {
-            _showConvertModal = true;
+            _currentAnswer = "";
+            if (response.IsCorrect)
+            {
+                _showingFeedback = false;
+                _showConvertModal = true;
+            }
+            else
+            {
+                _ = AdvanceAfterWrongAnswerDelayAsync(feedbackVersion, isGameComplete: true);
+            }
         }
         else if (response.IsCorrect)
         {
@@ -253,7 +262,7 @@
         else
         {
             _currentAnswer = "";
-            _ = HideFeedbackAfterDelayAsync(feedbackVersion);
+            _ = AdvanceAfterWrongAnswerDelayAsync(feedbackVersion, isGameComplete: false);
         }
 
         StateHasChanged();
@@ -292,7 +301,7 @@
         _feedbackVersion++;
     }
 
-    private async Task HideFeedbackAfterDelayAsync(int feedbackVersion)
+    private async Task AdvanceAfterWrongAnswerDelayAsync(int feedbackVersion, bool isGameComplete)
     {
         await Task.Delay(TimeSpan.FromSeconds(3));
 
@@ -301,8 +310,27 @@
             return;
         }
 
-        _showingFeedback = false;
-        await InvokeAsync(StateHasChanged);
+        await InvokeAsync(() =>
+        {
+            if (feedbackVersion != _feedbackVersion)
+            {
+                return;
+            }
+
+            _showingFeedback = false;
+            _currentAnswer = "";
+
+            if (isGameComplete)
+            {
+                _showConvertModal = true;
+            }
+            else
+            {
+                _currentWordIndex++;
+            }
+
+            StateHasChanged();
+        });
     }
 
     private void NavigateToRegister()

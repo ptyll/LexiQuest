@@ -104,10 +104,13 @@
   <data name="Profile_AchievementsTitle" xml:space="preserve">
     <value>Úspěchy</value>
   </data>
-  <data name="Profile_AchievementsCount" xml:space="preserve">
-    <value>Brzy</value>
+  <data name="Profile_AchievementsLink" xml:space="preserve">
+    <value>Zobrazit</value>
   </data>
   <data name="Profile_AchievementsDescription" xml:space="preserve">
-    <value>Přehled odemčených úspěchů najdete v samostatné sekci.</value>
+    <value>Přehled odemčených úspěchů a rozpracovaného postupu najdete v samostatné sekci.</value>
+  </data>
+  <data name="Profile_EquippedItems" xml:space="preserve">
+    <value>Nasazeno</value>
   </data>
 </root>

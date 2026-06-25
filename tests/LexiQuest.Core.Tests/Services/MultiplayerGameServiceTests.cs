@@ -14,6 +14,11 @@ public class MultiplayerGameServiceTests
 {
     private readonly IWordRepository _wordRepository;
     private readonly IMultiplayerGameService _sut;
+    private static readonly string[] CorrectAnswers =
+    [
+        "TEST", "WORD", "GAME", "PLAY", "QUIZ", "PUZZLE", "BRAIN", "THINK",
+        "SMART", "CLEVER", "LETTER", "SCRAMBLE", "ANSWER", "GUESS", "SOLVE"
+    ];
 
     public MultiplayerGameServiceTests()
     {
@@ -124,7 +129,84 @@ public class MultiplayerGameServiceTests
     }
 
     [Fact]
-    public async Task MultiplayerGameService_PlayerCompletes15Words_EndsMatch()
+    public async Task MultiplayerGameService_SubmitAnswer_PlayerOneWrong_KeepsOpponentOnFirstRound()
+    {
+        // Arrange
+        var player1Id = Guid.NewGuid();
+        var player2Id = Guid.NewGuid();
+        var settings = new RoomSettingsDto(
+            WordCount: 3,
+            TimeLimitMinutes: 3,
+            Difficulty: DifficultyLevel.Beginner,
+            BestOf: 1);
+        var matchId = await _sut.CreateMatchAsync(player1Id, player2Id, settings: settings);
+        await _sut.StartMatchAsync(matchId);
+
+        // Act
+        var player1Result = await _sut.SubmitAnswerAsync(matchId, player1Id, "WRONGANSWER", 1000);
+        var player2Result = await _sut.SubmitAnswerAsync(matchId, player2Id, "TEST", 1000);
+
+        // Assert
+        player1Result.IsCorrect.Should().BeFalse();
+        player2Result.IsCorrect.Should().BeTrue("player two should still answer their own first word");
+    }
+
+    [Fact]
+    public async Task MultiplayerGameService_GetCurrentRound_PlayerSpecificRoundsAdvanceIndependently()
+    {
+        // Arrange
+        var player1Id = Guid.NewGuid();
+        var player2Id = Guid.NewGuid();
+        var settings = new RoomSettingsDto(
+            WordCount: 3,
+            TimeLimitMinutes: 3,
+            Difficulty: DifficultyLevel.Beginner,
+            BestOf: 1);
+        var matchId = await _sut.CreateMatchAsync(player1Id, player2Id, settings: settings);
+        await _sut.StartMatchAsync(matchId);
+
+        // Act
+        await _sut.SubmitAnswerAsync(matchId, player1Id, "TEST", 1000);
+
+        // Assert
+        var player1Round = await _sut.GetCurrentRoundAsync(matchId, player1Id);
+        var player2Round = await _sut.GetCurrentRoundAsync(matchId, player2Id);
+        var sharedRound = await _sut.GetCurrentRoundAsync(matchId);
+
+        player1Round.Should().NotBeNull();
+        player1Round!.RoundNumber.Should().Be(2);
+        player2Round.Should().NotBeNull();
+        player2Round!.RoundNumber.Should().Be(1);
+        sharedRound.Should().NotBeNull();
+        sharedRound!.RoundNumber.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task MultiplayerGameService_SubmitAnswer_OnePlayerCompletesAllWords_WaitsForOpponent()
+    {
+        // Arrange
+        var player1Id = Guid.NewGuid();
+        var player2Id = Guid.NewGuid();
+        var settings = new RoomSettingsDto(
+            WordCount: 2,
+            TimeLimitMinutes: 3,
+            Difficulty: DifficultyLevel.Beginner,
+            BestOf: 1);
+        var matchId = await _sut.CreateMatchAsync(player1Id, player2Id, settings: settings);
+        await _sut.StartMatchAsync(matchId);
+
+        // Act
+        await _sut.SubmitAnswerAsync(matchId, player1Id, "TEST", 1000);
+        var result = await _sut.SubmitAnswerAsync(matchId, player1Id, "WORD", 1000);
+
+        // Assert
+        result.IsMatchComplete.Should().BeFalse();
+        var isActive = await _sut.IsMatchActiveAsync(matchId);
+        isActive.Should().BeTrue("the opponent has not finished their own word queue yet");
+    }
+
+    [Fact]
+    public async Task MultiplayerGameService_BothPlayersComplete15Words_EndsMatch()
     {
         // Arrange
         var player1Id = Guid.NewGuid();
@@ -132,15 +214,30 @@ public class MultiplayerGameServiceTests
         var matchId = await _sut.CreateMatchAsync(player1Id, player2Id);
         await _sut.StartMatchAsync(matchId);
 
-        // Act - complete all rounds for player1
-        for (int i = 0; i < 15; i++)
+        // Act - player1 completes their own queue first
+        MultiplayerAnswerResultDto? lastPlayer1Result = null;
+        for (int i = 0; i < CorrectAnswers.Length; i++)
         {
-            await _sut.SubmitAnswerAsync(matchId, player1Id, "TEST", 1000);
+            lastPlayer1Result = await _sut.SubmitAnswerAsync(matchId, player1Id, CorrectAnswers[i], 1000);
         }
 
-        // Assert - match should be inactive when one player completes all rounds
-        var isActive = await _sut.IsMatchActiveAsync(matchId);
-        isActive.Should().BeFalse();
+        lastPlayer1Result.Should().NotBeNull();
+        lastPlayer1Result!.IsPlayerComplete.Should().BeTrue();
+        lastPlayer1Result.IsMatchComplete.Should().BeFalse();
+        (await _sut.IsMatchActiveAsync(matchId)).Should().BeTrue();
+
+        // Act - player2 then completes their own queue
+        MultiplayerAnswerResultDto? lastPlayer2Result = null;
+        for (int i = 0; i < CorrectAnswers.Length; i++)
+        {
+            lastPlayer2Result = await _sut.SubmitAnswerAsync(matchId, player2Id, CorrectAnswers[i], 1000);
+        }
+
+        // Assert
+        lastPlayer2Result.Should().NotBeNull();
+        lastPlayer2Result!.IsPlayerComplete.Should().BeTrue();
+        lastPlayer2Result.IsMatchComplete.Should().BeTrue();
+        (await _sut.IsMatchActiveAsync(matchId)).Should().BeFalse();
     }
 
     [Fact]
@@ -170,14 +267,13 @@ public class MultiplayerGameServiceTests
         var matchId = await _sut.CreateMatchAsync(player1Id, player2Id);
         await _sut.StartMatchAsync(matchId);
 
-        // Player1 answers 10 correctly, Player2 answers 5 correctly
         for (int i = 0; i < 10; i++)
         {
-            await _sut.SubmitAnswerAsync(matchId, player1Id, "TEST", 1000);
+            await _sut.SubmitAnswerAsync(matchId, player1Id, CorrectAnswers[i], 1000);
         }
         for (int i = 0; i < 5; i++)
         {
-            await _sut.SubmitAnswerAsync(matchId, player2Id, "TEST", 1000);
+            await _sut.SubmitAnswerAsync(matchId, player2Id, CorrectAnswers[i], 1000);
         }
 
         // Act
@@ -186,6 +282,8 @@ public class MultiplayerGameServiceTests
 
         // Assert
         result.WinnerId.Should().Be(player1Id);
+        result.YourScore.Should().Be(10);
+        result.OpponentScore.Should().Be(5);
         result.YourScore.Should().BeGreaterThan(result.OpponentScore);
     }
 
@@ -295,11 +393,11 @@ public class MultiplayerGameServiceTests
         // Both players answer 5 correctly, but Player1 is faster (2000ms vs 4000ms per answer)
         for (int i = 0; i < 5; i++)
         {
-            await _sut.SubmitAnswerAsync(matchId, player1Id, "TEST", 2000);
+            await _sut.SubmitAnswerAsync(matchId, player1Id, CorrectAnswers[i], 2000);
         }
         for (int i = 0; i < 5; i++)
         {
-            await _sut.SubmitAnswerAsync(matchId, player2Id, "TEST", 4000);
+            await _sut.SubmitAnswerAsync(matchId, player2Id, CorrectAnswers[i], 4000);
         }
 
         // Act

@@ -93,4 +93,87 @@ public class GameTimerTests : BunitContext
         var bar = cut.Find(".timer-bar");
         bar.GetAttribute("style").Should().Contain("width: 50%");
     }
+
+    [Fact]
+    public async Task GameTimer_Tick_ReportsRemainingSecondsChanged()
+    {
+        // Arrange
+        var reportedSeconds = new List<int>();
+
+        Render<GameTimer>(parameters => parameters
+            .Add(p => p.TotalSeconds, 30)
+            .Add(p => p.RemainingSeconds, 2)
+            .Add(p => p.RemainingSecondsChanged, seconds =>
+            {
+                reportedSeconds.Add(seconds);
+                return Task.CompletedTask;
+            }));
+
+        // Act
+        await Task.Delay(1200);
+
+        // Assert
+        reportedSeconds.Should().Contain(1);
+    }
+
+    [Fact]
+    public async Task GameTimer_TimeUp_InvokesCallbackOnlyOnce()
+    {
+        // Arrange
+        var timeUpCount = 0;
+        var remainingUpdates = new List<int>();
+
+        Render<GameTimer>(parameters => parameters
+            .Add(p => p.TotalSeconds, 1)
+            .Add(p => p.RemainingSeconds, 1)
+            .Add(p => p.RemainingSecondsChanged, seconds =>
+            {
+                remainingUpdates.Add(seconds);
+                return Task.CompletedTask;
+            })
+            .Add(p => p.OnTimeUp, () =>
+            {
+                timeUpCount++;
+                return Task.CompletedTask;
+            }));
+
+        // Act
+        await Task.Delay(2300);
+
+        // Assert
+        remainingUpdates.Should().Contain(0);
+        timeUpCount.Should().Be(1);
+    }
+
+    [Fact]
+    public void GameTimer_ProgressBar_DoesNotAnimateWidth()
+    {
+        // Arrange
+        var cssPath = Path.Combine(
+            GetRepositoryRoot(),
+            "src",
+            "LexiQuest.Blazor.Client",
+            "Components",
+            "Game",
+            "GameTimer.razor.css");
+
+        // Act
+        var css = File.ReadAllText(cssPath);
+
+        // Assert
+        css.Should().NotContain("transition: width");
+    }
+
+    private static string GetRepositoryRoot()
+    {
+        var directory = new DirectoryInfo(AppContext.BaseDirectory);
+
+        while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "LexiQuest.slnx")))
+        {
+            directory = directory.Parent;
+        }
+
+        return directory?.FullName
+            ?? throw new DirectoryNotFoundException("Repository root with LexiQuest.slnx was not found.");
+    }
 }

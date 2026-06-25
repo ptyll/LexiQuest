@@ -2,35 +2,65 @@
 @inject IStringLocalizer<PathMap> L
 
 <div class="path-map" data-testid="path-map">
-    <div class="path-levels">
-        @foreach (var level in Levels.OrderBy(l => l.LevelNumber))
+    @{
+        var orderedLevels = Levels.OrderBy(l => l.LevelNumber).ToList();
+    }
+
+    <div class="path-levels" role="list">
+        @for (var index = 0; index < orderedLevels.Count; index++)
         {
-            <button type="button"
-                    class="level-node @GetLevelCssClass(level)"
-                    data-testid="path-level"
-                    data-level-number="@level.LevelNumber"
-                    aria-label="@string.Format(GetLocalizedText("Level.Aria", "Úroveň {0}"), level.LevelNumber)"
-                    disabled="@(level.Status == "Locked")"
-                    @onclick="() => OnLevelClick(level)">
-                @if (level.IsBoss)
-                {
-                    <span class="level-icon">👑</span>
-                }
-                else if (level.Status == "Completed")
-                {
-                    <span class="level-icon">✓</span>
-                }
-                else if (level.Status == "Locked")
-                {
-                    <span class="level-icon">🔒</span>
-                }
-                
-                <span class="level-number">@level.LevelNumber</span>
-            </button>
-            
-            @if (level.LevelNumber < Levels.Count)
+            var level = orderedLevels[index];
+
+            <div class="path-level-step @GetStepPositionCssClass(index)" role="listitem" data-testid="path-level-step">
+                <button type="button"
+                        class="level-node @GetLevelCssClass(level)"
+                        data-testid="path-level"
+                        data-level-number="@level.LevelNumber"
+                        aria-current="@GetAriaCurrent(level)"
+                        aria-label="@string.Format(GetLocalizedText("Level.Aria", "Úroveň {0}"), level.LevelNumber)"
+                        disabled="@IsLocked(level)"
+                        @onclick="() => OnLevelClick(level)">
+                    <span class="level-symbol">
+                        @if (level.IsBoss)
+                        {
+                            <span class="level-icon" data-level-icon="crown" aria-hidden="true">
+                                <TmIcon Name="crown" />
+                            </span>
+                        }
+                        else if (IsPerfect(level))
+                        {
+                            <span class="level-icon" data-level-icon="star" aria-hidden="true">
+                                <TmIcon Name="star" />
+                            </span>
+                        }
+                        else if (IsCompleted(level))
+                        {
+                            <span class="level-icon" data-level-icon="check" aria-hidden="true">
+                                <TmIcon Name="check" />
+                            </span>
+                        }
+                        else if (IsLocked(level))
+                        {
+                            <span class="level-icon" data-level-icon="lock" aria-hidden="true">
+                                <TmIcon Name="lock" />
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="level-number">@level.LevelNumber</span>
+                        }
+                    </span>
+
+                    @if (level.IsBoss)
+                    {
+                        <span class="boss-level-number">@level.LevelNumber</span>
+                    }
+                </button>
+            </div>
+
+            @if (index < orderedLevels.Count - 1)
             {
-                <div class="level-connector @GetConnectorCssClass(level)"></div>
+                <div class="path-segment @GetSegmentCssClass(level, index)" data-testid="path-segment" aria-hidden="true"></div>
             }
         }
     </div>
@@ -48,28 +78,65 @@
 
     private string GetLevelCssClass(PathLevelDto level)
     {
-        return level.Status.ToLower() switch
+        return level.Status.ToLowerInvariant() switch
         {
             "completed" => "level-completed",
             "current" => "level-current",
             "locked" => "level-locked",
             "perfect" => "level-perfect",
+            "available" => "level-current",
             _ => "level-locked"
         } + (level.IsBoss ? " level-boss" : "");
     }
 
-    private string GetConnectorCssClass(PathLevelDto level)
+    private static string GetStepPositionCssClass(int index)
     {
-        return level.Status == "Completed" ? "connector-completed" : "connector-locked";
+        return (index % 4) switch
+        {
+            1 => "path-step-left",
+            3 => "path-step-right",
+            _ => "path-step-center"
+        };
+    }
+
+    private string GetSegmentCssClass(PathLevelDto level, int index)
+    {
+        var from = GetStepPositionName(index);
+        var to = GetStepPositionName(index + 1);
+        var state = IsCompleted(level) || IsPerfect(level) ? "segment-completed" : "segment-locked";
+
+        return $"{state} segment-{from}-to-{to}";
+    }
+
+    private static string GetStepPositionName(int index)
+    {
+        return (index % 4) switch
+        {
+            1 => "left",
+            3 => "right",
+            _ => "center"
+        };
     }
 
     private async Task OnLevelClick(PathLevelDto level)
     {
-        if (level.Status != "Locked")
+        if (!IsLocked(level))
         {
             await OnLevelSelected.InvokeAsync(level);
         }
     }
+
+    private static bool IsLocked(PathLevelDto level) =>
+        string.Equals(level.Status, "Locked", StringComparison.OrdinalIgnoreCase);
+
+    private static bool IsCompleted(PathLevelDto level) =>
+        string.Equals(level.Status, "Completed", StringComparison.OrdinalIgnoreCase);
+
+    private static bool IsPerfect(PathLevelDto level) =>
+        string.Equals(level.Status, "Perfect", StringComparison.OrdinalIgnoreCase) || level.IsPerfect;
+
+    private static string? GetAriaCurrent(PathLevelDto level) =>
+        string.Equals(level.Status, "Current", StringComparison.OrdinalIgnoreCase) ? "step" : null;
 
     private string GetLocalizedText(string key, string fallback)
     {

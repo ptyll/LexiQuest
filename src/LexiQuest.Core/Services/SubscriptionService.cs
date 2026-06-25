@@ -1,8 +1,10 @@
+using LexiQuest.Core.Configuration;
 using LexiQuest.Core.Domain.Entities;
 using LexiQuest.Core.Domain.Enums;
 using LexiQuest.Core.Interfaces;
 using LexiQuest.Core.Interfaces.Repositories;
 using LexiQuest.Core.Interfaces.Services;
+using Microsoft.Extensions.Options;
 
 namespace LexiQuest.Core.Services;
 
@@ -10,11 +12,16 @@ public class SubscriptionService : ISubscriptionService
 {
     private readonly ISubscriptionRepository _subscriptionRepository;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly PremiumAccessOptions _premiumAccessOptions;
 
-    public SubscriptionService(ISubscriptionRepository subscriptionRepository, IUnitOfWork unitOfWork)
+    public SubscriptionService(
+        ISubscriptionRepository subscriptionRepository,
+        IUnitOfWork unitOfWork,
+        IOptions<PremiumAccessOptions>? premiumAccessOptions = null)
     {
         _subscriptionRepository = subscriptionRepository;
         _unitOfWork = unitOfWork;
+        _premiumAccessOptions = premiumAccessOptions?.Value ?? new PremiumAccessOptions();
     }
 
     public Task<string> CreateCheckoutSessionAsync(Guid userId, SubscriptionPlan plan, string email, CancellationToken cancellationToken = default)
@@ -37,6 +44,11 @@ public class SubscriptionService : ISubscriptionService
 
     public async Task<bool> IsPremiumAsync(Guid userId, CancellationToken cancellationToken = default)
     {
+        if (_premiumAccessOptions.GrantAllFeatures)
+        {
+            return true;
+        }
+
         var subscription = await _subscriptionRepository.GetByUserIdAsync(userId);
         return subscription?.IsActive ?? false;
     }

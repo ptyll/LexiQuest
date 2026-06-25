@@ -21,11 +21,16 @@ public interface IMultiplayerGameService
     /// Gets the currently active round without resetting match state.
     /// </summary>
     Task<MultiplayerRoundDto?> GetCurrentRoundAsync(Guid matchId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets the currently active round for a specific player without resetting match state.
+    /// </summary>
+    Task<MultiplayerRoundDto?> GetCurrentRoundAsync(Guid matchId, Guid playerId, CancellationToken cancellationToken = default);
     
     /// <summary>
     /// Submits an answer for a player.
     /// </summary>
-    Task<(bool IsCorrect, int Score, bool IsMatchComplete)> SubmitAnswerAsync(Guid matchId, Guid playerId, string answer, int timeSpentMs, CancellationToken cancellationToken = default);
+    Task<MultiplayerAnswerResultDto> SubmitAnswerAsync(Guid matchId, Guid playerId, string answer, int timeSpentMs, CancellationToken cancellationToken = default);
     
     /// <summary>
     /// Forfeits the match for a player.

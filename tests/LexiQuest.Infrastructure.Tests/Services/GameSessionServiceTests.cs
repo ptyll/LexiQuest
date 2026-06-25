@@ -272,6 +272,54 @@ public class GameSessionServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task GameSessionService_SubmitAnswer_WrongInTraining_GeneratesNextRound()
+    {
+        // Arrange
+        var startRequest = new StartGameRequest(Mode: GameMode.Training, Difficulty: DifficultyLevel.Beginner);
+        var gameState = await _gameSessionService.StartGameAsync(_testUserId, startRequest);
+
+        // Act
+        var result = await _gameSessionService.SubmitAnswerAsync(_testUserId, new SubmitAnswerRequest
+        {
+            SessionId = gameState.SessionId,
+            Answer = "WRONGANSWER",
+            TimeSpentMs = 5000
+        });
+
+        // Assert
+        result.IsCorrect.Should().BeFalse();
+        result.NextScrambledWord.Should().NotBeNullOrWhiteSpace();
+        result.NextRoundNumber.Should().Be(2);
+
+        var activeRound = await _context.GameRounds
+            .SingleAsync(round => round.SessionId == gameState.SessionId && !round.IsCompleted);
+        activeRound.RoundNumber.Should().Be(2);
+    }
+
+    [Fact]
+    public async Task GameSessionService_SubmitAnswer_WrongInTimeAttackWithLivesRemaining_GeneratesNextRound()
+    {
+        // Arrange
+        var startRequest = new StartGameRequest(Mode: GameMode.TimeAttack, Difficulty: DifficultyLevel.Beginner);
+        var gameState = await _gameSessionService.StartGameAsync(_testUserId, startRequest);
+
+        // Act
+        var result = await _gameSessionService.SubmitAnswerAsync(_testUserId, new SubmitAnswerRequest
+        {
+            SessionId = gameState.SessionId,
+            Answer = "WRONGANSWER",
+            TimeSpentMs = 5000
+        });
+
+        // Assert
+        result.IsCorrect.Should().BeFalse();
+        result.LivesRemaining.Should().Be(gameState.LivesRemaining - 1);
+        result.IsGameOver.Should().BeFalse();
+        result.NextScrambledWord.Should().NotBeNullOrWhiteSpace();
+        result.NextRoundNumber.Should().Be(2);
+    }
+
+    [Fact]
     public async Task GameSessionService_SubmitAnswer_CaseInsensitive_Lowercase()
     {
         // Arrange

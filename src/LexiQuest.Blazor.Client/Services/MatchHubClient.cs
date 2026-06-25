@@ -32,6 +32,7 @@ public class MatchHubClient : IMatchHubClient
     public event EventHandler? OnMatchmakingTimeout;
     public event EventHandler<int>? OnCountdownTick;
     public event EventHandler<MultiplayerRoundDto>? OnRoundStarted;
+    public event EventHandler? OnPlayerFinished;
     public event EventHandler<OpponentProgressDto>? OnPlayerProgress;
     public event EventHandler<OpponentProgressDto>? OnOpponentProgress;
     public event EventHandler<MatchResultDto>? OnMatchEnded;
@@ -140,6 +141,7 @@ public class MatchHubClient : IMatchHubClient
         // Common game events
         _hubConnection.On<int>("CountdownTick", s => OnCountdownTick?.Invoke(this, s));
         _hubConnection.On<MultiplayerRoundDto>("RoundStarted", r => OnRoundStarted?.Invoke(this, r));
+        _hubConnection.On("PlayerFinished", () => OnPlayerFinished?.Invoke(this, EventArgs.Empty));
         _hubConnection.On<OpponentProgressDto>("PlayerProgressUpdated", progress =>
             OnPlayerProgress?.Invoke(this, progress));
         _hubConnection.On<OpponentProgressDto>("OpponentAnswered", progress =>

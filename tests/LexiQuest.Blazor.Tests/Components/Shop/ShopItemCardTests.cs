@@ -128,6 +128,42 @@ public class ShopItemCardTests : BunitContext
         cut.Markup.Should().Contain("Premium");
     }
 
+    [Theory]
+    [InlineData("Avatar", "/icon-192.png", "shop-visual-avatar")]
+    [InlineData("Frame", "/icon-192.png", "shop-visual-frame")]
+    [InlineData("Theme", "/icon-192.png", "shop-visual-theme")]
+    [InlineData("Boost", "/icon-192.png", "shop-visual-boost")]
+    [InlineData("Avatar", "", "shop-visual-avatar")]
+    public void ShopItemCard_PlaceholderImage_RendersGameVisualInsteadOfDefaultImage(
+        string category,
+        string imageUrl,
+        string expectedVisualTestId)
+    {
+        // Arrange
+        var item = new ShopItemDto(
+            Guid.NewGuid(),
+            "Stylized Item",
+            "Description",
+            category,
+            100,
+            "Rare",
+            "#2196F3",
+            imageUrl,
+            false,
+            false,
+            true,
+            null);
+
+        // Act
+        var cut = Render<ShopItemCard>(parameters =>
+            parameters.Add(p => p.Item, item)
+                      .Add(p => p.IsOwned, false));
+
+        // Assert
+        cut.Find($"[data-testid='{expectedVisualTestId}']").Should().NotBeNull();
+        cut.FindAll("img.item-image").Should().BeEmpty();
+    }
+
     [Fact]
     public void ShopItemCard_ClickBuy_TriggersOnPurchase()
     {

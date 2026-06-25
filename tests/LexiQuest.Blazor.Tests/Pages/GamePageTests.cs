@@ -2,8 +2,10 @@ using Bunit;
 using FluentAssertions;
 using LexiQuest.Blazor.Pages;
 using LexiQuest.Blazor.Services;
+using LexiQuest.Blazor.Components.Game;
 using LexiQuest.Shared.DTOs.Game;
 using LexiQuest.Shared.Enums;
+using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
 using NSubstitute;
@@ -54,9 +56,15 @@ public class GamePageTests : BunitContext
         gameArenaLocalizer["LevelComplete.XP"].Returns(new LocalizedString("LevelComplete.XP", "Total XP earned: {0}"));
         gameArenaLocalizer["GameOver.Title"].Returns(new LocalizedString("GameOver.Title", "Game over"));
         gameArenaLocalizer["GameOver.Description"].Returns(new LocalizedString("GameOver.Description", "No lives remaining."));
+        gameArenaLocalizer["TimeUp.Title"].Returns(new LocalizedString("TimeUp.Title", "Time is up"));
+        gameArenaLocalizer["TimeUp.Description"].Returns(new LocalizedString("TimeUp.Description", "Training ended."));
 
         var gameTimerLocalizer = Substitute.For<IStringLocalizer<LexiQuest.Blazor.Components.Game.GameTimer>>();
         gameTimerLocalizer["TimeRemaining"].Returns(new LocalizedString("TimeRemaining", "Time: {0}"));
+        gameTimerLocalizer["TimeRemaining_Aria"].Returns(new LocalizedString("TimeRemaining_Aria", "Remaining time"));
+
+        var letterTileLocalizer = Substitute.For<IStringLocalizer<LetterTileInput>>();
+        letterTileLocalizer[Arg.Any<string>()].Returns(x => new LocalizedString(x.Arg<string>(), x.Arg<string>()));
 
         var livesIndicatorLocalizer = Substitute.For<IStringLocalizer<LexiQuest.Blazor.Components.Game.LivesIndicator>>();
         livesIndicatorLocalizer["Label"].Returns(new LocalizedString("Label", "Lives"));
@@ -67,6 +75,7 @@ public class GamePageTests : BunitContext
         Services.AddSingleton(_localizer);
         Services.AddSingleton(gameArenaLocalizer);
         Services.AddSingleton(gameTimerLocalizer);
+        Services.AddSingleton(letterTileLocalizer);
         Services.AddSingleton(livesIndicatorLocalizer);
         Services.AddSingleton(_gameService);
         Services.AddSingleton(_toastService);
@@ -156,5 +165,71 @@ public class GamePageTests : BunitContext
 
         // Assert
         _gameService.Received(1).GetGameStateAsync(sessionId);
+    }
+
+    [Fact]
+    public async Task GamePage_TimerTick_SubmitAnswerUsesElapsedTime()
+    {
+        // Arrange
+        var sessionId = Guid.NewGuid();
+        var state = new ScrambledWordDto(
+            sessionId, 1, "PES", 3,
+            DifficultyLevel.Beginner, 30, 10, 5);
+
+        _gameService.GetGameStateAsync(sessionId)
+            .Returns(Task.FromResult<ScrambledWordDto?>(state));
+
+        _gameService.SubmitAnswerAsync(
+                sessionId,
+                "PES",
+                Arg.Any<int>(),
+                Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult<GameRoundResult?>(null));
+
+        var cut = Render<Game>(parameters => parameters
+            .Add(p => p.SessionId, sessionId));
+
+        await Task.Delay(1200);
+
+        // Act
+        cut.Find("[data-testid='game-answer-input']").Input("PES");
+        cut.Find(".btn-submit").Click();
+        await Task.Delay(100);
+
+        // Assert
+        await _gameService.Received(1).SubmitAnswerAsync(
+            sessionId,
+            "PES",
+            Arg.Is<int>(timeSpentMs => timeSpentMs >= 1000),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task GamePage_TimeUp_ForfeitsSessionAndNavigatesAway()
+    {
+        // Arrange
+        var sessionId = Guid.NewGuid();
+        var navigationManager = new TestNavigationManager();
+        Services.AddSingleton<NavigationManager>(navigationManager);
+
+        var state = new ScrambledWordDto(
+            sessionId, 1, "PES", 3,
+            DifficultyLevel.Beginner, 1, 10, 5,
+            IsInfiniteLives: true);
+
+        _gameService.GetGameStateAsync(sessionId)
+            .Returns(Task.FromResult<ScrambledWordDto?>(state));
+        _gameService.ForfeitGameAsync(sessionId, Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(true));
+
+        Render<Game>(parameters => parameters
+            .Add(p => p.SessionId, sessionId));
+
+        // Act
+        await Task.Delay(2600);
+
+        // Assert
+        await _gameService.Received(1).ForfeitGameAsync(sessionId, Arg.Any<CancellationToken>());
+        navigationManager.Uri.Should().Be("https://localhost/dashboard");
     }
 }

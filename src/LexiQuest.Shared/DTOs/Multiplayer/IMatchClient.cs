@@ -28,6 +28,7 @@ public interface IMatchClient
     // Common
     Task CountdownTick(int secondsRemaining);
     Task RoundStarted(MultiplayerRoundDto round);
+    Task PlayerFinished();
     Task PlayerProgressUpdated(OpponentProgressDto progress);
     Task OpponentAnswered(OpponentProgressDto progress);
     Task OpponentProgress(int correctCount, int totalAnswered);

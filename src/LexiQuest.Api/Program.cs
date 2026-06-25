@@ -9,6 +9,7 @@ using LexiQuest.Api.Hubs;
 using LexiQuest.Api.Middleware;
 using LexiQuest.Api.Testing;
 using LexiQuest.Api.Validators;
+using LexiQuest.Core.Configuration;
 using LexiQuest.Core.Domain.Entities;
 using LexiQuest.Core.Interfaces;
 using LexiQuest.Core.Interfaces.Repositories;
@@ -159,6 +160,7 @@ public class Program
         services.AddScoped<IXpService, Core.Services.XpService>();
         services.AddScoped<ILevelCalculator, LevelCalculator>();
         services.AddScoped<IPasswordResetService, PasswordResetService>();
+        services.Configure<PremiumAccessOptions>(configuration.GetSection(PremiumAccessOptions.SectionName));
         services.Configure<EmailSettings>(configuration.GetSection("EmailSettings"));
         services.AddScoped<IEmailService, LexiQuest.Infrastructure.Services.EmailService>();
         services.AddScoped<ILeagueService, LeagueService>();

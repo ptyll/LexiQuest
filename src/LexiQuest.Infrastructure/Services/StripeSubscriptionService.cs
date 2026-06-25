@@ -1,9 +1,11 @@
+using LexiQuest.Core.Configuration;
 using LexiQuest.Core.Domain.Entities;
 using LexiQuest.Core.Domain.Enums;
 using LexiQuest.Core.Interfaces;
 using LexiQuest.Core.Interfaces.Repositories;
 using LexiQuest.Core.Interfaces.Services;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Stripe;
 using Stripe.Checkout;
 
@@ -16,19 +18,22 @@ public class StripeSubscriptionService : ISubscriptionService
     private readonly IUserRepository _userRepository;
     private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<StripeSubscriptionService> _logger;
+    private readonly PremiumAccessOptions _premiumAccessOptions;
 
     public StripeSubscriptionService(
         StripeSettings settings,
         ISubscriptionRepository subscriptionRepository,
         IUserRepository userRepository,
         IUnitOfWork unitOfWork,
-        ILogger<StripeSubscriptionService> logger)
+        ILogger<StripeSubscriptionService> logger,
+        IOptions<PremiumAccessOptions>? premiumAccessOptions = null)
     {
         _settings = settings;
         _subscriptionRepository = subscriptionRepository;
         _userRepository = userRepository;
         _unitOfWork = unitOfWork;
         _logger = logger;
+        _premiumAccessOptions = premiumAccessOptions?.Value ?? new PremiumAccessOptions();
         
         // Initialize Stripe API key
         StripeConfiguration.ApiKey = settings.ApiKey;
@@ -258,6 +263,11 @@ public class StripeSubscriptionService : ISubscriptionService
 
     public async Task<bool> IsPremiumAsync(Guid userId, CancellationToken cancellationToken = default)
     {
+        if (_premiumAccessOptions.GrantAllFeatures)
+        {
+            return true;
+        }
+
         var subscription = await _subscriptionRepository.GetByUserIdAsync(userId);
         return subscription?.IsActive ?? false;
     }

@@ -5,6 +5,7 @@ using LexiQuest.Core.Interfaces;
 using LexiQuest.Core.Interfaces.Repositories;
 using LexiQuest.Core.Interfaces.Services;
 using LexiQuest.Core.Services;
+using LexiQuest.Shared.Enums;
 using NSubstitute;
 
 namespace LexiQuest.Core.Tests.Services;
@@ -158,6 +159,107 @@ public class InventoryServiceTests
     }
 
     [Fact]
+    public async Task EquipItem_AvatarItem_UpdatesUserAvatarUrl()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var inventoryItemId = Guid.NewGuid();
+        var shopItemId = Guid.NewGuid();
+        var user = User.Create("avatar@test.local", "avataruser");
+        user.SetId(userId);
+        var inventoryItem = UserInventoryItem.Create(userId, shopItemId);
+        var shopItem = ShopItem.Create("Vlastní avatar", "Desc", ShopCategory.Avatar, 100, ItemRarity.Rare, "/assets/shop/custom-avatar.svg");
+
+        _inventoryRepository.GetByIdAsync(inventoryItemId).Returns(inventoryItem);
+        _shopItemRepository.GetByIdAsync(shopItemId).Returns(shopItem);
+        _userRepository.GetByIdAsync(userId, Arg.Any<CancellationToken>()).Returns(user);
+
+        // Act
+        var result = await _service.EquipItemAsync(userId, inventoryItemId);
+
+        // Assert
+        result.Success.Should().BeTrue();
+        user.AvatarUrl.Should().Be("/assets/shop/custom-avatar.svg");
+        _userRepository.Received(1).Update(user);
+    }
+
+    [Fact]
+    public async Task EquipItem_DiamondAvatarWithLegacyIcon_UsesDiamondAvatarAsset()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var inventoryItemId = Guid.NewGuid();
+        var shopItemId = Guid.NewGuid();
+        var user = User.Create("diamond@test.local", "diamonduser");
+        user.SetId(userId);
+        var inventoryItem = UserInventoryItem.Create(userId, shopItemId);
+        var shopItem = ShopItem.CreatePremiumOnly("Diamantový avatar", "Desc", ShopCategory.Avatar, 0, ItemRarity.Legendary, "/icon-192.png");
+
+        _inventoryRepository.GetByIdAsync(inventoryItemId).Returns(inventoryItem);
+        _shopItemRepository.GetByIdAsync(shopItemId).Returns(shopItem);
+        _userRepository.GetByIdAsync(userId, Arg.Any<CancellationToken>()).Returns(user);
+
+        // Act
+        var result = await _service.EquipItemAsync(userId, inventoryItemId);
+
+        // Assert
+        result.Success.Should().BeTrue();
+        user.AvatarUrl.Should().Be("/assets/shop/avatar-diamond.svg");
+        _userRepository.Received(1).Update(user);
+    }
+
+    [Fact]
+    public async Task EquipItem_ThemeItem_UpdatesUserTheme()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var inventoryItemId = Guid.NewGuid();
+        var shopItemId = Guid.NewGuid();
+        var user = User.Create("theme@test.local", "themeuser");
+        user.SetId(userId);
+        var inventoryItem = UserInventoryItem.Create(userId, shopItemId);
+        var shopItem = ShopItem.Create("Noční téma", "Desc", ShopCategory.Theme, 900, ItemRarity.Epic, "/icon-192.png");
+
+        _inventoryRepository.GetByIdAsync(inventoryItemId).Returns(inventoryItem);
+        _shopItemRepository.GetByIdAsync(shopItemId).Returns(shopItem);
+        _userRepository.GetByIdAsync(userId, Arg.Any<CancellationToken>()).Returns(user);
+
+        // Act
+        var result = await _service.EquipItemAsync(userId, inventoryItemId);
+
+        // Assert
+        result.Success.Should().BeTrue();
+        user.Preferences.Theme.Should().Be(AppTheme.Dark);
+        _userRepository.Received(1).Update(user);
+    }
+
+    [Fact]
+    public async Task EquipItem_FrameItem_KeepsAvatarUnchanged()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var inventoryItemId = Guid.NewGuid();
+        var shopItemId = Guid.NewGuid();
+        var user = User.Create("frame@test.local", "frameuser");
+        user.SetId(userId);
+        user.UpdateAvatar("/assets/shop/avatar-diamond.svg");
+        var inventoryItem = UserInventoryItem.Create(userId, shopItemId);
+        var shopItem = ShopItem.Create("Stříbrný rámeček", "Desc", ShopCategory.Frame, 250, ItemRarity.Rare, "/icon-192.png");
+
+        _inventoryRepository.GetByIdAsync(inventoryItemId).Returns(inventoryItem);
+        _shopItemRepository.GetByIdAsync(shopItemId).Returns(shopItem);
+        _userRepository.GetByIdAsync(userId, Arg.Any<CancellationToken>()).Returns(user);
+
+        // Act
+        var result = await _service.EquipItemAsync(userId, inventoryItemId);
+
+        // Assert
+        result.Success.Should().BeTrue();
+        user.AvatarUrl.Should().Be("/assets/shop/avatar-diamond.svg");
+        _userRepository.DidNotReceive().Update(user);
+    }
+
+    [Fact]
     public async Task EquipItem_WrongUser_ReturnsError()
     {
         // Arrange
@@ -232,6 +334,58 @@ public class InventoryServiceTests
 
         // Assert
         result.Should().HaveCount(2);
+    }
+
+    [Fact]
+    public async Task GetUserInventory_EquippedDiamondAvatarWithMissingProfileAvatar_RepairsAvatarUrl()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var shopItemId = Guid.NewGuid();
+        var user = User.Create("repair-avatar@test.local", "repairavatar");
+        user.SetId(userId);
+        var item = UserInventoryItem.Create(userId, shopItemId);
+        item.Equip();
+        var shopItem = ShopItem.CreatePremiumOnly("Diamantový avatar", "Desc", ShopCategory.Avatar, 0, ItemRarity.Legendary, "/icon-192.png");
+
+        _inventoryRepository.GetByUserIdAsync(userId).Returns(new[] { item });
+        _shopItemRepository.GetByIdAsync(shopItemId).Returns(shopItem);
+        _userRepository.GetByIdAsync(userId, Arg.Any<CancellationToken>()).Returns(user);
+
+        // Act
+        var result = await _service.GetUserInventoryAsync(userId);
+
+        // Assert
+        result.Should().ContainSingle();
+        user.AvatarUrl.Should().Be("/assets/shop/avatar-diamond.svg");
+        _userRepository.Received(1).Update(user);
+        await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task GetUserInventory_EquippedNightThemeWithLightPreference_RepairsTheme()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var shopItemId = Guid.NewGuid();
+        var user = User.Create("repair-theme@test.local", "repairtheme");
+        user.SetId(userId);
+        var item = UserInventoryItem.Create(userId, shopItemId);
+        item.Equip();
+        var shopItem = ShopItem.Create("Noční téma", "Desc", ShopCategory.Theme, 900, ItemRarity.Epic, "/icon-192.png");
+
+        _inventoryRepository.GetByUserIdAsync(userId).Returns(new[] { item });
+        _shopItemRepository.GetByIdAsync(shopItemId).Returns(shopItem);
+        _userRepository.GetByIdAsync(userId, Arg.Any<CancellationToken>()).Returns(user);
+
+        // Act
+        var result = await _service.GetUserInventoryAsync(userId);
+
+        // Assert
+        result.Should().ContainSingle();
+        user.Preferences.Theme.Should().Be(AppTheme.Dark);
+        _userRepository.Received(1).Update(user);
+        await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
     [Fact]

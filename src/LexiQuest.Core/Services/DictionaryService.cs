@@ -21,17 +21,20 @@ public class DictionaryService : IDictionaryService
     private readonly IDictionaryWordRepository _wordRepo;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IUserRepository? _userRepository;
+    private readonly IPremiumFeatureService? _premiumFeatureService;
 
     public DictionaryService(
         ICustomDictionaryRepository dictionaryRepo,
         IDictionaryWordRepository wordRepo,
         IUnitOfWork unitOfWork,
-        IUserRepository? userRepository = null)
+        IUserRepository? userRepository = null,
+        IPremiumFeatureService? premiumFeatureService = null)
     {
         _dictionaryRepo = dictionaryRepo;
         _wordRepo = wordRepo;
         _unitOfWork = unitOfWork;
         _userRepository = userRepository;
+        _premiumFeatureService = premiumFeatureService;
     }
 
     public async Task<DictionaryDto> CreateDictionaryAsync(Guid userId, CreateDictionaryRequest request)
@@ -303,6 +306,11 @@ public class DictionaryService : IDictionaryService
 
     private async Task EnsurePremiumAsync(Guid userId)
     {
+        if (_premiumFeatureService is not null && await _premiumFeatureService.IsPremiumAsync(userId))
+        {
+            return;
+        }
+
         if (_userRepository == null)
         {
             return;

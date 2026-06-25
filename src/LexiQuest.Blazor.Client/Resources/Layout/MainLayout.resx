@@ -53,11 +53,23 @@
   <data name="Nav.Paths" xml:space="preserve">
     <value>Cesty</value>
   </data>
+  <data name="Nav.Multiplayer" xml:space="preserve">
+    <value>Multiplayer</value>
+  </data>
+  <data name="Nav.Team" xml:space="preserve">
+    <value>Týmy</value>
+  </data>
   <data name="Nav.Leagues" xml:space="preserve">
     <value>Ligy</value>
   </data>
   <data name="Nav.Achievements" xml:space="preserve">
     <value>Úspěchy</value>
+  </data>
+  <data name="Nav.Dictionaries" xml:space="preserve">
+    <value>Slovníky</value>
+  </data>
+  <data name="Nav.Shop" xml:space="preserve">
+    <value>Obchod</value>
   </data>
   <data name="Nav.Profile" xml:space="preserve">
     <value>Profil</value>

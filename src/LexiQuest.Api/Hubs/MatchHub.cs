@@ -423,10 +423,18 @@ public class MatchHub : Hub<IMatchClient>, IMatchHub
         _connectionToMatch[Context.ConnectionId] = matchId;
         _userConnections[userId] = Context.ConnectionId;
 
-        var currentRound = await _gameService.GetCurrentRoundAsync(matchId);
+        var currentRound = await _gameService.GetCurrentRoundAsync(matchId, userId);
         if (currentRound != null)
         {
             await Clients.Caller.RoundStarted(currentRound);
+        }
+        else
+        {
+            var playerProgress = await _gameService.GetPlayerProgressAsync(matchId, userId);
+            if (playerProgress.TotalAnswered >= match.TotalRounds)
+            {
+                await Clients.Caller.PlayerFinished();
+            }
         }
 
         return true;
@@ -456,10 +464,16 @@ public class MatchHub : Hub<IMatchClient>, IMatchHub
             return;
         }
 
-        var nextRound = await _gameService.GetCurrentRoundAsync(matchId);
+        if (result.IsPlayerComplete)
+        {
+            await Clients.Caller.PlayerFinished();
+            return;
+        }
+
+        var nextRound = await _gameService.GetCurrentRoundAsync(matchId, userId);
         if (nextRound != null)
         {
-            await Clients.Group($"match:{matchId}").RoundStarted(nextRound);
+            await Clients.Caller.RoundStarted(nextRound);
         }
     }
 

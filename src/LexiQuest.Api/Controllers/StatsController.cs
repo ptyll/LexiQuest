@@ -20,6 +20,7 @@ public class StatsController : ControllerBase
     private readonly ILevelCalculator _levelCalculator;
     private readonly IStreakService _streakService;
     private readonly IStreakProtectionService _streakProtectionService;
+    private readonly IPremiumFeatureService _premiumFeatureService;
     private readonly E2EStatsRuntimeSettings? _e2eStatsSettings;
 
     public StatsController(
@@ -27,6 +28,7 @@ public class StatsController : ControllerBase
         ILevelCalculator levelCalculator,
         IStreakService streakService,
         IStreakProtectionService streakProtectionService,
+        IPremiumFeatureService premiumFeatureService,
         IWebHostEnvironment environment,
         IServiceProvider serviceProvider)
     {
@@ -34,6 +36,7 @@ public class StatsController : ControllerBase
         _levelCalculator = levelCalculator;
         _streakService = streakService;
         _streakProtectionService = streakProtectionService;
+        _premiumFeatureService = premiumFeatureService;
         _e2eStatsSettings = environment.IsEnvironment("E2E")
             ? serviceProvider.GetService<E2EStatsRuntimeSettings>()
             : null;
@@ -75,7 +78,7 @@ public class StatsController : ControllerBase
         }
 
         var now = DateTime.UtcNow;
-        var isPremium = user.Premium.IsActive(now);
+        var isPremium = await _premiumFeatureService.IsPremiumAsync(userId);
         var protection = await _streakProtectionService.GetProtectionAsync(userId, cancellationToken);
         var canActivateFreeShield = await _streakProtectionService.CanActivateFreeShieldAsync(
             userId,

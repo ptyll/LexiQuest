@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
 using NSubstitute;
+using LexiQuest.Shared.DTOs.Multiplayer;
 using LexiQuest.Blazor.Tests.Helpers;
 using Xunit;
 
@@ -31,6 +32,7 @@ public class RealtimeGamePageTests : TestContext
         _localizer["Game_Timer_Format"].Returns(new LocalizedString("Game_Timer_Format", "{0}:{1:D2}"));
         _localizer["Game_Feedback_Correct"].Returns(new LocalizedString("Game_Feedback_Correct", "Správně!"));
         _localizer["Game_Feedback_Wrong"].Returns(new LocalizedString("Game_Feedback_Wrong", "Špatně!"));
+        _localizer["Game_Waiting_Opponent"].Returns(new LocalizedString("Game_Waiting_Opponent", "Čekání na soupeře"));
 
         _matchHubClient.JoinMatchAsync(Arg.Any<Guid>()).Returns(Task.FromResult(true));
         
@@ -85,5 +87,27 @@ public class RealtimeGamePageTests : TestContext
         // Assert
         cut.Find(".score-opponent").TextContent.Should().Contain("5");
     }
-}
 
+    [Fact]
+    public void RealtimeGame_PlayerFinished_DisablesAnswerAndShowsWaitingFeedback()
+    {
+        // Arrange
+        var cut = Render<RealtimeGame>(parameters => parameters
+            .Add(p => p.MatchId, Guid.NewGuid()));
+
+        _matchHubClient.OnRoundStarted += Raise.Event<EventHandler<MultiplayerRoundDto>>(
+            this, new MultiplayerRoundDto(15, "EVLOS", 5, 120, 1));
+
+        // Act
+        _matchHubClient.OnPlayerFinished += Raise.Event<EventHandler>(this, EventArgs.Empty);
+
+        // Assert
+        cut.WaitForAssertion(() =>
+        {
+            cut.Find("[data-testid='realtime-answer-input']").HasAttribute("disabled").Should().BeTrue();
+            cut.Find("[data-testid='realtime-submit']").HasAttribute("disabled").Should().BeTrue();
+            cut.Find("[data-testid='realtime-feedback']").TextContent.Should().Contain("Čekání na soupeře");
+            cut.FindAll(".letter-box").Should().BeEmpty();
+        });
+    }
+}

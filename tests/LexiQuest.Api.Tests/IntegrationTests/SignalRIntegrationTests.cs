@@ -30,6 +30,7 @@ public class SignalRIntegrationTests : IAsyncLifetime
         using var scope = _factory.Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<LexiQuestDbContext>();
         await dbContext.Database.EnsureCreatedAsync();
+        await DatabaseSeeder.SeedAsync(dbContext);
     }
 
     public async Task DisposeAsync()

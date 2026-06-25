@@ -269,6 +269,57 @@ public class GuestGamePageTests : BunitContext
     }
 
     [Fact]
+    public async Task GuestGamePage_WrongAnswer_AfterFeedbackAdvancesToNextWord()
+    {
+        // Arrange
+        var sessionId = Guid.NewGuid();
+        var firstWordId = Guid.NewGuid();
+        var secondWordId = Guid.NewGuid();
+        var startResponse = new GuestStartResponse(
+            SessionId: sessionId,
+            ScrambledWords: new List<GuestScrambledWordDto>
+            {
+                new(firstWordId, "sep", 3),
+                new(secondWordId, "ktaa", 4)
+            },
+            RemainingGames: 4,
+            Message: "Hra začala"
+        );
+
+        var answerResponse = new GuestAnswerResponse(
+            IsCorrect: false,
+            XpEarned: 0,
+            CorrectAnswer: "pes",
+            UserAnswer: null,
+            TotalSessionXp: 0,
+            WordsSolved: 0,
+            WordsRemaining: 1,
+            IsGameComplete: false
+        );
+
+        _guestGameService.StartGameAsync().Returns(startResponse);
+        _guestGameService.SubmitAnswerAsync(sessionId, firstWordId, "špatně").Returns(answerResponse);
+
+        var cut = Render<GuestGame>();
+        cut.Find("[data-testid='btn-start-guest']").Click();
+        await Task.Delay(100);
+        cut.Render();
+
+        // Act
+        cut.Find("[data-testid='answer-input']").Input("špatně");
+        cut.Find("[data-testid='btn-submit']").Click();
+
+        // Assert
+        cut.WaitForAssertion(
+            () => cut.Find("[data-testid='answer-feedback']").TextContent.Should().Contain("pes"),
+            timeout: TimeSpan.FromSeconds(1));
+        cut.WaitForAssertion(
+            () => cut.Find("[data-testid='guest-scrambled-word']").TextContent.Should().Be("ktaa"),
+            timeout: TimeSpan.FromSeconds(4));
+        cut.Find(".progress-info").TextContent.Should().Contain("Slovo 2 z 2");
+    }
+
+    [Fact]
     public async Task GuestGamePage_LetterTiles_BuildAnswerAndSubmit()
     {
         // Arrange

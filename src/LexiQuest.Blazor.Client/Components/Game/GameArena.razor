@@ -45,12 +45,18 @@
     </div>
 
     <!-- Answer Input -->
-    <div class="answer-section">
+    <div class="answer-section answer-workbench">
+        <LetterTileInput ScrambledWord="@ScrambledWord"
+                         Value="@CurrentAnswer"
+                         ValueChanged="HandleTileAnswerChanged"
+                         Disabled="@IsInteractionLocked"
+                         RootTestId="game-letter-input" />
+
         <input type="text"
                value="@CurrentAnswer"
                @oninput="HandleInput"
                placeholder="@L["Answer.Placeholder"]"
-               disabled="@(IsSubmitting || IsGameOver)"
+               disabled="@IsInteractionLocked"
                class="answer-input @GetInputClass()"
                data-testid="game-answer-input"
                @onkeydown="HandleKeyDown"
@@ -58,18 +64,12 @@
                autocomplete="off"
                autofocus />
 
-        <LetterTileInput ScrambledWord="@ScrambledWord"
-                         Value="@CurrentAnswer"
-                         ValueChanged="HandleTileAnswerChanged"
-                         Disabled="@(IsSubmitting || IsGameOver)"
-                         RootTestId="game-letter-input" />
-
         <div class="action-buttons">
             <div data-testid="game-submit">
                 <TmButton Variant="ButtonVariant.Primary"
                           Size="ButtonSize.Lg"
                           OnClick="SubmitAnswer"
-                          Disabled="@(!CanSubmit || IsSubmitting || IsGameOver)"
+                          Disabled="@(!CanSubmit || IsInteractionLocked)"
                           IsLoading="@IsSubmitting"
                           LoadingText="@L["Button.Submitting"]"
                           Class="btn-submit">
@@ -81,7 +81,7 @@
                 <TmButton Variant="ButtonVariant.Outline"
                           Size="ButtonSize.Lg"
                           OnClick="SkipRound"
-                          Disabled="@(IsSubmitting || IsGameOver)"
+                          Disabled="@IsInteractionLocked"
                           Class="btn-skip">
                     @L["Button.Skip"]
                 </TmButton>
@@ -136,7 +136,23 @@
         </div>
     }
 
-    @if (IsGameOver)
+    @if (IsTimeExpired)
+    {
+        <div class="time-expired-overlay" data-testid="game-time-expired" role="dialog" aria-modal="true" aria-label="@L["TimeUp.Title"]">
+            <div class="time-expired-content">
+                <TmIcon Name="timer-off" Class="time-expired-icon" />
+                <h2>@L["TimeUp.Title"]</h2>
+                <p>@L["TimeUp.Description"]</p>
+                <TmButton Variant="ButtonVariant.Primary"
+                          Size="ButtonSize.Lg"
+                          OnClick="OnBackClick"
+                          Class="btn-continue">
+                    @L["Button.Continue"]
+                </TmButton>
+            </div>
+        </div>
+    }
+    else if (IsGameOver)
     {
         <div class="game-over-overlay" data-testid="game-over" role="dialog" aria-modal="true" aria-label="@L["GameOver.Title"]">
             <div class="game-over-content">
@@ -174,9 +190,12 @@
     private GameRoundResult? LastResult { get; set; }
     private bool IsLevelComplete { get; set; } = false;
     private bool IsGameOver { get; set; } = false;
+    private bool IsTimeExpired { get; set; } = false;
     private int TotalXPEarned { get; set; } = 0;
 
-    private bool CanSubmit => !IsGameOver && !string.IsNullOrWhiteSpace(CurrentAnswer) && CurrentAnswer.Length <= 50;
+    private bool IsFeedbackLocked => ShowFeedback && LastResult is not null;
+    private bool IsInteractionLocked => IsSubmitting || IsFeedbackLocked || IsLevelComplete || IsGameOver || IsTimeExpired;
+    private bool CanSubmit => !IsInteractionLocked && !string.IsNullOrWhiteSpace(CurrentAnswer) && CurrentAnswer.Length <= 50;
     private LivesStatus LivesStatus => new(LivesRemaining, MaxLives, NextLifeRegenAt, IsInfiniteLives);
 
     private string GetInputClass() => ShowFeedback switch
@@ -190,7 +209,7 @@
 
     private async Task SubmitAnswer()
     {
-        if (!CanSubmit || IsSubmitting) return;
+        if (!CanSubmit || IsInteractionLocked) return;
 
         IsSubmitting = true;
         ShowFeedback = false;
@@ -210,7 +229,7 @@
 
     private async Task SkipRound()
     {
-        if (IsSubmitting || IsGameOver) return;
+        if (IsInteractionLocked) return;
         await OnSkipRound.InvokeAsync();
     }
 
@@ -226,11 +245,11 @@
 
     private async Task HandleKeyDown(KeyboardEventArgs e)
     {
-        if (e.Key == "Enter" && CanSubmit && !IsSubmitting)
+        if (e.Key == "Enter" && CanSubmit && !IsInteractionLocked)
         {
             await SubmitAnswer();
         }
-        else if (e.Key == "Escape" && !IsSubmitting && !IsGameOver)
+        else if (e.Key == "Escape" && !IsInteractionLocked)
         {
             CurrentAnswer = "";
         }
@@ -256,6 +275,7 @@
             ShowFeedback = true;
             IsLevelComplete = result.IsLevelComplete;
             IsGameOver = result.IsGameOver;
+            IsTimeExpired = false;
 
             if (result.IsCorrect)
             {
@@ -276,6 +296,22 @@
             ShowFeedback = false;
             LastResult = null;
             IsGameOver = false;
+            IsTimeExpired = false;
+            StateHasChanged();
+        });
+    }
+
+    public async Task ShowTimeExpired()
+    {
+        await InvokeAsync(() =>
+        {
+            CurrentAnswer = "";
+            IsSubmitting = false;
+            ShowFeedback = false;
+            LastResult = null;
+            IsLevelComplete = false;
+            IsGameOver = false;
+            IsTimeExpired = true;
             StateHasChanged();
         });
     }
@@ -290,6 +326,7 @@
             LastResult = null;
             IsLevelComplete = false;
             IsGameOver = false;
+            IsTimeExpired = false;
             StateHasChanged();
         });
     }

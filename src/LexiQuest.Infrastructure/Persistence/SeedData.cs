@@ -8,8 +8,6 @@ public static class SeedData
 {
     public static List<ShopItem> GetShopItems()
     {
-        const string imageUrl = "/icon-192.png";
-
         return
         [
             ShopItem.Create(
@@ -18,42 +16,42 @@ public static class SeedData
                 category: ShopCategory.Avatar,
                 price: 120,
                 rarity: ItemRarity.Common,
-                imageUrl: imageUrl),
+                imageUrl: "/assets/shop/avatar-owl.svg"),
             ShopItem.CreatePremiumOnly(
                 name: "Diamantový avatar",
                 description: "Prémiový avatar s legendární aurou.",
                 category: ShopCategory.Avatar,
                 price: 0,
                 rarity: ItemRarity.Legendary,
-                imageUrl: imageUrl),
+                imageUrl: "/assets/shop/avatar-diamond.svg"),
             ShopItem.Create(
                 name: "Dřevěný rámeček",
                 description: "Jednoduchý rámeček pro čistý profil.",
                 category: ShopCategory.Frame,
                 price: 200,
                 rarity: ItemRarity.Common,
-                imageUrl: imageUrl),
+                imageUrl: "/assets/shop/frame-wood.svg"),
             ShopItem.Create(
                 name: "Stříbrný rámeček",
                 description: "Vzácnější rámeček pro výraznější profil.",
                 category: ShopCategory.Frame,
                 price: 250,
                 rarity: ItemRarity.Rare,
-                imageUrl: imageUrl),
+                imageUrl: "/assets/shop/frame-silver.svg"),
             ShopItem.Create(
                 name: "Noční téma",
                 description: "Klidné tmavé téma pro večerní hraní.",
                 category: ShopCategory.Theme,
                 price: 900,
                 rarity: ItemRarity.Epic,
-                imageUrl: imageUrl),
+                imageUrl: "/assets/shop/theme-night.svg"),
             ShopItem.Create(
                 name: "XP boost malý",
                 description: "Krátké posílení pro rychlejší postup.",
                 category: ShopCategory.Boost,
                 price: 150,
                 rarity: ItemRarity.Rare,
-                imageUrl: imageUrl)
+                imageUrl: "/assets/shop/boost-xp-small.svg")
         ];
     }
 

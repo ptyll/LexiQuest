@@ -79,8 +79,10 @@ public class PremiumControllerTests
             DateTime.UtcNow.AddMonths(-1),
             DateTime.UtcNow.AddMonths(1));
 
-        _subscriptionService.GetActiveSubscriptionAsync(_testUserId, Arg.Any<CancellationToken>())
+        _subscriptionService.GetSubscriptionAsync(_testUserId, Arg.Any<CancellationToken>())
             .Returns(subscription);
+        _premiumFeatureService.IsPremiumAsync(_testUserId)
+            .Returns(false);
 
         // Act
         var result = await _controller.GetStatus(CancellationToken.None);
@@ -97,8 +99,10 @@ public class PremiumControllerTests
     public async Task GetStatus_NoSubscription_ReturnsExpiredStatus()
     {
         // Arrange
-        _subscriptionService.GetActiveSubscriptionAsync(_testUserId, Arg.Any<CancellationToken>())
+        _subscriptionService.GetSubscriptionAsync(_testUserId, Arg.Any<CancellationToken>())
             .Returns((Subscription?)null);
+        _premiumFeatureService.IsPremiumAsync(_testUserId)
+            .Returns(false);
 
         // Act
         var result = await _controller.GetStatus(CancellationToken.None);
@@ -109,6 +113,27 @@ public class PremiumControllerTests
         var status = okResult!.Value as SubscriptionStatusDto;
         status!.IsActive.Should().BeFalse();
         status.Status.Should().Be(Shared.DTOs.Premium.SubscriptionStatus.Expired);
+    }
+
+    [Fact]
+    public async Task GetStatus_GrantAllFeaturesEnabledWithoutSubscription_ReturnsActiveStatus()
+    {
+        // Arrange
+        _subscriptionService.GetSubscriptionAsync(_testUserId, Arg.Any<CancellationToken>())
+            .Returns((Subscription?)null);
+        _premiumFeatureService.IsPremiumAsync(_testUserId)
+            .Returns(true);
+
+        // Act
+        var result = await _controller.GetStatus(CancellationToken.None);
+
+        // Assert
+        result.Result.Should().BeOfType<OkObjectResult>();
+        var okResult = result.Result as OkObjectResult;
+        var status = okResult!.Value as SubscriptionStatusDto;
+        status!.IsActive.Should().BeTrue();
+        status.Plan.Should().Be(Shared.DTOs.Premium.SubscriptionPlan.Lifetime);
+        status.Status.Should().Be(Shared.DTOs.Premium.SubscriptionStatus.Active);
     }
 
     [Fact]
@@ -132,7 +157,7 @@ public class PremiumControllerTests
     public async Task GetFeatures_ReturnsAllFeaturesWithCorrectAvailability(bool isPremium)
     {
         // Arrange
-        _subscriptionService.IsPremiumAsync(_testUserId, Arg.Any<CancellationToken>())
+        _premiumFeatureService.IsPremiumAsync(_testUserId)
             .Returns(isPremium);
 
         // Act

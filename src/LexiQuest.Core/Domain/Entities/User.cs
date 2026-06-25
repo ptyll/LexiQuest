@@ -193,6 +193,12 @@ public class User
         UpdatedAt = DateTime.UtcNow;
     }
 
+    public void ClearAvatar()
+    {
+        AvatarUrl = null;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
     public void UpdatePreferences(UserPreferences preferences)
     {
         Preferences = preferences;

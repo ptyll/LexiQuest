@@ -1,9 +1,11 @@
 using FluentAssertions;
+using LexiQuest.Core.Configuration;
 using LexiQuest.Core.Domain.Entities;
 using LexiQuest.Core.Domain.Enums;
 using LexiQuest.Core.Interfaces;
 using LexiQuest.Core.Interfaces.Repositories;
 using LexiQuest.Core.Services;
+using Microsoft.Extensions.Options;
 using NSubstitute;
 
 namespace LexiQuest.Core.Tests.Services;
@@ -18,7 +20,10 @@ public class SubscriptionServiceTests
     {
         _subscriptionRepository = Substitute.For<ISubscriptionRepository>();
         _unitOfWork = Substitute.For<IUnitOfWork>();
-        _service = new SubscriptionService(_subscriptionRepository, _unitOfWork);
+        _service = new SubscriptionService(
+            _subscriptionRepository,
+            _unitOfWork,
+            Options.Create(new PremiumAccessOptions { GrantAllFeatures = false }));
     }
 
     [Fact]
@@ -54,6 +59,24 @@ public class SubscriptionServiceTests
 
         // Assert
         result.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task IsPremium_GrantAllFeaturesEnabled_ReturnsTrueWithoutSubscription()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var service = new SubscriptionService(
+            _subscriptionRepository,
+            _unitOfWork,
+            Options.Create(new PremiumAccessOptions { GrantAllFeatures = true }));
+        _subscriptionRepository.GetByUserIdAsync(userId).Returns((Subscription?)null);
+
+        // Act
+        var result = await service.IsPremiumAsync(userId);
+
+        // Assert
+        result.Should().BeTrue();
     }
 
     [Fact]
